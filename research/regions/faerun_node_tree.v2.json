@@ -1,0 +1,1679 @@
+{
+ "frame": "Waterdeep origin; +x E, +y N; miles",
+ "ruler": "Fonstad 1in=200mi, pin Wd-Neverwinter=200mi (11.76 mi/day)",
+ "nodes": {
+  "waterdeep": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "origin",
+   "coord": [
+    0,
+    0
+   ]
+  },
+  "neverwinter": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Sword Coast North",
+   "coord": [
+    -35,
+    197
+   ]
+  },
+  "icewinddale": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Ten Towns",
+   "coord": [
+    -104,
+    335
+   ]
+  },
+  "swordcoast": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "coast corridor",
+   "coord": [
+    -12,
+    99
+   ]
+  },
+  "baldursgate": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Chionthar mouth",
+   "coord": [
+    -50,
+    -477
+   ]
+  },
+  "heartlands": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Elturel/W.Heartlands",
+   "coord": [
+    51,
+    -470
+   ]
+  },
+  "dessarin": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Dessarin Valley",
+   "coord": null
+  },
+  "silvermarches": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Silverymoon",
+   "coord": [
+    239,
+    302
+   ]
+  },
+  "cormyr": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Suzail",
+   "coord": [
+    829,
+    -508
+   ]
+  },
+  "dalelands": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "the Dales",
+   "coord": [
+    869,
+    -322
+   ]
+  },
+  "moonsea": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "Hillsfar/Mulmaster",
+   "coord": [
+    875,
+    -132
+   ]
+  },
+  "chult": {
+   "kind": "region",
+   "prov": "mixed",
+   "note": "jungle peninsula",
+   "coord": [
+    -371,
+    -1293
+   ]
+  },
+  "leilon": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    -22,
+    127
+   ]
+  },
+  "portllast": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    -39,
+    221
+   ]
+  },
+  "luskan": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    -47,
+    267
+   ]
+  },
+  "redlarch": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    38,
+    72
+   ]
+  },
+  "triboar": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    72,
+    135
+   ]
+  },
+  "yartar": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    89,
+    152
+   ]
+  },
+  "longsaddle": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    100,
+    187
+   ]
+  },
+  "mirabar": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    144,
+    270
+   ]
+  },
+  "everlund": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    197,
+    260
+   ]
+  },
+  "sundabar": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    309,
+    314
+   ]
+  },
+  "daggerford": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    -13,
+    -119
+   ]
+  },
+  "elturel": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    50,
+    -470
+   ]
+  },
+  "secomber": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    120,
+    -48
+   ]
+  },
+  "loudwater": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    218,
+    -88
+   ]
+  },
+  "llorkh": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    294,
+    -119
+   ]
+  },
+  "parnast": {
+   "kind": "waypoint",
+   "prov": "",
+   "note": "",
+   "coord": [
+    343,
+    -84
+   ]
+  }
+ },
+ "edges": [
+  {
+   "a": "waterdeep",
+   "b": "leilon",
+   "road": "High Road",
+   "type": "land",
+   "mi": 129,
+   "prov": "days"
+  },
+  {
+   "a": "leilon",
+   "b": "neverwinter",
+   "road": "High Road",
+   "type": "land",
+   "mi": 71,
+   "prov": "days"
+  },
+  {
+   "a": "neverwinter",
+   "b": "portllast",
+   "road": "High Road",
+   "type": "land",
+   "mi": 24,
+   "prov": "days"
+  },
+  {
+   "a": "portllast",
+   "b": "luskan",
+   "road": "High Road",
+   "type": "land",
+   "mi": 47,
+   "prov": "days"
+  },
+  {
+   "a": "waterdeep",
+   "b": "redlarch",
+   "road": "Long Road",
+   "type": "land",
+   "mi": 82,
+   "prov": "days"
+  },
+  {
+   "a": "redlarch",
+   "b": "triboar",
+   "road": "Long Road",
+   "type": "land",
+   "mi": 71,
+   "prov": "days"
+  },
+  {
+   "a": "triboar",
+   "b": "longsaddle",
+   "road": "Long Road",
+   "type": "land",
+   "mi": 59,
+   "prov": "days"
+  },
+  {
+   "a": "longsaddle",
+   "b": "mirabar",
+   "road": "Long Road",
+   "type": "land",
+   "mi": 94,
+   "prov": "days"
+  },
+  {
+   "a": "triboar",
+   "b": "yartar",
+   "road": "Evermoor Way",
+   "type": "land",
+   "mi": 24,
+   "prov": "days"
+  },
+  {
+   "a": "yartar",
+   "b": "everlund",
+   "road": "Evermoor Way",
+   "type": "land",
+   "mi": 153,
+   "prov": "days"
+  },
+  {
+   "a": "everlund",
+   "b": "silvermarches",
+   "road": "Evermoor Way",
+   "type": "land",
+   "mi": 59,
+   "prov": "days"
+  },
+  {
+   "a": "silvermarches",
+   "b": "sundabar",
+   "road": "Silverymoon Pass",
+   "type": "land",
+   "mi": 71,
+   "prov": "days"
+  },
+  {
+   "a": "waterdeep",
+   "b": "daggerford",
+   "road": "Trade Way",
+   "type": "land",
+   "mi": 120,
+   "prov": "cited-3e"
+  },
+  {
+   "a": "daggerford",
+   "b": "baldursgate",
+   "road": "Trade Way",
+   "type": "land",
+   "mi": 360,
+   "prov": "cited-3e"
+  },
+  {
+   "a": "baldursgate",
+   "b": "elturel",
+   "road": "Chionthar road",
+   "type": "land",
+   "mi": 100,
+   "prov": "cited"
+  },
+  {
+   "a": "elturel",
+   "b": "heartlands",
+   "road": "Chionthar road",
+   "type": "land",
+   "mi": 0,
+   "prov": "alias"
+  },
+  {
+   "a": "waterdeep",
+   "b": "secomber",
+   "road": "East Trail",
+   "type": "land",
+   "mi": 129,
+   "prov": "days"
+  },
+  {
+   "a": "secomber",
+   "b": "loudwater",
+   "road": "East Trail",
+   "type": "land",
+   "mi": 106,
+   "prov": "days"
+  },
+  {
+   "a": "loudwater",
+   "b": "llorkh",
+   "road": "East Trail",
+   "type": "land",
+   "mi": 82,
+   "prov": "days"
+  },
+  {
+   "a": "llorkh",
+   "b": "parnast",
+   "road": "Dawn Pass Trail",
+   "type": "land",
+   "mi": 60,
+   "prov": "derived"
+  },
+  {
+   "a": "luskan",
+   "b": "icewinddale",
+   "road": "over the Spine",
+   "type": "land",
+   "mi": 117,
+   "prov": "derived"
+  },
+  {
+   "a": "waterdeep",
+   "b": "yartar",
+   "road": "Dessarin barge",
+   "type": "river",
+   "mi": 235,
+   "prov": "days"
+  },
+  {
+   "a": "yartar",
+   "b": "silvermarches",
+   "road": "Dessarin barge",
+   "type": "river",
+   "mi": 271,
+   "prov": "days"
+  },
+  {
+   "a": "waterdeep",
+   "b": "luskan",
+   "road": "coastal ship",
+   "type": "sea",
+   "mi": 71,
+   "prov": "days-sea"
+  },
+  {
+   "a": "waterdeep",
+   "b": "baldursgate",
+   "road": "coastal ship",
+   "type": "sea",
+   "mi": 106,
+   "prov": "days-sea"
+  },
+  {
+   "a": "heartlands",
+   "b": "cormyr",
+   "road": "interior road (E-W connector)",
+   "type": "land",
+   "mi": 880,
+   "prov": "derived*-weakest"
+  },
+  {
+   "a": "cormyr",
+   "b": "dalelands",
+   "road": "Tilverton/Thunder Gap",
+   "type": "land",
+   "mi": 190,
+   "prov": "derived*"
+  },
+  {
+   "a": "dalelands",
+   "b": "moonsea",
+   "road": "Moonsea Ride",
+   "type": "land",
+   "mi": 190,
+   "prov": "derived*"
+  },
+  {
+   "a": "swordcoast",
+   "b": "chult",
+   "road": "open sea",
+   "type": "sea",
+   "mi": 1345,
+   "prov": "derived*-sea"
+  },
+  {
+   "a": "waterdeep",
+   "b": "swordcoast",
+   "road": "coast",
+   "type": "land",
+   "mi": 100,
+   "prov": "derived"
+  },
+  {
+   "a": "swordcoast",
+   "b": "neverwinter",
+   "road": "coast",
+   "type": "land",
+   "mi": 100,
+   "prov": "derived"
+  }
+ ],
+ "pending_locations": {
+  "why": "Season 1 named locations are attached here, NOT promoted to coordinate nodes. Per the codify-later rule, nothing derived* is hardened into nodes/edges. See S1_LOCATIONS_REDPEN.md.",
+  "dataset": "s1_locations.json",
+  "count": 74,
+  "blocked_on": "REDUCED. Phlan now has three CITED edges (Dungeon #170 p.57): Zhentil Keep 70 mi W, Melvaunt 55 mi E, Castle Vathar 65 mi N. The ONLY remaining gap between Phlan and the strong west side of the tree is the Black Road crossing, Llorkh -> Zhentil Keep. One number.",
+  "unlocks": "One cited Phlan coordinate (or one cited Phlan<->Zhentil Keep / Phlan<->Melvaunt distance) converts 18 relative records into coordinates in a single pass.",
+  "items": [
+   {
+    "name": "Phlan",
+    "kind": "settlement",
+    "parent": "moonsea",
+    "place": {
+     "anchor": "moonsea",
+     "rel": "north shore",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-1",
+      "p": 1
+     },
+     {
+      "adv": "DDEX1-9",
+      "p": 1
+     }
+    ]
+   },
+   {
+    "name": "Moonsea",
+    "kind": "region",
+    "parent": null,
+    "place": {
+     "node": "moonsea"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 2
+     },
+     {
+      "adv": "DDEX1-7",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Melvaunt",
+    "kind": "settlement",
+    "parent": "moonsea",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "mi": 55,
+     "prov": "cited",
+     "via": "Phlan Path"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 19
+     },
+     {
+      "adv": "DDEX1-7",
+      "p": 7
+     },
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     }
+    ]
+   },
+   {
+    "name": "Mulmaster",
+    "kind": "settlement",
+    "parent": "moonsea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 19
+     },
+     {
+      "adv": "DDEX1-7",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Hillsfar",
+    "kind": "settlement",
+    "parent": "moonsea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 11
+     }
+    ]
+   },
+   {
+    "name": "Zhentil Keep",
+    "kind": "settlement",
+    "parent": "moonsea",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "W",
+     "mi": 70,
+     "prov": "cited",
+     "via": "Iron Route"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 9
+     },
+     {
+      "adv": "DDEX1-8",
+      "p": 5
+     },
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     }
+    ]
+   },
+   {
+    "name": "Thar",
+    "kind": "feature",
+    "parent": "moonsea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Waterdeep",
+    "kind": "settlement",
+    "parent": null,
+    "place": {
+     "node": "waterdeep"
+    },
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Sword Coast",
+    "kind": "region",
+    "parent": null,
+    "place": {
+     "node": "swordcoast"
+    },
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "King's Pyre",
+    "kind": "site",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "W",
+     "mi": 40,
+     "prov": "cited",
+     "days_in_text": 2
+    },
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Twilight Marsh",
+    "kind": "feature",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 20
+     },
+     {
+      "adv": "DDEX1-7",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Trank River",
+    "kind": "feature",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Rythnax's lair",
+    "kind": "site",
+    "parent": "Phlan Path",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-days-only",
+     "days_in_text": 0.5,
+     "mode": "ride"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 20
+     }
+    ]
+   },
+   {
+    "name": "Kabel's Hill",
+    "kind": "settlement",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-days-only",
+     "days_in_text": 1.5,
+     "along": "Stojanow River"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-8",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Quivering Forest",
+    "kind": "feature",
+    "parent": "Kabel's Hill",
+    "place": {
+     "anchor": "Kabel's Hill",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-8",
+      "p": 2
+     },
+     {
+      "adv": "DDEX1-1",
+      "p": 23
+     },
+     {
+      "adv": "DDEX1-9",
+      "p": 17
+     }
+    ]
+   },
+   {
+    "name": "Dragonspine Mountains",
+    "kind": "feature",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "NW",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-5",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Flooded Forest",
+    "kind": "feature",
+    "parent": "Mulmaster",
+    "place": {
+     "anchor": "Mulmaster",
+     "bearing": null,
+     "mi": null,
+     "prov": "cited-adjacency-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Kryptgarden Forest",
+    "kind": "feature",
+    "parent": "waterdeep",
+    "place": {
+     "anchor": "waterdeep",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Westbridge",
+    "kind": "settlement",
+    "parent": "Kryptgarden Forest",
+    "place": {
+     "anchor": "Kryptgarden Forest",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Sword Mountains",
+    "kind": "feature",
+    "parent": "Kryptgarden Forest",
+    "place": {
+     "anchor": "Kryptgarden Forest",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Thorn Island",
+    "kind": "site",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": null,
+     "mi": null,
+     "prov": "cited-adjacency-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Sokol Keep",
+    "kind": "site",
+    "parent": "Thorn Island",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Stojanow River",
+    "kind": "feature",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-8",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Stormy Bay",
+    "kind": "feature",
+    "parent": "moonsea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Ringcurrent Islands",
+    "kind": "feature",
+    "parent": "Twilight Marsh",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Island of the Lizard King",
+    "kind": "site",
+    "parent": "Ringcurrent Islands",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Grass Sea",
+    "kind": "feature",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "W",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Iron Route",
+    "kind": "route",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "W",
+     "to": "Zhentil Keep",
+     "mi": 70,
+     "prov": "cited"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 2
+     },
+     {
+      "adv": "DDEX1-9",
+      "p": 6
+     },
+     {
+      "adv": "DDEX1-9",
+      "p": 13
+     },
+     {
+      "adv": "AL Player's Guide to Phlan",
+      "p": null
+     },
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     },
+     {
+      "adv": "FR Wiki: Iron Route",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Phlan Path",
+    "kind": "route",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "to": "Melvaunt",
+     "mi": 55,
+     "prov": "cited"
+    },
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 20
+     },
+     {
+      "adv": "DDEX1-7",
+      "p": 6
+     },
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     },
+     {
+      "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Farmer's Trail",
+    "kind": "route",
+    "parent": "Trank River",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 9
+     }
+    ]
+   },
+   {
+    "name": "Aleston",
+    "kind": "settlement",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "coast",
+     "mi": null,
+     "prov": "cited-days-only",
+     "days_in_text": 1
+    },
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Vig's Dock",
+    "kind": "site",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Valjevo Keep",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-4",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Stojanow Gate",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-4",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Valhingen Graveyard",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-4",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Podol Plaza",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 7
+     }
+    ]
+   },
+   {
+    "name": "Mantor's Library",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Scholar's Square",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 1
+     }
+    ]
+   },
+   {
+    "name": "Nobles' Quarter",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 8
+     }
+    ]
+   },
+   {
+    "name": "Denlor's Tower",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Laughing Goblin Inn",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Cadorna Textile House",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Cracked Crown Square",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Ambush Alley",
+    "kind": "interior",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-6",
+      "p": 12
+     }
+    ]
+   },
+   {
+    "name": "Welltran Crypt",
+    "kind": "interior",
+    "parent": "Valhingen Graveyard",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-1",
+      "p": 17
+     }
+    ]
+   },
+   {
+    "name": "Xandria's Crypt",
+    "kind": "interior",
+    "parent": "Valhingen Graveyard",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-1",
+      "p": 17
+     }
+    ]
+   },
+   {
+    "name": "Sedrair's Tomb",
+    "kind": "interior",
+    "parent": "Valhingen Graveyard",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-4",
+      "p": 15
+     }
+    ]
+   },
+   {
+    "name": "East Tower",
+    "kind": "sublocation",
+    "parent": "Sokol Keep",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "West Tower",
+    "kind": "sublocation",
+    "parent": "Sokol Keep",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 2
+     }
+    ]
+   },
+   {
+    "name": "Jade Temple",
+    "kind": "sublocation",
+    "parent": "Sokol Keep",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-2",
+      "p": 17
+     }
+    ]
+   },
+   {
+    "name": "Renon Farm",
+    "kind": "sublocation",
+    "parent": "Twilight Marsh",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Tralio Farm",
+    "kind": "sublocation",
+    "parent": "Twilight Marsh",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 9
+     }
+    ]
+   },
+   {
+    "name": "Alyin Farm",
+    "kind": "sublocation",
+    "parent": "Twilight Marsh",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 9
+     }
+    ]
+   },
+   {
+    "name": "Taroo's House",
+    "kind": "sublocation",
+    "parent": "Renon Farm",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Crossing Inn",
+    "kind": "sublocation",
+    "parent": "Trank River",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-7",
+      "p": 6
+     }
+    ]
+   },
+   {
+    "name": "Halvin's House",
+    "kind": "sublocation",
+    "parent": "Kabel's Hill",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-8",
+      "p": 5
+     }
+    ]
+   },
+   {
+    "name": "Kobold Camp",
+    "kind": "sublocation",
+    "parent": "Grass Sea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 16
+     }
+    ]
+   },
+   {
+    "name": "Cliff Caves",
+    "kind": "sublocation",
+    "parent": "Grass Sea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 16
+     }
+    ]
+   },
+   {
+    "name": "Outlaw Camp",
+    "kind": "sublocation",
+    "parent": "Grass Sea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 20
+     }
+    ]
+   },
+   {
+    "name": "Sea Cave",
+    "kind": "sublocation",
+    "parent": "Grass Sea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 19
+     }
+    ]
+   },
+   {
+    "name": "Signal Pyre",
+    "kind": "sublocation",
+    "parent": "Grass Sea",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-9",
+      "p": 19
+     }
+    ]
+   },
+   {
+    "name": "Shady Glade",
+    "kind": "sublocation",
+    "parent": "Kryptgarden Forest",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 23
+     }
+    ]
+   },
+   {
+    "name": "Elven Ruins",
+    "kind": "sublocation",
+    "parent": "Kryptgarden Forest",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEP1",
+      "p": 39
+     }
+    ]
+   },
+   {
+    "name": "Dark Wood",
+    "kind": "sublocation",
+    "parent": "Quivering Forest",
+    "place": null,
+    "src": [
+     {
+      "adv": "DDEX1-3",
+      "p": 19
+     }
+    ]
+   },
+   {
+    "name": "Toranth's March",
+    "kind": "route",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     }
+    ]
+   },
+   {
+    "name": "Castle Vathar",
+    "kind": "site",
+    "parent": "Toranth's March",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": 65,
+     "prov": "cited",
+     "via": "Toranth's March"
+    },
+    "src": [
+     {
+      "adv": "Dungeon #170 'Monument of the Ancients'",
+      "p": 57
+     }
+    ]
+   },
+   {
+    "name": "Stojanow Trail",
+    "kind": "route",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "Dungeon #170",
+      "p": 56
+     }
+    ]
+   },
+   {
+    "name": "Valjevo Isle",
+    "kind": "site",
+    "parent": "Phlan",
+    "place": null,
+    "src": [
+     {
+      "adv": "Dungeon #170",
+      "p": 52
+     }
+    ]
+   },
+   {
+    "name": "Moonwatch Hills",
+    "kind": "feature",
+    "parent": "Phlan Path",
+    "place": {
+     "anchor": "Melvaunt",
+     "bearing": "W",
+     "mi": null,
+     "prov": "cited-adjacency-only"
+    },
+    "src": [
+     {
+      "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Trank River bridge",
+    "kind": "site",
+    "parent": "Phlan Path",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "E",
+     "mi": null,
+     "prov": "cited-sequence-only"
+    },
+    "src": [
+     {
+      "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Gem Road",
+    "kind": "route",
+    "parent": "Phlan",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "AL Player's Guide to Phlan",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Dragonden Pass",
+    "kind": "feature",
+    "parent": "Dragonspine Mountains",
+    "place": null,
+    "src": [
+     {
+      "adv": "AL Player's Guide to Phlan",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "Tweenhill Gap",
+    "kind": "feature",
+    "parent": "Dragonspine Mountains",
+    "place": null,
+    "src": [
+     {
+      "adv": "AL Player's Guide to Phlan",
+      "p": null
+     }
+    ]
+   },
+   {
+    "name": "The Ride",
+    "kind": "region",
+    "parent": "Dragonspine Mountains",
+    "place": {
+     "anchor": "Phlan",
+     "bearing": "N",
+     "mi": null,
+     "prov": "cited-direction-only"
+    },
+    "src": [
+     {
+      "adv": "AL Player's Guide to Phlan",
+      "p": null
+     }
+    ]
+   }
+  ],
+  "anchor_chain": {
+   "note": "Replaces the 880-mi heartlands->cormyr derived* connector. Only ONE edge is now unknown.",
+   "chain": [
+    [
+     "waterdeep",
+     "secomber",
+     129,
+     "days"
+    ],
+    [
+     "secomber",
+     "loudwater",
+     106,
+     "days"
+    ],
+    [
+     "loudwater",
+     "llorkh",
+     82,
+     "days"
+    ],
+    [
+     "llorkh",
+     "zhentilkeep",
+     null,
+     "UNKNOWN - Black Road, Anauroch"
+    ],
+    [
+     "zhentilkeep",
+     "phlan",
+     70,
+     "cited - Iron Route, Dungeon #170 p.57"
+    ]
+   ],
+   "known_total_mi": 317,
+   "unknown": "llorkh -> Zhentil Keep (Black Road across Anauroch)",
+   "rejected": "A 420-mi Anauroch desert figure and a ~50-mi Phlan-Melvaunt figure both circulate online as FAN CALCULATIONS. Not adopted. The cited Phlan-Melvaunt figure is 55 mi."
+  },
+  "scope_gap": {
+   "asked": "all of Tier 1, Season 1",
+   "have": [
+    "DDEX1-1..1-9",
+    "DDEP1"
+   ],
+   "MISSING": [
+    "DDEX1-10 Tyranny in Phlan",
+    "DDEX1-11 Dark Pyramid of Sorcerer's Isle",
+    "DDEX1-12 Raiders of the Twilight Marsh",
+    "DDEX1-13 Pool of Radiance Resurgent",
+    "DDEX1-14 Escape from Phlan"
+   ],
+   "note": "Season 1 is 14 DDEX modules plus DDEP1. Only 9 DDEX + DDEP1 uploaded. This extraction is NOT complete for Season 1."
+  }
+ }
+}

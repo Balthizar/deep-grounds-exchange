@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+# Copyrighted source PDFs - never commit to a public repo
+sources/*
+!sources/.gitkeep

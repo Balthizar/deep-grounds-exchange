@@ -1,0 +1,390 @@
+{
+ "pass": "road-first pass",
+ "date": "2026-07-26",
+ "channel": "FR Wiki article pages via search/fetch. Category pages return 402. No bulk scrape available (container network is whitelisted to package registries only).",
+ "source_days_table": {
+  "High Road N (from Waterdeep)": {
+   "Leilon": 11,
+   "Neverwinter": 17,
+   "Port Llast": 19,
+   "Luskan": 23
+  },
+  "Long Road N (from Waterdeep)": {
+   "Red Larch": 7,
+   "Triboar": 13,
+   "Longsaddle": 18,
+   "Mirabar": 26
+  },
+  "Evermoor Way (from Triboar)": {
+   "Yartar": 2,
+   "Everlund": 15,
+   "Silverymoon": 20
+  },
+  "East Trail (from Waterdeep)": {
+   "Secomber": 11,
+   "Loudwater": 20,
+   "Llorkh": 27
+  },
+  "Silverymoon Pass": {
+   "Sundabar (from Silverymoon)": 6
+  },
+  "Blackford Road": {
+   "Mirabar (from Luskan)": 7
+  },
+  "High Road S": {
+   "Baldur's Gate (from Waterdeep)": 32
+  },
+  "Dessarin barge (from Waterdeep/Zundbridge)": {
+   "Ironford": 6,
+   "The Stone Bridge": 14,
+   "Yartar": 20,
+   "Nesme": 30,
+   "Silverymoon": 43
+  },
+  "Sea (Sword Coast)": {
+   "Waterdeep->Luskan": 6,
+   "Luskan->Waterdeep": 8,
+   "Waterdeep->Baldur's Gate": 9,
+   "Baldur's Gate->Waterdeep": 7
+  }
+ },
+ "calibration": [
+  {
+   "leg": "Leilon -> Neverwinter",
+   "mi": 100,
+   "days": 6,
+   "src": "FR Wiki: High Road",
+   "note": "~100 mi",
+   "mi_per_day": 16.7
+  },
+  {
+   "leg": "Neverwinter -> Port Llast",
+   "mi": 35,
+   "days": 2,
+   "src": "FR Wiki: High Road",
+   "note": "~35 mi",
+   "mi_per_day": 17.5
+  },
+  {
+   "leg": "Everlund -> Yartar",
+   "mi": 270,
+   "days": 13,
+   "src": "FR Wiki: Evermoor Way",
+   "note": "",
+   "mi_per_day": 20.8
+  },
+  {
+   "leg": "Silverymoon -> Yartar",
+   "mi": 320,
+   "days": 18,
+   "src": "FR Wiki: Evermoor Way",
+   "note": "aggregate of the two below",
+   "mi_per_day": 17.8
+  },
+  {
+   "leg": "Silverymoon -> Everlund",
+   "mi": 50,
+   "days": 5,
+   "src": "FR Wiki: Evermoor Way",
+   "note": "OUTLIER - see analysis",
+   "mi_per_day": 10.0
+  }
+ ],
+ "calibration_mean_mi_per_day": 18.2,
+ "rate_table": [
+  {
+   "traveller": "loaded trade caravan (Exchange's current pin)",
+   "mi_per_day": 11.76,
+   "src": "Fonstad 1in=200mi, pinned Waterdeep->Neverwinter=200 mi"
+  },
+  {
+   "traveller": "caravan, recalibrated on cited road legs",
+   "mi_per_day": 18.2,
+   "src": "this pass; see CAL table"
+  },
+  {
+   "traveller": "adventuring party, foot, rough terrain",
+   "mi_per_day": 20.0,
+   "src": "DDEX1-9 p.13 (40 mi / 2 days)"
+  },
+  {
+   "traveller": "adventuring party, SRD Normal pace",
+   "mi_per_day": 24,
+   "src": "SRD Travel Pace table"
+  },
+  {
+   "traveller": "mounted, hard ride",
+   "mi_per_day": 50.0,
+   "src": "FR Wiki: Trade Way - Daggerford to the Way Inn, ~100 mi / 2 days hard ride"
+  },
+  {
+   "traveller": "coastal sail, small craft",
+   "mi_per_day": "~2.9 mi/hr",
+   "src": "DDEX1-9 p.13 (40 mi / 14 hrs)"
+  }
+ ],
+ "roads": {
+  "High Road": {
+   "from": "Waterdeep",
+   "to": "Luskan",
+   "type": "land",
+   "stops": [
+    "Waterdeep (North Gate)",
+    "Thornhold",
+    "Mere of Dead Men / Iniarv's Tower",
+    "Sword Mountains",
+    "Leilon",
+    "Triboar Cutoff junction",
+    "Neverwinter",
+    "Port Llast",
+    "Luskan"
+   ],
+   "cited_mi": {
+    "Leilon-Neverwinter": 100,
+    "Neverwinter-Port Llast": 35
+   },
+   "src": "FR Wiki: High Road"
+  },
+  "Long Road": {
+   "from": "Waterdeep",
+   "to": "Mirabar",
+   "type": "land",
+   "stops": [
+    "Waterdeep",
+    "Rassalantar",
+    "Amphail",
+    "Red Larch",
+    "Westbridge",
+    "Triboar",
+    "Longsaddle",
+    "Xantharl's Keep",
+    "Mirabar"
+   ],
+   "cited_mi": {},
+   "note": "Triboar is where the Long Road and Evermoor Way meet. Westbridge is the village DDEP1 names as Kryptgarden Forest's eastern bound.",
+   "src": "FR Wiki: Long Road"
+  },
+  "Evermoor Way": {
+   "from": "Triboar",
+   "to": "Silverymoon",
+   "type": "land",
+   "stops": [
+    "Triboar",
+    "Yartar",
+    "Calling Horns (Jundar's Pass junction)",
+    "Everlund (Bridge Gate)",
+    "Silverymoon"
+   ],
+   "cited_mi": {
+    "Silverymoon-Everlund": 50,
+    "Silverymoon-Yartar": 320,
+    "Everlund-Yartar": 270
+   },
+   "src": "FR Wiki: Evermoor Way"
+  },
+  "Iron Route": {
+   "from": "Phlan",
+   "to": "Zhentil Keep",
+   "type": "land",
+   "stops": [
+    "Phlan (junction with Phlan Path at the Stojanow bank)",
+    "King's Pyre (40 mi W)",
+    "Grass Sea",
+    "Zhentil Keep"
+   ],
+   "cited_mi": {
+    "Phlan-Zhentil Keep": 70,
+    "Phlan-King's Pyre": 40
+   },
+   "note": "Hard-trodden trail along the northern shore of the Moonsea, spanning the entirety of Stormy Bay.",
+   "src": "FR Wiki: Iron Route; Dungeon #170 p.57; DDEX1-9"
+  },
+  "Phlan Path": {
+   "from": "Phlan",
+   "to": "Melvaunt",
+   "type": "land",
+   "stops": [
+    "Phlan",
+    "Toranth's March termination",
+    "Trank River bridge",
+    "Moonwatch Hills",
+    "Melvaunt"
+   ],
+   "cited_mi": {
+    "Phlan-Melvaunt": 55
+   },
+   "src": "FR Wiki: Phlan Path; Dungeon #170 p.57"
+  },
+  "Toranth's March": {
+   "from": "Phlan Path",
+   "to": "Castle Vathar",
+   "type": "land",
+   "stops": [
+    "Phlan Path junction",
+    "eastern eaves of the Quivering Forest",
+    "Castle Vathar"
+   ],
+   "cited_mi": {
+    "Phlan-Castle Vathar": 65
+   },
+   "src": "Dungeon #170 p.57"
+  },
+  "Black Road": {
+   "from": "Llorkh",
+   "to": "Zhentil Keep / Teshendale",
+   "type": "land",
+   "stops": [
+    "Llorkh",
+    "near Parnast",
+    "Vuerthyl (oasis)",
+    "Addas Babar",
+    "Bhaerlith",
+    "Olomaa",
+    "near Dekanter",
+    "Teshendale ruins",
+    "Zhentil Keep"
+   ],
+   "cited_mi": {},
+   "note": "NO CITED MILEAGE FOUND. Topology only. Primary source would be the 2e Anauroch sourcebook (Greenwood, 1991), not searchable this pass. This is THE missing edge.",
+   "src": "FR Wiki: Black Road, Llorkh, Anauroch"
+  },
+  "Blackford Road": {
+   "from": "Luskan",
+   "to": "Mirabar",
+   "type": "land",
+   "stops": [
+    "Luskan",
+    "Mirabar"
+   ],
+   "cited_mi": {},
+   "days": 7,
+   "note": "NOT PRESENT IN THE CURRENT TREE.",
+   "src": "2e trade table"
+  },
+  "Trade Way": {
+   "from": "Waterdeep",
+   "to": "Baldur's Gate (and south to Calimport)",
+   "type": "land",
+   "stops": [
+    "Waterdeep",
+    "Daggerford",
+    "the Way Inn",
+    "...",
+    "Baldur's Gate"
+   ],
+   "cited_mi": {
+    "Daggerford-the Way Inn": 100
+   },
+   "note": "Way Inn is ~100 mi south of Daggerford, given as two days' HARD RIDE - a mounted rate, not a caravan rate. Also: the wiki notes Trade Way and Coast Way are used interchangeably across sources, and the Fonstad Atlas and 2e FRCS disagree on which stretch carries which name.",
+   "src": "FR Wiki: Trade Way"
+  },
+  "Moonsea Ride (a.k.a. Mountain Ride in Cormyr)": {
+   "from": "Arabel",
+   "to": "Hillsfar",
+   "type": "land",
+   "stops": [
+    "Arabel",
+    "Castle Crag (Dragon Trail junction)",
+    "Gnoll Pass (Storm Horns)",
+    "Gnollpost",
+    "Halfhap",
+    "Mootpost",
+    "Tilverton (Northride junction)",
+    "Cormanthor - Rimwood",
+    "Cormanthor - Midwood",
+    "Hillsfar"
+   ],
+   "cited_mi": {},
+   "src": "FR Wiki: Moonsea Ride, Mistledale, Moonsea, Cormyr/Heartlands",
+   "note": "CORRECTS THE TREE. This is ONE road Arabel->Hillsfar passing THROUGH the Dalelands, not the tree's two separate edges cormyr->dalelands and dalelands->moonsea. Tilverton is the Moonsea Ride / NORTHRIDE junction; Thunder Gap is a DIFFERENT route (Cormyr moved armies from Tilverton through Thunder Gap into the Dales). The tree's 'Tilverton/Thunder Gap' label conflates two routes. Terminus is Hillsfar specifically, not the moonsea region node. Starts at ARABEL, not Suzail - a Suzail->Arabel leg is missing entirely."
+  },
+  "Dark Road": {
+   "from": "Moonsea Ride",
+   "to": "Shadowdale",
+   "type": "land",
+   "stops": [
+    "Moonsea Ride junction (Mistledale)",
+    "along the River Ashaba",
+    "Shadowdale"
+   ],
+   "cited_mi": {},
+   "src": "FR Wiki: Mistledale",
+   "note": "Shadowdale is a major AL location and is absent from the tree."
+  },
+  "Cormyr internal roads": {
+   "from": "Suzail",
+   "to": "Arabel",
+   "type": "land",
+   "stops": [
+    "Suzail",
+    "Way of the Dragon (north from Suzail to the High Road)",
+    "High Road (Cormyr) east",
+    "Arabel"
+   ],
+   "cited_mi": {},
+   "src": "FR Wiki: Cormyr/Heartlands (cites Volo's Guide to Cormyr p.123)",
+   "note": "Alternates: Calantar's Way, Starwater Road (Immersea-Eveningstar), Immer Trail, Elclantar's Ride, Ranger's Way."
+  },
+  "Western Moonsea triangle": {
+   "from": "Zhentil Keep",
+   "to": "Voonlar / Teshwave",
+   "type": "land",
+   "stops": [
+    "Zhentil Keep",
+    "Voonlar",
+    "Teshwave (on the River Tesh)"
+   ],
+   "cited_mi": {},
+   "src": "FR Wiki: Moonsea",
+   "note": "Tesh Trail + the Throat + Bowshaft Way form this triangle. Bowshaft Way's eastern stretch links Yulash to Hillsfar. The River Tesh is the trade artery feeding the Black Road west - i.e. the Black Road's eastern approach is a RIVER leg, relevant to the medium system."
+  }
+ },
+ "missing_from_current_tree": {
+  "Long Road": [
+   "Rassalantar",
+   "Amphail",
+   "Westbridge",
+   "Xantharl's Keep"
+  ],
+  "High Road": [
+   "Thornhold",
+   "Mere of Dead Men",
+   "Iniarv's Tower",
+   "Triboar Cutoff junction"
+  ],
+  "Dessarin barge": [
+   "Ironford",
+   "The Stone Bridge",
+   "Nesme"
+  ],
+  "East Trail": [
+   "Parnast (present) - Zelbross, Uluvin appear in route descriptions"
+  ],
+  "ENTIRE ROAD MISSING": [
+   "Blackford Road (Luskan -> Mirabar, 7 days) - not in the tree at all"
+  ]
+ },
+ "not_adopted": [
+  "Giant in the Playground forum: 420 mi of Anauroch desert on a Red Larch->Mulmaster route - FAN CALCULATION",
+  "theparchmentpaladin.com travel matrices built on AideDD's interactive map - FAN CALCULATION, whole-continent point-to-point",
+  "Obsidian Portal 'good 50 miles' Phlan-Melvaunt - FAN; the cited figure is 55 mi"
+ ],
+ "east_cluster_finding": {
+  "result": "ABUNDANT TOPOLOGY, ZERO MILEAGE.",
+  "detail": "The east cluster (Cormyr / Dalelands / Moonsea) has richly documented roads with ordered stops and named junctions, but not one cited distance was found on any of them. This is not a search failure - 2e/3e Cormyr and Dalelands products described their roads qualitatively. The west side has cited miles; the east side does not.",
+  "implication": "The 880-mi heartlands->cormyr connector cannot be replaced with a cited number, because no such number was ever published. It can only be replaced by measurement or by a declared house figure."
+ },
+ "what_the_open_web_cannot_supply": {
+  "why": "The FR Wiki IS the aggregator. World Anvil, Realm of Adventure, Cathays, realmshelps and the Cormanthor wiki all reproduce the same wiki/sourcebook sentences with weaker citation. Searching wider returns the same text less well sourced, not new data.",
+  "remaining_gaps_are_canon_gaps": [
+   "Black Road mileage (Llorkh <-> Zhentil Keep)",
+   "every east-cluster edge",
+   "Waterdeep <-> Suzail E-W span"
+  ],
+  "three_ways_to_close_them": {
+   "a_primary_sourcebooks": "2e Anauroch (1991), Volo's Guide to Cormyr (1995), The Moonsea (1995), Cormyr (1994), Volo's Guide to the North (1993). Copyrighted; not legitimately on the open web. If you own PDFs, upload them - same pipeline as the DDEX extraction. This is the real answer for the Black Road.",
+   "b_map_measurement": "AideDD's interactive map measures the official Schley maps against a printed scale. That is methodologically what Fonstad did - MEASUREMENT, not invention - and deserves its own provenance tag (`measured-map`), distinct from both `cited` and fan arithmetic. Your ruling whether to accept the grade.",
+   "c_exchange_house_figures": "Declared Exchange numbers, labelled as the Exchange's own per the house-rule standard. Never passed off as citations."
+  }
+ }
+}

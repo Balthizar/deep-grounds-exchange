@@ -1,0 +1,1240 @@
+{
+ "dataset": "AL Season 1 (Tier 1) named locations",
+ "sources": [
+  "DDEX1-1..1-9",
+  "DDEP1 Corruption in Kryptgarden"
+ ],
+ "frame": "relative placement only; NO absolute coordinates written",
+ "prov_legend": {
+  "cited": "canon distance AND bearing in adventure text",
+  "cited-direction-only": "canon bearing, no distance",
+  "cited-days-only": "canon travel days, no miles",
+  "cited-adjacency-only": "canon says near/at, no bearing or distance"
+ },
+ "count": 74,
+ "locations": [
+  {
+   "name": "Phlan",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-1",
+     "p": 1
+    },
+    {
+     "adv": "DDEX1-9",
+     "p": 1
+    }
+   ],
+   "note": "Season 1 hub city; north shore of the Moonsea. Every S1 placement hangs off it.",
+   "parent": "moonsea",
+   "place": {
+    "anchor": "moonsea",
+    "rel": "north shore",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Moonsea",
+   "kind": "region",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 2
+    },
+    {
+     "adv": "DDEX1-7",
+     "p": 2
+    }
+   ],
+   "note": "Existing tree node (derived*).",
+   "parent": null,
+   "place": {
+    "node": "moonsea"
+   }
+  },
+  {
+   "name": "Melvaunt",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 19
+    },
+    {
+     "adv": "DDEX1-7",
+     "p": 7
+    },
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    }
+   ],
+   "note": "Moonsea city; named in passing.",
+   "parent": "moonsea",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "mi": 55,
+    "prov": "cited",
+    "via": "Phlan Path"
+   }
+  },
+  {
+   "name": "Mulmaster",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 19
+    },
+    {
+     "adv": "DDEX1-7",
+     "p": 5
+    }
+   ],
+   "note": "Moonsea city; named as reference for Flooded Forest.",
+   "parent": "moonsea",
+   "place": null
+  },
+  {
+   "name": "Hillsfar",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 11
+    }
+   ],
+   "note": "Moonsea city; named in passing.",
+   "parent": "moonsea",
+   "place": null
+  },
+  {
+   "name": "Zhentil Keep",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 9
+    },
+    {
+     "adv": "DDEX1-8",
+     "p": 5
+    },
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    }
+   ],
+   "note": "Moonsea city; the Black Road terminus in the handoff's move (a).",
+   "parent": "moonsea",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "W",
+    "mi": 70,
+    "prov": "cited",
+    "via": "Iron Route"
+   }
+  },
+  {
+   "name": "Thar",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 5
+    }
+   ],
+   "note": "The Great Gray Land north of the Moonsea.",
+   "parent": "moonsea",
+   "place": null
+  },
+  {
+   "name": "Waterdeep",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 5
+    }
+   ],
+   "note": "Existing tree origin node.",
+   "parent": null,
+   "place": {
+    "node": "waterdeep"
+   }
+  },
+  {
+   "name": "Sword Coast",
+   "kind": "region",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 5
+    }
+   ],
+   "note": "Existing tree node.",
+   "parent": null,
+   "place": {
+    "node": "swordcoast"
+   }
+  },
+  {
+   "name": "King's Pyre",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 5
+    }
+   ],
+   "note": "Coastal site. CITED: about 40 miles west of Phlan, on the coastline; party arrives after 2 days of travel.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "W",
+    "mi": 40,
+    "prov": "cited",
+    "days_in_text": 2
+   },
+   "aka": [
+    "Kings' Pyre"
+   ]
+  },
+  {
+   "name": "Twilight Marsh",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 20
+    },
+    {
+     "adv": "DDEX1-7",
+     "p": 2
+    }
+   ],
+   "note": "CITED: a large swamp east of Phlan, on the north shore of the Moonsea.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Trank River",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 2
+    }
+   ],
+   "note": "CITED: runs east of Phlan through the Twilight Marsh.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Rythnax's lair",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 20
+    }
+   ],
+   "note": "CITED: about half a day's RIDE east along the Phlan Path, in the Twilight Marsh.",
+   "parent": "Phlan Path",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-days-only",
+    "days_in_text": 0.5,
+    "mode": "ride"
+   }
+  },
+  {
+   "name": "Kabel's Hill",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-8",
+     "p": 2
+    }
+   ],
+   "note": "CITED: a small, lightly fortified farming hamlet roughly a day and a half north of Phlan, along a narrow stretch of the Stojanow River.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-days-only",
+    "days_in_text": 1.5,
+    "along": "Stojanow River"
+   }
+  },
+  {
+   "name": "Quivering Forest",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-8",
+     "p": 2
+    },
+    {
+     "adv": "DDEX1-1",
+     "p": 23
+    },
+    {
+     "adv": "DDEX1-9",
+     "p": 17
+    }
+   ],
+   "note": "CITED: an ancient enchanted forest east of Kabel's Hill.",
+   "parent": "Kabel's Hill",
+   "place": {
+    "anchor": "Kabel's Hill",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Dragonspine Mountains",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-5",
+     "p": 2
+    }
+   ],
+   "note": "CITED: reached by trekking northwest from Phlan.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "NW",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Flooded Forest",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 5
+    }
+   ],
+   "note": "CITED: near Mulmaster. Former lair of the black dragon Throstulgrael.",
+   "parent": "Mulmaster",
+   "place": {
+    "anchor": "Mulmaster",
+    "bearing": null,
+    "mi": null,
+    "prov": "cited-adjacency-only"
+   }
+  },
+  {
+   "name": "Kryptgarden Forest",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 5
+    }
+   ],
+   "note": "CITED: a hilly wood in the Sword Coast region, north of Waterdeep; bounded by the Sword Mountains to the north and the village of Westbridge to the east.",
+   "parent": "waterdeep",
+   "place": {
+    "anchor": "waterdeep",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Westbridge",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 5
+    }
+   ],
+   "note": "CITED: village bounding Kryptgarden Forest on the east.",
+   "parent": "Kryptgarden Forest",
+   "place": {
+    "anchor": "Kryptgarden Forest",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Sword Mountains",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 5
+    }
+   ],
+   "note": "CITED: bound Kryptgarden Forest on the north.",
+   "parent": "Kryptgarden Forest",
+   "place": {
+    "anchor": "Kryptgarden Forest",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Thorn Island",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 2
+    }
+   ],
+   "note": "CITED: island near the harbour of Phlan; holds Sokol Keep.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": null,
+    "mi": null,
+    "prov": "cited-adjacency-only"
+   }
+  },
+  {
+   "name": "Sokol Keep",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 2
+    }
+   ],
+   "note": "CITED: keep on Thorn Island near the harbour of Phlan.",
+   "parent": "Thorn Island",
+   "place": null
+  },
+  {
+   "name": "Stojanow River",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-8",
+     "p": 5
+    }
+   ],
+   "note": "CITED: runs north of Phlan; Kabel's Hill sits along it.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Stormy Bay",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 5
+    }
+   ],
+   "note": "CITED: a Moonsea bay known for foul weather; contains a small forested isle of fisher folk.",
+   "parent": "moonsea",
+   "place": null
+  },
+  {
+   "name": "Ringcurrent Islands",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 6
+    }
+   ],
+   "note": "Island group reached from the Twilight Marsh.",
+   "parent": "Twilight Marsh",
+   "place": null
+  },
+  {
+   "name": "Island of the Lizard King",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 5
+    }
+   ],
+   "note": "Lizardfolk seat among/near the Ringcurrent Islands.",
+   "parent": "Ringcurrent Islands",
+   "place": null
+  },
+  {
+   "name": "Grass Sea",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 5
+    }
+   ],
+   "note": "Grassland west of Phlan holding the Iron Route outlaw hideouts (DDEX1-9).",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "W",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Iron Route",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 2
+    },
+    {
+     "adv": "DDEX1-9",
+     "p": 6
+    },
+    {
+     "adv": "DDEX1-9",
+     "p": 13
+    },
+    {
+     "adv": "AL Player's Guide to Phlan",
+     "p": null
+    },
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    },
+    {
+     "adv": "FR Wiki: Iron Route",
+     "p": null
+    }
+   ],
+   "note": "CITED: runs WEST from Phlan to Zhentil Keep, skirting the northern coast of the Moonsea (DDEX1-9 p.2 'west along the Iron Route'; p.6 'skirts the northern coast'; p.13 route to King's Pyre 40 mi west; AL Player's Guide to Phlan). NOTE: DDEX1-9 p.1 cover blurb says 'east of Phlan' - that line is contradicted by its own body text and is treated as an error. Described as little more than a hard-trodden trail; runs along the northern shore of the Moonsea, spanning the entirety of Stormy Bay.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "W",
+    "to": "Zhentil Keep",
+    "mi": 70,
+    "prov": "cited"
+   }
+  },
+  {
+   "name": "Phlan Path",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 20
+    },
+    {
+     "adv": "DDEX1-7",
+     "p": 6
+    },
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    },
+    {
+     "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+     "p": null
+    }
+   ],
+   "note": "CITED: runs EAST from Phlan to Melvaunt, through/past the Twilight Marsh (DDEX1-6 p.20, DDEX1-7 p.6; AL Player's Guide to Phlan; Melvaunt confirms from the far end).",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "to": "Melvaunt",
+    "mi": 55,
+    "prov": "cited"
+   },
+   "sequence": [
+    "Phlan (junction with Iron Route at the Stojanow bank)",
+    "Toranth's March termination",
+    "Trank River bridge",
+    "Moonwatch Hills",
+    "Melvaunt"
+   ]
+  },
+  {
+   "name": "Farmer's Trail",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 9
+    }
+   ],
+   "note": "CITED: connects farms and small villages many miles east of the Trank River.",
+   "parent": "Trank River",
+   "place": null
+  },
+  {
+   "name": "Aleston",
+   "kind": "settlement",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 6
+    }
+   ],
+   "note": "Small town: a mill, a brewery, workers' houses. First raid site. Raid sites are stated to be about one day's travel apart, a day's ride from Phlan along the coast.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "coast",
+    "mi": null,
+    "prov": "cited-days-only",
+    "days_in_text": 1
+   }
+  },
+  {
+   "name": "Vig's Dock",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 6
+    }
+   ],
+   "note": "A seaside traveller's inn; third raid site.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Valjevo Keep",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-4",
+     "p": 5
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Stojanow Gate",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-4",
+     "p": 6
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Valhingen Graveyard",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-4",
+     "p": 2
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Podol Plaza",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 7
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Mantor's Library",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 2
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Scholar's Square",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 1
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Nobles' Quarter",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 8
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Denlor's Tower",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 5
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Laughing Goblin Inn",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 2
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Cadorna Textile House",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 6
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Cracked Crown Square",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 2
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Ambush Alley",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-6",
+     "p": 12
+    }
+   ],
+   "note": "Locale within Phlan.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Welltran Crypt",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-1",
+     "p": 17
+    }
+   ],
+   "note": "Locale within Valhingen Graveyard.",
+   "parent": "Valhingen Graveyard",
+   "place": null
+  },
+  {
+   "name": "Xandria's Crypt",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-1",
+     "p": 17
+    }
+   ],
+   "note": "Locale within Valhingen Graveyard.",
+   "parent": "Valhingen Graveyard",
+   "place": null
+  },
+  {
+   "name": "Sedrair's Tomb",
+   "kind": "interior",
+   "src": [
+    {
+     "adv": "DDEX1-4",
+     "p": 15
+    }
+   ],
+   "note": "Locale within Valhingen Graveyard.",
+   "parent": "Valhingen Graveyard",
+   "place": null
+  },
+  {
+   "name": "East Tower",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 2
+    }
+   ],
+   "note": "Keep sublocation.",
+   "parent": "Sokol Keep",
+   "place": null
+  },
+  {
+   "name": "West Tower",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 2
+    }
+   ],
+   "note": "Keep sublocation.",
+   "parent": "Sokol Keep",
+   "place": null
+  },
+  {
+   "name": "Jade Temple",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-2",
+     "p": 17
+    }
+   ],
+   "note": "Keep sublocation.",
+   "parent": "Sokol Keep",
+   "place": null
+  },
+  {
+   "name": "Renon Farm",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 6
+    }
+   ],
+   "note": "Farmstead on the Trank River.",
+   "parent": "Twilight Marsh",
+   "place": null
+  },
+  {
+   "name": "Tralio Farm",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 9
+    }
+   ],
+   "note": "Farmstead on the Trank River.",
+   "parent": "Twilight Marsh",
+   "place": null
+  },
+  {
+   "name": "Alyin Farm",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 9
+    }
+   ],
+   "note": "Farmstead on the Trank River.",
+   "parent": "Twilight Marsh",
+   "place": null
+  },
+  {
+   "name": "Taroo's House",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 6
+    }
+   ],
+   "note": "Building.",
+   "parent": "Renon Farm",
+   "place": null
+  },
+  {
+   "name": "Crossing Inn",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-7",
+     "p": 6
+    }
+   ],
+   "note": "Inn; the adventure's contact point.",
+   "parent": "Trank River",
+   "place": null
+  },
+  {
+   "name": "Halvin's House",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-8",
+     "p": 5
+    }
+   ],
+   "note": "Building.",
+   "parent": "Kabel's Hill",
+   "place": null
+  },
+  {
+   "name": "Kobold Camp",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 16
+    }
+   ],
+   "note": "Outlaw site.",
+   "parent": "Grass Sea",
+   "place": null
+  },
+  {
+   "name": "Cliff Caves",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 16
+    }
+   ],
+   "note": "Outlaw site.",
+   "parent": "Grass Sea",
+   "place": null
+  },
+  {
+   "name": "Outlaw Camp",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 20
+    }
+   ],
+   "note": "Outlaw site.",
+   "parent": "Grass Sea",
+   "place": null
+  },
+  {
+   "name": "Sea Cave",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 19
+    }
+   ],
+   "note": "Outlaw site linking longship to camp.",
+   "parent": "Grass Sea",
+   "place": null
+  },
+  {
+   "name": "Signal Pyre",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-9",
+     "p": 19
+    }
+   ],
+   "note": "Outlaw lookout site.",
+   "parent": "Grass Sea",
+   "place": null
+  },
+  {
+   "name": "Shady Glade",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 23
+    }
+   ],
+   "note": "Forest site.",
+   "parent": "Kryptgarden Forest",
+   "place": null
+  },
+  {
+   "name": "Elven Ruins",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEP1",
+     "p": 39
+    }
+   ],
+   "note": "Forest site.",
+   "parent": "Kryptgarden Forest",
+   "place": null
+  },
+  {
+   "name": "Dark Wood",
+   "kind": "sublocation",
+   "src": [
+    {
+     "adv": "DDEX1-3",
+     "p": 19
+    }
+   ],
+   "note": "Wood.",
+   "parent": "Quivering Forest",
+   "place": null
+  },
+  {
+   "name": "Toranth's March",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    }
+   ],
+   "note": "CITED: trail running north from the Phlan Path along the eastern eaves of the Quivering Forest toward the Dragonspine Mountains and the Ride.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Castle Vathar",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "Dungeon #170 'Monument of the Ancients'",
+     "p": 57
+    }
+   ],
+   "note": "CITED: 65 miles from Phlan along Toranth's March.",
+   "parent": "Toranth's March",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": 65,
+    "prov": "cited",
+    "via": "Toranth's March"
+   }
+  },
+  {
+   "name": "Stojanow Trail",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "Dungeon #170",
+     "p": 56
+    }
+   ],
+   "note": "CITED: runs north from Phlan with the Stojanow River, along the WESTERN side of the Quivering Forest.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Valjevo Isle",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "Dungeon #170",
+     "p": 52
+    }
+   ],
+   "note": "CITED: small isle in the Stojanow delta; Phlan was founded atop it.",
+   "parent": "Phlan",
+   "place": null
+  },
+  {
+   "name": "Moonwatch Hills",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+     "p": null
+    }
+   ],
+   "note": "CITED: the Phlan Path winds through these hills on its final approach to Melvaunt.",
+   "parent": "Phlan Path",
+   "place": {
+    "anchor": "Melvaunt",
+    "bearing": "W",
+    "mi": null,
+    "prov": "cited-adjacency-only"
+   }
+  },
+  {
+   "name": "Trank River bridge",
+   "kind": "site",
+   "src": [
+    {
+     "adv": "FR Wiki: Phlan Path (cites Mysteries of the Moonsea p.42; DDEX1-7 p.7; DDEX1-12 p.7)",
+     "p": null
+    }
+   ],
+   "note": "CITED: a lone bridge crossing where the Phlan Path intersects the Trank River.",
+   "parent": "Phlan Path",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "E",
+    "mi": null,
+    "prov": "cited-sequence-only"
+   }
+  },
+  {
+   "name": "Gem Road",
+   "kind": "route",
+   "src": [
+    {
+     "adv": "AL Player's Guide to Phlan",
+     "p": null
+    }
+   ],
+   "note": "CITED: runs north from Phlan along the River Stojanow and through the Dragonden Pass to the Ride.",
+   "parent": "Phlan",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  },
+  {
+   "name": "Dragonden Pass",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "AL Player's Guide to Phlan",
+     "p": null
+    }
+   ],
+   "note": "CITED: pass through the Dragonspine Mountains on the Gem Road; stated to be the safer of the two routes to the Ride.",
+   "parent": "Dragonspine Mountains",
+   "place": null
+  },
+  {
+   "name": "Tweenhill Gap",
+   "kind": "feature",
+   "src": [
+    {
+     "adv": "AL Player's Guide to Phlan",
+     "p": null
+    }
+   ],
+   "note": "CITED: alternate Dragonspine crossing, stated to be less safe than Dragonden Pass.",
+   "parent": "Dragonspine Mountains",
+   "place": null
+  },
+  {
+   "name": "The Ride",
+   "kind": "region",
+   "src": [
+    {
+     "adv": "AL Player's Guide to Phlan",
+     "p": null
+    }
+   ],
+   "note": "CITED: reached from Phlan north via the Gem Road / Dragonden Pass.",
+   "parent": "Dragonspine Mountains",
+   "place": {
+    "anchor": "Phlan",
+    "bearing": "N",
+    "mi": null,
+    "prov": "cited-direction-only"
+   }
+  }
+ ],
+ "corrections": [
+  {
+   "date": "2026-07-26",
+   "what": "Iron Route direction reversed E->W",
+   "why": "DDEX1-9 p.1 cover blurb says 'east of Phlan'; body text (p.2, p.6, p.13) and the AL Player's Guide to Phlan all say west, to Zhentil Keep. Blurb treated as error."
+  },
+  {
+   "date": "2026-07-26",
+   "what": "Three cited distances from Phlan added",
+   "why": "FR Wiki 'Travel Distances From Phlan', sourced to Dungeon #170 'Monument of the Ancients' p.57. Independently confirms the Iron Route runs WEST."
+  }
+ ],
+ "scope_gap": {
+  "asked": "all of Tier 1, Season 1",
+  "have": [
+   "DDEX1-1..1-9",
+   "DDEP1"
+  ],
+  "MISSING": [
+   "DDEX1-10 Tyranny in Phlan",
+   "DDEX1-11 Dark Pyramid of Sorcerer's Isle",
+   "DDEX1-12 Raiders of the Twilight Marsh",
+   "DDEX1-13 Pool of Radiance Resurgent",
+   "DDEX1-14 Escape from Phlan"
+  ],
+  "note": "Season 1 is 14 DDEX modules plus DDEP1. Only 9 DDEX + DDEP1 uploaded. This extraction is NOT complete for Season 1."
+ }
+}

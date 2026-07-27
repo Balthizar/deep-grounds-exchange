@@ -1,0 +1,1155 @@
+{
+  "weapons": [
+    {
+      "name": "Club",
+      "dmg": "1d4 Bludgeoning",
+      "props": "Light",
+      "mast": "Slow",
+      "wt": "2 lb.",
+      "cost": "1 SP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Dagger",
+      "dmg": "1d4 Piercing",
+      "props": "Finesse, Light, Thrown (Range 20/60)",
+      "mast": "Nick",
+      "wt": "1 lb.",
+      "cost": "2 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Greatclub",
+      "dmg": "1d8 Bludgeoning",
+      "props": "Two-Handed",
+      "mast": "Push",
+      "wt": "10 lb.",
+      "cost": "2 SP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Handaxe",
+      "dmg": "1d6 Slashing",
+      "props": "Light, Thrown (Range 20/60)",
+      "mast": "Vex",
+      "wt": "2 lb.",
+      "cost": "5 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Javelin",
+      "dmg": "1d6 Piercing",
+      "props": "Thrown (Range 30/120)",
+      "mast": "Slow",
+      "wt": "2 lb.",
+      "cost": "5 SP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Light Hammer",
+      "dmg": "1d4 Bludgeoning",
+      "props": "Light, Thrown (Range 20/60)",
+      "mast": "Nick",
+      "wt": "2 lb.",
+      "cost": "2 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Mace",
+      "dmg": "1d6 Bludgeoning",
+      "props": "-",
+      "mast": "Sap",
+      "wt": "4 lb.",
+      "cost": "5 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Quarterstaff",
+      "dmg": "1d6 Bludgeoning",
+      "props": "Versatile (1d8)",
+      "mast": "Topple",
+      "wt": "4 lb.",
+      "cost": "2 SP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Sickle",
+      "dmg": "1d4 Slashing",
+      "props": "Light",
+      "mast": "Nick",
+      "wt": "2 lb.",
+      "cost": "1 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Spear",
+      "dmg": "1d6 Piercing",
+      "props": "Thrown (Range 20/60), Versatile (1d8)",
+      "mast": "Sap",
+      "wt": "3 lb.",
+      "cost": "1 GP",
+      "cat": "Simple melee weapon"
+    },
+    {
+      "name": "Dart",
+      "dmg": "1d4 Piercing",
+      "props": "Finesse, Thrown (Range 20/60)",
+      "mast": "Vex",
+      "wt": "1/4 lb.",
+      "cost": "5 CP",
+      "cat": "Simple ranged weapon"
+    },
+    {
+      "name": "Light Crossbow",
+      "dmg": "1d8 Piercing",
+      "props": "Ammunition (Range 80/320; Bolt), Loading, Two-Handed",
+      "mast": "Slow",
+      "wt": "5 lb.",
+      "cost": "25 GP",
+      "cat": "Simple ranged weapon"
+    },
+    {
+      "name": "Shortbow",
+      "dmg": "1d6 Piercing",
+      "props": "Ammunition (Range 80/320; Arrow), Two-Handed",
+      "mast": "Vex",
+      "wt": "2 lb.",
+      "cost": "25 GP",
+      "cat": "Simple ranged weapon"
+    },
+    {
+      "name": "Sling",
+      "dmg": "1d4 Bludgeoning",
+      "props": "Ammunition (Range 30/120; Bullet)",
+      "mast": "Slow",
+      "wt": "-",
+      "cost": "1 SP",
+      "cat": "Simple ranged weapon"
+    },
+    {
+      "name": "Battleaxe",
+      "dmg": "1d8 Slashing",
+      "props": "Versatile (1d10)",
+      "mast": "Topple",
+      "wt": "4 lb.",
+      "cost": "10 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Flail",
+      "dmg": "1d8 Bludgeoning",
+      "props": "-",
+      "mast": "Sap",
+      "wt": "2 lb.",
+      "cost": "10 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Glaive",
+      "dmg": "1d10 Slashing",
+      "props": "Heavy, Reach, Two-Handed",
+      "mast": "Graze",
+      "wt": "6 lb.",
+      "cost": "20 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Greataxe",
+      "dmg": "1d12 Slashing",
+      "props": "Heavy, Two-Handed",
+      "mast": "Cleave",
+      "wt": "7 lb.",
+      "cost": "30 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Greatsword",
+      "dmg": "2d6 Slashing",
+      "props": "Heavy, Two-Handed",
+      "mast": "Graze",
+      "wt": "6 lb.",
+      "cost": "50 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Halberd",
+      "dmg": "1d10 Slashing",
+      "props": "Heavy, Reach, Two-Handed",
+      "mast": "Cleave",
+      "wt": "6 lb.",
+      "cost": "20 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Lance",
+      "dmg": "1d10 Piercing",
+      "props": "Heavy, Reach, Two-Handed (unless mounted)",
+      "mast": "Topple",
+      "wt": "6 lb.",
+      "cost": "10 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Longsword",
+      "dmg": "1d8 Slashing",
+      "props": "Versatile (1d10)",
+      "mast": "Sap",
+      "wt": "3 lb.",
+      "cost": "15 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Maul",
+      "dmg": "2d6 Bludgeoning",
+      "props": "Heavy, Two-Handed",
+      "mast": "Topple",
+      "wt": "10 lb.",
+      "cost": "10 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Morningstar",
+      "dmg": "1d8 Piercing",
+      "props": "-",
+      "mast": "Sap",
+      "wt": "4 lb.",
+      "cost": "15 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Pike",
+      "dmg": "1d10 Piercing",
+      "props": "Heavy, Reach, Two-Handed",
+      "mast": "Push",
+      "wt": "18 lb.",
+      "cost": "5 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Rapier",
+      "dmg": "1d8 Piercing",
+      "props": "Finesse",
+      "mast": "Vex",
+      "wt": "2 lb.",
+      "cost": "25 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Scimitar",
+      "dmg": "1d6 Slashing",
+      "props": "Finesse, Light",
+      "mast": "Nick",
+      "wt": "3 lb.",
+      "cost": "25 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Shortsword",
+      "dmg": "1d6 Piercing",
+      "props": "Finesse, Light",
+      "mast": "Vex",
+      "wt": "2 lb.",
+      "cost": "10 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Trident",
+      "dmg": "1d8 Piercing",
+      "props": "Thrown (Range 20/60), Versatile (1d10)",
+      "mast": "Topple",
+      "wt": "4 lb.",
+      "cost": "5 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Warhammer",
+      "dmg": "1d8 Bludgeoning",
+      "props": "Versatile (1d10)",
+      "mast": "Push",
+      "wt": "5 lb.",
+      "cost": "15 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "War Pick",
+      "dmg": "1d8 Piercing",
+      "props": "Versatile (1d10)",
+      "mast": "Sap",
+      "wt": "2 lb.",
+      "cost": "5 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Whip",
+      "dmg": "1d4 Slashing",
+      "props": "Finesse, Reach",
+      "mast": "Slow",
+      "wt": "3 lb.",
+      "cost": "2 GP",
+      "cat": "Martial melee weapon"
+    },
+    {
+      "name": "Blowgun",
+      "dmg": "1 Piercing",
+      "props": "Ammunition (Range 25/100; Needle), Loading",
+      "mast": "Vex",
+      "wt": "1 lb.",
+      "cost": "10 GP",
+      "cat": "Martial ranged weapon"
+    },
+    {
+      "name": "Hand Crossbow",
+      "dmg": "1d6 Piercing",
+      "props": "Ammunition (Range 30/120; Bolt), Light, Loading",
+      "mast": "Vex",
+      "wt": "3 lb.",
+      "cost": "75 GP",
+      "cat": "Martial ranged weapon"
+    },
+    {
+      "name": "Heavy Crossbow",
+      "dmg": "1d10 Piercing",
+      "props": "Ammunition (Range 100/400; Bolt), Heavy, Loading, Two-Handed",
+      "mast": "Push",
+      "wt": "18 lb.",
+      "cost": "50 GP",
+      "cat": "Martial ranged weapon"
+    },
+    {
+      "name": "Longbow",
+      "dmg": "1d8 Piercing",
+      "props": "Ammunition (Range 150/600; Arrow), Heavy, Two-Handed",
+      "mast": "Slow",
+      "wt": "2 lb.",
+      "cost": "50 GP",
+      "cat": "Martial ranged weapon"
+    },
+    {
+      "name": "Musket",
+      "dmg": "1d12 Piercing",
+      "props": "Ammunition (Range 40/120; Bullet), Loading, Two-Handed",
+      "mast": "Slow",
+      "wt": "10 lb.",
+      "cost": "500 GP",
+      "cat": "Martial ranged weapon"
+    },
+    {
+      "name": "Pistol",
+      "dmg": "1d10 Piercing",
+      "props": "Ammunition (Range 30/90; Bullet), Loading",
+      "mast": "Vex",
+      "wt": "3 lb.",
+      "cost": "250 GP",
+      "cat": "Martial ranged weapon",
+      "mast_source": "SRD 5.2.1"
+    }
+  ],
+  "armor": [
+    {
+      "name": "Padded Armor",
+      "ac": "11 + Dex modifier",
+      "strreq": "-",
+      "stealth": "Disadvantage",
+      "wt": "8 lb.",
+      "cost": "5 GP",
+      "cat": "Light"
+    },
+    {
+      "name": "Leather Armor",
+      "ac": "11 + Dex modifier",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "10 lb.",
+      "cost": "10 GP",
+      "cat": "Light"
+    },
+    {
+      "name": "Studded Leather Armor",
+      "ac": "12 + Dex modifier",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "13 lb.",
+      "cost": "45 GP",
+      "cat": "Light"
+    },
+    {
+      "name": "Hide Armor",
+      "ac": "12 + Dex modifier (max 2)",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "12 lb.",
+      "cost": "10 GP",
+      "cat": "Medium"
+    },
+    {
+      "name": "Chain Shirt",
+      "ac": "13 + Dex modifier (max 2)",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "20 lb.",
+      "cost": "50 GP",
+      "cat": "Medium"
+    },
+    {
+      "name": "Scale Mail",
+      "ac": "14 + Dex modifier (max 2)",
+      "strreq": "-",
+      "stealth": "Disadvantage",
+      "wt": "45 lb.",
+      "cost": "50 GP",
+      "cat": "Medium"
+    },
+    {
+      "name": "Breastplate",
+      "ac": "14 + Dex modifier (max 2)",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "20 lb.",
+      "cost": "400 GP",
+      "cat": "Medium"
+    },
+    {
+      "name": "Half Plate Armor",
+      "ac": "15 + Dex modifier (max 2)",
+      "strreq": "-",
+      "stealth": "Disadvantage",
+      "wt": "40 lb.",
+      "cost": "750 GP",
+      "cat": "Medium"
+    },
+    {
+      "name": "Ring Mail",
+      "ac": "14",
+      "strreq": "-",
+      "stealth": "Disadvantage",
+      "wt": "40 lb.",
+      "cost": "30 GP",
+      "cat": "Heavy"
+    },
+    {
+      "name": "Chain Mail",
+      "ac": "16",
+      "strreq": "Str 13",
+      "stealth": "Disadvantage",
+      "wt": "55 lb.",
+      "cost": "75 GP",
+      "cat": "Heavy"
+    },
+    {
+      "name": "Splint Armor",
+      "ac": "17",
+      "strreq": "Str 15",
+      "stealth": "Disadvantage",
+      "wt": "60 lb.",
+      "cost": "200 GP",
+      "cat": "Heavy"
+    },
+    {
+      "name": "Plate Armor",
+      "ac": "18",
+      "strreq": "Str 15",
+      "stealth": "Disadvantage",
+      "wt": "65 lb.",
+      "cost": "1,500 GP",
+      "cat": "Heavy"
+    },
+    {
+      "name": "Shield",
+      "ac": "+2",
+      "strreq": "-",
+      "stealth": "-",
+      "wt": "6 lb.",
+      "cost": "10 GP",
+      "cat": "Shield"
+    }
+  ],
+  "tools": [
+    {
+      "name": "Alchemist's Supplies",
+      "cost": "50 GP",
+      "craft": "Acid, Alchemist's Fire, Component Pouch, Oil, Paper, Perfume",
+      "wt": "8 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Brewer's Supplies",
+      "cost": "20 GP",
+      "craft": "Antitoxin",
+      "wt": "9 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Calligrapher's Supplies",
+      "cost": "10 GP",
+      "craft": "Ink, Spell Scroll",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Carpenter's Tools",
+      "cost": "8 GP",
+      "craft": "Club, Greatclub, Quarterstaff, Barrel, Chest, Ladder, Pole, Portable Ram, Torch",
+      "wt": "6 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Cartographer's Tools",
+      "cost": "15 GP",
+      "craft": "Map",
+      "wt": "6 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Cobbler's Tools",
+      "cost": "5 GP",
+      "craft": "Climber's Kit",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Cook's Utensils",
+      "cost": "1 GP",
+      "craft": "Rations",
+      "wt": "8 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Glassblower's Tools",
+      "cost": "30 GP",
+      "craft": "Glass Bottle, Magnifying Glass, Spyglass, Vial",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Jeweler's Tools",
+      "cost": "25 GP",
+      "craft": "Arcane Focus, Holy Symbol",
+      "wt": "2 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Leatherworker's Tools",
+      "cost": "5 GP",
+      "craft": "Sling, Whip, Hide Armor, Leather Armor, Studded Leather Armor, Backpack, Crossbow Bolt Case, Map or Scroll Case, Parchment, Pouch, Quiver, Waterskin",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Mason's Tools",
+      "cost": "10 GP",
+      "craft": "Block and Tackle",
+      "wt": "8 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Painter's Supplies",
+      "cost": "10 GP",
+      "craft": "Druidic Focus, Holy Symbol",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Potter's Tools",
+      "cost": "10 GP",
+      "craft": "Jug, Lamp",
+      "wt": "3 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Smith's Tools",
+      "cost": "20 GP",
+      "craft": "Any Melee weapon (except Club, Greatclub, Quarterstaff, and Whip), Medium armor (except Hide), Heavy armor, Ball Bearings, Bucket, Caltrops, Chain, Crowbar, Firearm Bullets, Grappling Hook, Iron Pot, Iron Spikes, Sling Bullets",
+      "wt": "8 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Tinker's Tools",
+      "cost": "50 GP",
+      "craft": "Musket, Pistol, Bell, Bullseye Lantern, Flask, Hooded Lantern, Hunting Trap, Lock, Manacles, Mirror, Shovel, Signal Whistle, Tinderbox",
+      "wt": "10 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Weaver's Tools",
+      "cost": "1 GP",
+      "craft": "Padded Armor, Basket, Bedroll, Blanket, Fine Clothes, Net, Robe, Rope, Sack, String, Tent, Traveler's Clothes",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Woodcarver's Tools",
+      "cost": "1 GP",
+      "craft": "Club, Greatclub, Quarterstaff, Ranged weapons (except Pistol, Musket, and Sling), Arcane Focus, Arrows, Bolts, Druidic Focus, Ink Pen, Needles",
+      "wt": "5 lb.",
+      "cat": "Artisan's tools"
+    },
+    {
+      "name": "Disguise Kit",
+      "cost": "25 GP",
+      "craft": "Costume",
+      "wt": "3 lb.",
+      "cat": "Tools"
+    },
+    {
+      "name": "Forgery Kit",
+      "cost": "15 GP",
+      "craft": null,
+      "wt": "5 lb.",
+      "cat": "Tools"
+    },
+    {
+      "name": "Herbalism Kit",
+      "cost": "5 GP",
+      "craft": "Antitoxin, Candle, Healer's Kit, Potion of Healing",
+      "wt": "3 lb.",
+      "cat": "Tools"
+    },
+    {
+      "name": "Navigator's Tools",
+      "cost": "25 GP",
+      "craft": null,
+      "wt": "2 lb.",
+      "cat": "Tools"
+    },
+    {
+      "name": "Poisoner's Kit",
+      "cost": "50 GP",
+      "craft": "Basic Poison",
+      "wt": "2 lb.",
+      "cat": "Tools"
+    },
+    {
+      "name": "Thieves' Tools",
+      "cost": "25 GP",
+      "craft": null,
+      "wt": "1 lb.",
+      "cat": "Tools"
+    }
+  ],
+  "gear": [
+    {
+      "name": "Ink Pen",
+      "wt": null,
+      "cost": "2 CP"
+    },
+    {
+      "name": "Jug",
+      "wt": "4 lb.",
+      "cost": "2 CP"
+    },
+    {
+      "name": "Ladder",
+      "wt": "25 lb.",
+      "cost": "1 SP"
+    },
+    {
+      "name": "Lamp",
+      "wt": "1 lb.",
+      "cost": "5 SP"
+    },
+    {
+      "name": "Lantern, Bullseye",
+      "wt": "2 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Lantern, Hooded",
+      "wt": "2 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Lock",
+      "wt": "1 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Magnifying Glass",
+      "wt": null,
+      "cost": "100 GP"
+    },
+    {
+      "name": "Manacles",
+      "wt": "6 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Map",
+      "wt": null,
+      "cost": "1 GP"
+    },
+    {
+      "name": "Mirror",
+      "wt": "1/2 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Net",
+      "wt": "3 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Oil",
+      "wt": "1 lb.",
+      "cost": "1 SP"
+    },
+    {
+      "name": "Paper",
+      "wt": null,
+      "cost": "2 SP"
+    },
+    {
+      "name": "Parchment",
+      "wt": null,
+      "cost": "1 SP"
+    },
+    {
+      "name": "Perfume",
+      "wt": null,
+      "cost": "5 GP"
+    },
+    {
+      "name": "Poison, Basic",
+      "wt": null,
+      "cost": "100 GP"
+    },
+    {
+      "name": "Pole",
+      "wt": "7 lb.",
+      "cost": "5 CP"
+    },
+    {
+      "name": "Pot, Iron",
+      "wt": "10 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Potion of Healing",
+      "wt": "1/2 lb.",
+      "cost": "50 GP"
+    },
+    {
+      "name": "Pouch",
+      "wt": "1 lb.",
+      "cost": "5 SP"
+    },
+    {
+      "name": "Priest's Pack",
+      "wt": "29 lb.",
+      "cost": "33 GP"
+    },
+    {
+      "name": "Quiver",
+      "wt": "1 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Ram, Portable",
+      "wt": "35 lb.",
+      "cost": "4 GP"
+    },
+    {
+      "name": "Rations",
+      "wt": "2 lb.",
+      "cost": "5 SP"
+    },
+    {
+      "name": "Robe",
+      "wt": "4 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Rope",
+      "wt": "5 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Sack",
+      "wt": "1/2 lb.",
+      "cost": "1 CP"
+    },
+    {
+      "name": "Scholar's Pack",
+      "wt": "22 lb.",
+      "cost": "40 GP"
+    },
+    {
+      "name": "Shovel",
+      "wt": "5 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Signal Whistle",
+      "wt": null,
+      "cost": "5 CP"
+    },
+    {
+      "name": "Spell Scroll (Cantrip)",
+      "wt": null,
+      "cost": "30 GP"
+    },
+    {
+      "name": "Spell Scroll (Level 1)",
+      "wt": null,
+      "cost": "50 GP"
+    },
+    {
+      "name": "Spikes, Iron",
+      "wt": "5 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Spyglass",
+      "wt": "1 lb.",
+      "cost": "1,000 GP"
+    },
+    {
+      "name": "String",
+      "wt": null,
+      "cost": "1 SP"
+    },
+    {
+      "name": "Tent",
+      "wt": "20 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Tinderbox",
+      "wt": "1 lb.",
+      "cost": "5 SP"
+    },
+    {
+      "name": "Torch",
+      "wt": "1 lb.",
+      "cost": "1 CP"
+    },
+    {
+      "name": "Vial",
+      "wt": null,
+      "cost": "1 GP"
+    },
+    {
+      "name": "Waterskin",
+      "wt": "5 lb.",
+      "cost": "2 SP"
+    },
+    {
+      "name": "Acid",
+      "wt": "1 lb.",
+      "cost": "25 GP"
+    },
+    {
+      "name": "Alchemist's Fire",
+      "wt": "1 lb.",
+      "cost": "50 GP"
+    },
+    {
+      "name": "Antitoxin",
+      "wt": null,
+      "cost": "50 GP"
+    },
+    {
+      "name": "Backpack",
+      "wt": "5 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Ball Bearings",
+      "wt": "2 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Barrel",
+      "wt": "70 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Basket",
+      "wt": "2 lb.",
+      "cost": "4 SP"
+    },
+    {
+      "name": "Bedroll",
+      "wt": "7 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Bell",
+      "wt": null,
+      "cost": "1 GP"
+    },
+    {
+      "name": "Blanket",
+      "wt": "3 lb.",
+      "cost": "5 SP"
+    },
+    {
+      "name": "Block and Tackle",
+      "wt": "5 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Book",
+      "wt": "5 lb.",
+      "cost": "25 GP"
+    },
+    {
+      "name": "Bottle, Glass",
+      "wt": "2 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Bucket",
+      "wt": "2 lb.",
+      "cost": "5 CP"
+    },
+    {
+      "name": "Burglar's Pack",
+      "wt": "42 lb.",
+      "cost": "16 GP"
+    },
+    {
+      "name": "Caltrops",
+      "wt": "2 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Candle",
+      "wt": null,
+      "cost": "1 CP"
+    },
+    {
+      "name": "Case, Crossbow Bolt",
+      "wt": "1 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Case, Map or Scroll",
+      "wt": "1 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Chain",
+      "wt": "10 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Chest",
+      "wt": "25 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Climber's Kit",
+      "wt": "12 lb.",
+      "cost": "25 GP"
+    },
+    {
+      "name": "Clothes, Fine",
+      "wt": "6 lb.",
+      "cost": "15 GP"
+    },
+    {
+      "name": "Clothes, Traveler's",
+      "wt": "4 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Component Pouch",
+      "wt": "2 lb.",
+      "cost": "25 GP"
+    },
+    {
+      "name": "Costume",
+      "wt": "4 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Crowbar",
+      "wt": "5 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Diplomat's Pack",
+      "wt": "39 lb.",
+      "cost": "39 GP"
+    },
+    {
+      "name": "Dungeoneer's Pack",
+      "wt": "55 lb.",
+      "cost": "12 GP"
+    },
+    {
+      "name": "Entertainer's Pack",
+      "wt": null,
+      "cost": "40 GP",
+      "wt_note": "source weight was garbled (5812); authoritative value TBD"
+    },
+    {
+      "name": "Explorer's Pack",
+      "wt": "55 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Flask",
+      "wt": "1 lb.",
+      "cost": "2 CP"
+    },
+    {
+      "name": "Grappling Hook",
+      "wt": "4 lb.",
+      "cost": "2 GP"
+    },
+    {
+      "name": "Healer's Kit",
+      "wt": "3 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Holy Water",
+      "wt": "1 lb.",
+      "cost": "25 GP"
+    },
+    {
+      "name": "Hunting Trap",
+      "wt": "25 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Ink",
+      "wt": null,
+      "cost": "10 GP"
+    },
+    {
+      "name": "Arrows",
+      "wt": "1 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Bolts",
+      "wt": "1 1/2 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Bullets, Firearm",
+      "wt": "2 lb.",
+      "cost": "3 GP"
+    },
+    {
+      "name": "Bullets, Sling",
+      "wt": "1 1/2 lb.",
+      "cost": "4 CP"
+    },
+    {
+      "name": "Needles",
+      "wt": "1 lb.",
+      "cost": "1 GP"
+    },
+    {
+      "name": "Crystal",
+      "wt": "1 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Orb",
+      "wt": "3 lb.",
+      "cost": "20 GP"
+    },
+    {
+      "name": "Rod",
+      "wt": "2 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Staff (also a Quarterstaff)",
+      "wt": "4 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Wand",
+      "wt": "1 lb.",
+      "cost": "10 GP"
+    },
+    {
+      "name": "Amulet (worn or held)",
+      "wt": "1 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Emblem (borne on fabric or a Shield)",
+      "wt": null,
+      "cost": "5 GP"
+    },
+    {
+      "name": "Reliquary (held)",
+      "wt": "2 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Sprig of mistletoe",
+      "wt": null,
+      "cost": "1 GP"
+    },
+    {
+      "name": "Wooden staff (also a Quarterstaff)",
+      "wt": "4 lb.",
+      "cost": "5 GP"
+    },
+    {
+      "name": "Yew wand",
+      "wt": "1 lb.",
+      "cost": "10 GP"
+    }
+  ],
+  "scroll_costs": [
+    {
+      "level": "Cantrip",
+      "time": "1 day",
+      "cost": "15 GP"
+    },
+    {
+      "level": "1",
+      "time": "1 day",
+      "cost": "25 GP"
+    },
+    {
+      "level": "2",
+      "time": "3 days",
+      "cost": "100 GP"
+    },
+    {
+      "level": "3",
+      "time": "5 days",
+      "cost": "150 GP"
+    },
+    {
+      "level": "4",
+      "time": "10 days",
+      "cost": "1,000 GP"
+    },
+    {
+      "level": "5",
+      "time": "25 days",
+      "cost": "1,500 GP"
+    },
+    {
+      "level": "6",
+      "time": "40 days",
+      "cost": "10,000 GP"
+    },
+    {
+      "level": "7",
+      "time": "50 days",
+      "cost": "12,500 GP"
+    },
+    {
+      "level": "8",
+      "time": "60 days",
+      "cost": "15,000 GP"
+    },
+    {
+      "level": "9",
+      "time": "120 days",
+      "cost": "50,000 GP"
+    }
+  ],
+  "source": "SRD 5.2.1"
+}
