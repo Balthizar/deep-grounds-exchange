@@ -1,18 +1,18 @@
 
-import { StatRow } from "../lib/ui";
+import { StatRow, rarityOf } from "../lib/ui";
 import { isTradeableClass, itemsInOpenTrades } from "../lib/rules";
 import { itemCat } from "../lib/core";
 
 import { CATALOG } from "../data/catalog";
 import { GIFT_KINDS, TREASURE_ALLOWANCE, dmOrgList, storesOf } from "../lib/rules";
-import { RARITY, StorePicker, getBlob, itemMetaLine } from "../lib/ui";
+import { StorePicker, getBlob, itemMetaLine } from "../lib/ui";
 import { TABLE_COUNT, orgPrescheduleById, tablesOn } from "../lib/play";
 import { isMundaneCat, orgRec, putBlob } from "../lib/core";
 import { ACCOUNTS, accName, catName } from "../lib/core";
 import { ADVENTURES, ADV_BY_ID } from "../data/adventures";
 import type { Action, AppState } from "../types";
 import { Avatar, Empty, RulesLinks, SectionHead, StoreChip, itemClassLabel, logHasChar, tierLabel } from "../lib/ui";
-import { canPublishSession, isModuleAuthor, nightCommitment, searchAdventures, storeName } from "../lib/play";
+import { canPublishSession, isModuleAuthor, nightCommitment, proposalDatesForMentor, searchAdventures, storeName } from "../lib/play";
 import { isAdmin, provOf, verifyingDMs } from "../lib/rules";
 
 // Observer-log questions.
@@ -719,7 +719,7 @@ export function SessionCard({ sess, state, accountId, dispatch, mode, setModal, 
         {mode === "dm" && sess.dmId && sess.dmId !== accountId && setModal && <button className="dg-btn ghost sm" onClick={() => setModal({ kind: "message", to: sess.dmId, join: true, adv: adv ? adv.label : "the table", when, fromCtx: "dm", toCtx: "dm" })}>✉ Message the DM</button>}
         {mode === "dm" && sess.dmId && sess.dmId !== accountId && (state.roles[accountId] || []).includes("dm") && sess.signups.some((u) => u.accountId === accountId) && setModal && <button className="dg-btn ghost sm" onClick={() => setModal({ kind: "escalate", dm: sess.dmId, sessionId: sess.id })}>⚑ Raise a concern</button>}
         {canManage && sess.status !== "completed" && setModal && <button className="dg-btn ghost sm" onClick={() => setModal({ kind: "session", editId: sess.id })}>✎ Edit table</button>}
-        {canManage && <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "CANCEL_SESSION", id: sess.id })}>Cancel session</button>}
+        {canManage && <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "CANCEL_SESSION", id: sess.id, by: accountId })}>Cancel session</button>}
       </div>
       {(iRunThis || mine) && sess.dmId && (
         <div className="dg-sessactions">
@@ -769,7 +769,7 @@ export const PROV_QUESTIONS = [
 // ALPG p.6: the fixed fallback list when no like-for-like DMG swap fits (Artifact / no match)
 export const MAGIC_ITEM_REPLACEMENTS = ["Boots of False Tracks", "Cloak of Many Fashions", "Silvered Weapon", "Pearl of Power", "Bracers of Defense", "Wand of the War Mage, +X", "Weapon, +X", "Armor, +X", "Ring of Invisibility"];
 
-export function SessionModal({ modal, state, dispatch, close, setModal }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+export function SessionModal({ modal, state, dispatch, close, setModal, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const editing = modal.editId ? state.sessions.find((x) => x.id === modal.editId) : null;
   const [advId, setAdvId] = useState(editing ? editing.adventureId : (modal.advId || ""));
   const [advQuery, setAdvQuery] = useState((editing && ADV_BY_ID[editing.adventureId]) ? ADV_BY_ID[editing.adventureId].label : (modal.advId && ADV_BY_ID[modal.advId] ? ADV_BY_ID[modal.advId].label : ""));
@@ -810,7 +810,7 @@ export function SessionModal({ modal, state, dispatch, close, setModal }: { disp
     if (editing) {
       dispatch({ type: "EDIT_SESSION", id: editing.id, adventureId: advId, dmId, datetime, table: table || editing.table || freeTables[0] || 1, capacity: +capacity || 6, storeId, orgId, seriesPart: seriesPart.trim(), notes: notes.trim(), openToShadow, permaDeath });
     } else if (asEvent) {
-      dispatch({ type: "CREATE_EVENT", name: evName.trim(), date: (datetime || "").slice(0, 10), stores: [storeId], price: evPrice.trim(), notifyPlayers: true, createdBy: dmId,
+      dispatch({ type: "CREATE_EVENT", by: accountId, name: evName.trim(), date: (datetime || "").slice(0, 10), stores: [storeId], price: evPrice.trim(), notifyPlayers: true, createdBy: dmId,
         tables: [{ adventureId: advId, dmId, datetime, table: table || freeTables[0], capacity: +capacity || 6, storeId, notes: notes.trim() }] });
     } else {
       dispatch({ type: "CREATE_SESSION", adventureId: advId, dmId, datetime, table: table || freeTables[0], capacity: +capacity || 6, storeId, orgId, seriesPart: seriesPart.trim(), notes: notes.trim(), preset, presetSignups, openToShadow, permaDeath });
@@ -982,7 +982,7 @@ export function CompleteSessionModal({ modal, state, dispatch, close }: { dispat
       )) : <div className="dg-muted sm" style={{ fontStyle: "italic" }}>No magic items added yet. Pick one below and tap “Add,” or leave empty for a downtime-only session.</div>}
       <div className="dg-field2" style={{ marginTop: 8 }}>
         <label className="dg-field"><span>Add item</span>
-          <select value={addCat} onChange={(e) => setAddCat(e.target.value)}>{Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {RARITY[c.rarity].label}</option>)}</select>
+          <select value={addCat} onChange={(e) => setAddCat(e.target.value)}>{Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {rarityOf(c).label}</option>)}</select>
         </label>
         <label className="dg-field"><span>Class</span>
           {isMundaneCat(addCat)
@@ -1030,7 +1030,7 @@ export function EventBuildModal({ modal, state, dispatch, accountId, close, setM
   const canCreate = name.trim() && date && stores.length && tables.length && tables.every((t) => t.advId && t.datetime);
   const create = () => {
     if (!canCreate) return;
-    dispatch({ type: "CREATE_EVENT", name: name.trim(), date, stores, price: price.trim(), externalLink: link.trim(), notifyPlayers: notify, createdBy: accountId, orgId: (modal && modal.orgId) || undefined,
+    dispatch({ type: "CREATE_EVENT", by: accountId, name: name.trim(), date, stores, price: price.trim(), externalLink: link.trim(), notifyPlayers: notify, createdBy: accountId, orgId: (modal && modal.orgId) || undefined,
       tables: tables.map((t, i) => ({ adventureId: t.advId, dmId: "", datetime: t.datetime, table: i + 1, storeId: t.storeId, capacity: +t.capacity || 6, price: t.price.trim() })) });
     close();
   };
@@ -1217,7 +1217,7 @@ export function DMLogModal({ modal, state, dispatch, accountId, close }: { dispa
           <div className="dg-field2" style={{ marginTop: 8 }}>
             <label className="dg-field"><span>Add item</span>
               <select value={addCat} onChange={(e) => setAddCat(e.target.value)}>
-                {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {RARITY[c.rarity].label}</option>)}
+                {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {rarityOf(c).label}</option>)}
               </select>
             </label>
             <label className="dg-field"><span>Class</span>
@@ -1312,7 +1312,7 @@ export function LogSheetModal({ modal, state, setModal, close }: { state: AppSta
   );
 }
 
-export function LogModal({ modal, state, dispatch, close, setModal }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+export function LogModal({ modal, state, dispatch, close, setModal, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const existing = modal.editId && state ? state.logEntries.find((e) => e.id === modal.editId) : null;
   const first = existing && existing.itemsEarned && existing.itemsEarned[0];
   const [advId, setAdvId] = useState(existing && existing.adventureId ? existing.adventureId : (modal.advId || ""));
@@ -1351,7 +1351,7 @@ export function LogModal({ modal, state, dispatch, close, setModal }: { dispatch
       storyAwards: storyAwards.trim(), effects: effects.trim(), note: note.trim(), logImage: putBlob(img),
       eventId: (existing && existing.eventId) || modal.eventId || undefined,
     };
-    if (modal.editId) dispatch({ type: "EDIT_LOG", entryId: modal.editId, entry });
+    if (modal.editId) dispatch({ type: "EDIT_LOG", entryId: modal.editId, entry, by: accountId });
     else dispatch({ type: "SUBMIT_LOG", entry });
     if (setModal) setModal({ kind: "logsheet", charId: modal.charId }); else close();
   };
@@ -1415,7 +1415,7 @@ export function LogModal({ modal, state, dispatch, close, setModal }: { dispatch
       </div>
       <label className="dg-field"><span>Item earned</span>
         <select value={cat} onChange={(e) => setCat(e.target.value)}>
-          {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {RARITY[c.rarity].label}</option>)}
+          {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {rarityOf(c).label}</option>)}
         </select>
       </label>
       <div className="dg-field2">
@@ -1467,6 +1467,118 @@ export function MentorOfferCard({ offer, state, accountId, dispatch }: { dispatc
       <div className="dg-muted sm" style={{ marginBottom: 6 }}>These DMs are willing to let you shadow a table at {storeName(state, offer.storeId)}. Pick one to accept — you'll be scheduled to observe their next table, and you'll become a provisional mentee.</div>
       <div className="dg-pollopts">
         {offer.options.map((dm) => <button key={dm} className="dg-btn sm" onClick={() => dispatch({ type: "PICK_MENTOR", offerId: offer.id, candidate: accountId, mentor: dm })}>Shadow {accName(dm)}</button>)}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------- Provisional table proposals ----------------------
+// Frank's ruling, 27 Jul: a provisional DM offers up to three ranked dates; the mentor picks one
+// or says none work. One round instead of N.
+//
+// THE MENTOR'S CARD DELIBERATELY SHOWS NO RANKING. proposalDatesForMentor() returns the dates
+// chronologically, because position is the signal — handing over the stored array and simply not
+// writing "1st choice" would still show the ranking, since the first one is first. The mentor is
+// choosing on availability, and a visible ranking would invite them to feel they owe the top one.
+export function ProvTableProposalCard({ proposal, state, accountId, dispatch }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const adv = ADV_BY_ID[proposal.adventureId];
+  const dates = proposalDatesForMentor(proposal);
+  const fmt = (dt) => new Date(dt).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return (
+    <div className="dg-pollcard mentor">
+      <div className="dg-poll-h">🗓 {accName(proposal.provDm)} wants to run a table</div>
+      <div className="dg-muted sm" style={{ marginBottom: 6 }}>
+        {adv ? adv.label : "A session"} at {storeName(state, proposal.storeId)}. You'd be sitting in, so pick whichever
+        of these nights actually works for you — or say none of them do and talk it through together.
+      </div>
+      <div className="dg-pollopts">
+        {dates.map((dt) => (
+          <button key={dt} className="dg-btn sm" onClick={() => dispatch({ type: "PICK_PROV_TABLE_DATE", proposalId: proposal.id, datetime: dt, by: accountId })}>
+            {fmt(dt)}
+          </button>
+        ))}
+        <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DECLINE_PROV_TABLE", proposalId: proposal.id, by: accountId })}>
+          None of these work
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// The provisional DM's side. THIS ONE SHOWS THE RANKING, because it is theirs — they are stating
+// a preference, and seeing the order is how they know they stated it in the order they meant.
+export function ProvTableProposeModal({ modal, state, dispatch, close, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const mentor = state.mentors ? state.mentors[accountId] : null;
+  const open = (state.tableProposals || []).find((tp) => tp.provDm === accountId && tp.status === "PENDING");
+  const [advQuery, setAdvQuery] = useState("");
+  const [advId, setAdvId] = useState("");
+  const [dates, setDates] = useState(["", "", ""]);
+  const setDate = (i, v) => setDates((d) => d.map((x, k) => k === i ? v : x));
+  const filled = dates.filter(Boolean);
+  const dup = new Set(filled).size !== filled.length;
+  const hits = advQuery.trim() ? searchAdventures(advQuery, 6) : [];
+  const canSend = !!mentor && !!advId && filled.length > 0 && !dup;
+  const send = () => {
+    dispatch({ type: "PROPOSE_PROV_TABLE", by: accountId, provDm: accountId, adventureId: advId,
+               storeId: modal.storeId || "store_dj", dates: filled });
+    close();
+  };
+  const ORDINAL = ["First choice", "Second choice", "Third choice"];
+  return (
+    <div>
+      <h3 className="dg-modal-h">Propose a table to your mentor</h3>
+      {!mentor
+        ? <div className="dg-muted sm">You don't have a mentor bound yet, so there's nobody to ask. Find a mentor first.</div>
+        : <>
+          <p className="dg-muted sm">
+            {accName(mentor)} sits in on your tables, so give them a few nights to choose from rather than
+            one at a time. Rank them how you'd prefer — they'll only see which nights you offered, not the order,
+            so they can answer honestly on availability.
+          </p>
+          {open && <div className="dg-clawback">You already have a proposal waiting with {accName(mentor)}. Sending a new one replaces it.</div>}
+          <label className="dg-field"><span>Adventure</span>
+            <input type="text" value={advQuery} onChange={(e) => { setAdvQuery(e.target.value); setAdvId(""); }} placeholder="Search adventures" />
+          </label>
+          {hits.length > 0 && !advId && (
+            <div className="dg-pollopts">
+              {hits.map((a) => <button key={a.id} className="dg-btn ghost sm" onClick={() => { setAdvId(a.id); setAdvQuery(a.label); }}>{a.label}</button>)}
+            </div>
+          )}
+          {dates.map((d, i) => (
+            <label key={i} className="dg-field"><span>{ORDINAL[i]}{i > 0 ? " (optional)" : ""}</span>
+              <input type="datetime-local" value={d} onChange={(e) => setDate(i, e.target.value)} />
+            </label>
+          ))}
+          {dup && <div className="dg-muted sm" style={{ color: "var(--maroon)" }}>Two of those are the same night — give them different options.</div>}
+          <div className="dg-row-actions">
+            <button className="dg-btn" disabled={!canSend} onClick={send}>Send to {accName(mentor)}</button>
+            <button className="dg-btn ghost" onClick={close}>Cancel</button>
+          </div>
+        </>}
+    </div>
+  );
+}
+
+// The way in for the provisional DM. Shows only when there is nothing already waiting, so it
+// never nags someone who has already asked and is waiting on their mentor.
+export function ProvTablePrompt({ state, accountId, setModal }) {
+  const mentor = state.mentors ? state.mentors[accountId] : null;
+  if (provOf(state, accountId) !== "provisional-dm" || !mentor) return null;
+  const pending = (state.tableProposals || []).find((tp) => tp.provDm === accountId && tp.status === "PENDING");
+  if (pending) {
+    return (
+      <div className="dg-pollcard mentor">
+        <div className="dg-poll-h">🗓 Waiting on {accName(mentor)}</div>
+        <div className="dg-muted sm">You've offered {pending.dates.length === 1 ? "a night" : pending.dates.length + " nights"}. They'll pick one or let you know none work.</div>
+      </div>
+    );
+  }
+  return (
+    <div className="dg-pollcard mentor">
+      <div className="dg-poll-h">🗓 Want to run a table?</div>
+      <div className="dg-muted sm" style={{ marginBottom: 6 }}>{accName(mentor)} sits in on your tables. Offer them a few nights at once instead of going back and forth.</div>
+      <div className="dg-pollopts">
+        <button className="dg-btn sm" onClick={() => setModal({ kind: "provtable" })}>Propose dates</button>
       </div>
     </div>
   );
@@ -1571,14 +1683,14 @@ export function MonitorReportModal({ modal, state, dispatch, accountId, close }:
       </div>
       <label className="dg-field"><span>Any other concerns? (optional)</span><textarea rows={2} value={concerns} onChange={(e) => setConcerns(e.target.value)} placeholder="Anything else you noticed — or leave blank." /></label>
       <div className="dg-row-actions">
-        <button className="dg-btn" disabled={corrected === null} onClick={() => { dispatch({ type: "MONITOR_REPORT", monitorId: accountId, sessionId: modal.sessionId, flaggedDm: dm, corrected, concerns }); close(); }}>Submit to admin</button>
+        <button className="dg-btn" disabled={corrected === null} onClick={() => { dispatch({ type: "MONITOR_REPORT", by: accountId, monitorId: accountId, sessionId: modal.sessionId, flaggedDm: dm, corrected, concerns }); close(); }}>Submit to admin</button>
         <button className="dg-btn ghost" onClick={close}>Cancel</button>
       </div>
     </>
   );
 }
 
-export function ObserverLogModal({ modal, state, dispatch, close }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+export function ObserverLogModal({ modal, state, dispatch, close, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const se = state.sessions.find((x) => x.id === modal.sessionId);
   const adv = se && ADV_BY_ID[se.adventureId] ? ADV_BY_ID[se.adventureId] : null;
   const [ans, setAns] = useState(["", "", "", ""]);
@@ -1590,7 +1702,7 @@ export function ObserverLogModal({ modal, state, dispatch, close }: { dispatch: 
       <div className="dg-muted sm" style={{ marginBottom: 8 }}>Shadowed {adv ? adv.label : "a table"}{se ? " · run by " + accName(se.dmId) : ""}. Set down your honest account of the table.</div>
       {OBS_QUESTIONS.map((q, i) => <label key={i} className="dg-field"><span>{q}</span><textarea rows={2} value={ans[i]} onChange={set(i)} /></label>)}
       <div className="dg-row-actions">
-        <button className="dg-btn" disabled={!canSubmit} onClick={() => { dispatch({ type: "SUBMIT_OBSERVER_LOG", candidate: modal.candidate, sessionId: modal.sessionId, reflections: OBS_QUESTIONS.reduce((o, q, i) => { o[q] = ans[i]; return o; }, {}) }); close(); }}>Submit to mentor</button>
+        <button className="dg-btn" disabled={!canSubmit} onClick={() => { dispatch({ type: "SUBMIT_OBSERVER_LOG", by: accountId, candidate: modal.candidate, sessionId: modal.sessionId, reflections: OBS_QUESTIONS.reduce((o, q, i) => { o[q] = ans[i]; return o; }, {}) }); close(); }}>Submit to mentor</button>
         <button className="dg-btn ghost" onClick={close}>Cancel</button>
       </div>
     </>
@@ -1651,7 +1763,7 @@ export function LogEntryModal({ modal, state, dispatch, accountId, close, setMod
         <>
           <textarea className="dg-textarea" rows={3} value={dmNote} onChange={(e) => setDmNote(e.target.value)} placeholder="Leave the player a note about their session…" />
           <div className="dg-row-actions">
-            <button className="dg-btn" onClick={() => dispatch({ type: "SET_DM_NOTE", entryId: l.id, note: dmNote.trim() })}>Save note</button>
+            <button className="dg-btn" onClick={() => dispatch({ type: "SET_DM_NOTE", entryId: l.id, by: accountId, note: dmNote.trim() })}>Save note</button>
             {l.status === "SUBMITTED" && (
               <>
                 <button className="dg-btn" onClick={() => { dispatch({ type: "APPROVE_LOG", id: l.id, dmNote: dmNote.trim(), by: accountId }); close(); }}>Save &amp; approve</button>

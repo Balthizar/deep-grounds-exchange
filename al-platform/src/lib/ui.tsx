@@ -3,7 +3,7 @@ import { isModuleAuthor } from "./play";
 import { CATALOG } from "../data/catalog";
 import SPELLS from "../data/srd/spells.json";
 import MUNDANE_GEAR from "../data/srd/mundane_gear.json";
-import { ATTUNE_SLOTS, CARRIED_LIMITS, GIFT_KINDS, LIFESTYLES, LIFESTYLE_BY_ID, MARKET, SCROLL_COST, attunedCount, bastionEligible, callKind, carriedCounts, liveCharmItemsHeld, carriedCraftTools, consumableUnitCount, earnedRegions, equipSlot, giftLimit, isFirearm, isTradeableClass, legendaryTierBlocked, meetsReq, provOf, tierFromLevel } from "../lib/rules";
+import { ATTUNE_SLOTS, CARRIED_LIMITS, GIFT_KINDS, LIFESTYLES, LIFESTYLE_BY_ID, MARKET, rebuildMarketIndex, SCROLL_COST, attunedCount, bastionEligible, callKind, carriedCounts, liveCharmItemsHeld, carriedCraftTools, consumableUnitCount, earnedRegions, equipSlot, giftLimit, isFirearm, isTradeableClass, legendaryTierBlocked, meetsReq, provOf, tierFromLevel } from "../lib/rules";
 import type { Action, CharacterRecord, ItemRecord } from "../types";
 import { accName, catName, isMundaneCat, itemCat, orgRec } from "../lib/core";
 
@@ -127,6 +127,7 @@ export function scribableByLevel(char) {
 // poisons alike. Reading the flag rather than naming the categories means a poison added by a
 // future SRD pull is out of the store the moment it is generated, without touching this line.
 Object.values(MUNDANE_GEAR).forEach((g) => { if (g.id !== "arrows20" && !(g as any).awardOnly) MARKET.push({ id: "buy_" + g.id, name: g.name, cat: "mundane", gp: g.gp, output: "item", mint: g.id, mintClass: "GEAR" }); });
+rebuildMarketIndex();   // the rows above arrive AFTER MARKET_BY_ID is first built; without this they are listed but unbuyable
 
 // A tiny purse of coins from a gp decimal, exact. Money is stored as ONE number — gp, a decimal —
 // and this is how it reads out: work in COPPER (integer) so no float drift ever mints or eats a
@@ -693,7 +694,7 @@ export function ConsumableStack({ items, state, dispatch, setModal, accountId }:
       <div className="dg-item-line">
         <button className="dg-item-name link" onClick={() => setModal({ kind: "inspect", itemId: items[0].id })}>{cat.name}</button>
         <span className="dg-qty">×{total}</span>
-        <span className="dg-dot">·</span><span className="dg-muted sm">{RARITY[cat.rarity] ? RARITY[cat.rarity].label : ""} consumable{unverified ? " · unverified" : ""}</span>
+        <span className="dg-dot">·</span><span className="dg-muted sm">{RARITY[cat.rarity] ? rarityOf(cat).label : ""} consumable{unverified ? " · unverified" : ""}</span>
       </div>
       <div className="dg-itemrow-actions">
         <div className="dg-packstep">
@@ -731,12 +732,12 @@ export function ItemRow({ it, ch, state, accountId, dispatch, setModal }: { disp
   const reviewThread = it.reviewThreadId ? (state.threads.find((t) => t.id === it.reviewThreadId && t.ticket && t.ticket.status !== "AUTHENTICATED")) : null;
   const disposalEntry = it.pendingDisposal ? state.logEntries.find((l) => l.entryType === "DISPOSAL" && l.itemId === it.id && l.status === "SUBMITTED") : null;
   return (
-    <div className="dg-itemrow" style={{ "--rarity": RARITY[cat.rarity].color }}>
+    <div className="dg-itemrow" style={{ "--rarity": rarityOf(cat).color }}>
       <Seal prov={it.provenance} isEvent={it.itemClass === "EVENT_CERT"} review={it.review} />
       <div className="dg-itemrow-body">
         <button className="dg-item-name link" onClick={() => setModal({ kind: "inspect", itemId: it.id })}>{cat.name}{cat.variant && <span className="dg-variant">variant</span>}</button>
         <div className="dg-item-sub">
-          <span className="dg-rarity" style={{ color: RARITY[cat.rarity].color }}>{RARITY[cat.rarity].label}</span>
+          <span className="dg-rarity" style={{ color: rarityOf(cat).color }}>{rarityOf(cat).label}</span>
           <span className="dg-dot">·</span><span>{cat.itemType}</span>
           {it.holder.type === "CHARACTER" && !it.equipped && <><span className="dg-dot">·</span><span className="dg-carriedtag">carried</span></>}
           {it.escrow && <><span className="dg-dot">·</span><span className="dg-escrow">in escrow</span></>}
@@ -1075,6 +1076,16 @@ export const RARITY = {
   legendary: { label: "Legendary", tier: 4, color: "#c8791a" },
   unique:    { label: "Unique",    tier: 9, color: "#8a1c2b" },
 };
+
+// CRASH FIX, found 27 Jul by the render gate on its first day. Mundane gear carries NO rarity
+// field — 168 of 168 generated rows — and four dropdowns iterate the WHOLE catalogue doing
+// `RARITY[c.rarity].label`. Once the generated gear was merged into CATALOG, every one of those
+// threw on the first mundane row: a DM opening the award-item picker took the app down. It
+// survived because no gate ever mounted a component, and `itemRarityLabel` above already knew
+// the rule ("mundane gear has no rarity") without the other call sites being taught it.
+// One accessor now, so the knowledge lives in a single place instead of eight.
+export const RARITY_NONE = { label: "Mundane", tier: -1, color: "#7a736a" };
+export function rarityOf(c) { return (c && RARITY[c.rarity]) || RARITY_NONE; }
 
 export function Avatar({ src, size = 40 }) {
   const url = getBlob(src);   // src may be a blob handle — resolve to the real bytes

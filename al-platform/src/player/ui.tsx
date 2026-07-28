@@ -3,9 +3,9 @@ import { playerPushReport } from "../lib/push";
 // character's bastion region, so it renders the bastion package's own component rather
 // than duplicating it. Everything else two packages share lives in lib/.
 import { BastionRegionLine } from "../bastion/ui";
-import { CARRIED_LIMITS, L5_STARTING_ITEMS, carriedCounts, itemBucket, legendaryTierBlocked, tierFromLevel } from "../lib/rules";
+import { CARRIED_LIMITS, L5_STARTING_ITEMS, carriedCounts, itemBucket, legendaryTierBlocked, tierFromLevel, provOf, orgsOfAccount } from "../lib/rules";
 import { CATALOG } from "../data/catalog";
-import { CreditTrail, ItemEntryModal, StatRow, StorePicker, itemMetaLine } from "../lib/ui";
+import { CreditTrail, ItemEntryModal, StatRow, StorePicker, itemMetaLine, rarityOf } from "../lib/ui";
 import { catName, isMundaneCat } from "../lib/core";
 import { bForm } from "../lib/rules";
 import { ACCOUNTS, accName, itemCat, orgRec } from "../lib/core";
@@ -22,6 +22,143 @@ import { orgsManagedBy, storesOf } from "../lib/rules";
 // ============================================================================
 
 import React, { useState } from "react";
+
+// The account profile PAGE — its own tab, separate from the character roster (Frank, 27 Jul:
+// "the account profile page should be its own separate page"). For now it is a basic profile:
+// the associations strip. Settings, profile details, and friends lists will live here later.
+export function AccountView({ state, accountId, dispatch }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  return (
+    <div className="dg-stack">
+      <AccountAssociations state={state} accountId={accountId} dispatch={dispatch} />
+    </div>
+  );
+}
+
+// ACCOUNT ASSOCIATIONS SURFACE (Frank's design, 27 Jul). A plain account-level strip — "who your
+// account is associated with in the system" — on the profile page, NOT the character roster. It
+// shows the reader their standing (mentor, provisional pipeline status, roles, org memberships)
+// and, where the reader is an admin or org lead, lets them set the things those roles govern.
+//
+// This is the screen the reachability gate flagged as PENDING for SET_MENTOR, SET_PROVISIONAL,
+// GRANT_ROLE, and SET_ORG_MEMBERSHIP. When it ships, those four drop off the worklist — and the
+// gate confirms the dispatch actually happens rather than trusting that it does.
+export function AccountAssociations({ state, accountId, dispatch }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const isAdmin = (state.roles[accountId] || []).includes("admin");
+  const roles = state.roles[accountId] || ["player"];
+  const mentor = state.mentors ? state.mentors[accountId] : null;
+  const prov = provOf(state, accountId);
+  const myOrgs = orgsOfAccount(state, accountId);
+
+  const provLabel = { "none": "—", "provisional-dm": "Provisional DM (under supervision)", "certified": "Certified DM" };
+
+  // Admin target selector for the two admin-gated controls (grant role, provisional status).
+  const [target, setTarget] = useState("");
+  const [roleToGrant, setRoleToGrant] = useState("dm");
+  const [provState, setProvState] = useState("provisional-dm");
+  const others = ACCOUNTS.filter((a) => a.id !== accountId);
+
+  return (
+    <div className="dg-assoc">
+      <h3 className="dg-assoc-h">Your account</h3>
+
+      {/* READ-ONLY STATUS — who you are in the system. */}
+      <div className="dg-assoc-row"><span className="dg-assoc-k">Roles</span>
+        <span className="dg-assoc-v">{roles.join(", ")}</span></div>
+
+      <div className="dg-assoc-row"><span className="dg-assoc-k">Mentor</span>
+        <span className="dg-assoc-v">{mentor ? accName(mentor) : "none assigned"}</span></div>
+
+      <div className="dg-assoc-row"><span className="dg-assoc-k">DM pipeline</span>
+        <span className="dg-assoc-v">{provLabel[prov] || prov}</span></div>
+
+      <div className="dg-assoc-row"><span className="dg-assoc-k">Organizations</span>
+        <span className="dg-assoc-v">{myOrgs.length ? myOrgs.map((o) => (orgRec(state, o) || {}).name || o).join(", ") : "none"}</span></div>
+
+      {/* If a mentor was assigned to you, you may step away from the pairing (mentee-side). */}
+      {mentor && (
+        <div className="dg-assoc-actions">
+          <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "SET_MENTOR", mentee: accountId, mentor: null })}>
+            End mentorship with {accName(mentor)}
+          </button>
+        </div>
+      )}
+
+      {/* ADMIN CONTROLS — role grants and provisional status. These actions are admin-gated in the
+          reducer; the surface simply exposes them to an admin who is already permitted. */}
+      {isAdmin && (
+        <div className="dg-assoc-admin">
+          <h4 className="dg-assoc-subh">Admin: set another account's standing</h4>
+          <label className="dg-field"><span>Account</span>
+            <select value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="">Choose an account…</option>
+              {others.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </label>
+
+          <div className="dg-assoc-ctl">
+            <label className="dg-field"><span>Grant role</span>
+              <select value={roleToGrant} onChange={(e) => setRoleToGrant(e.target.value)}>
+                <option value="dm">DM</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <button className="dg-btn sm" disabled={!target} onClick={() => dispatch({ type: "GRANT_ROLE", accountId: target, role: roleToGrant, by: accountId })}>
+              Grant
+            </button>
+          </div>
+
+          <div className="dg-assoc-ctl">
+            <label className="dg-field"><span>Provisional status</span>
+              <select value={provState} onChange={(e) => setProvState(e.target.value)}>
+                <option value="provisional-dm">Provisional DM</option>
+                <option value="certified">Certified DM</option>
+                <option value="none">None</option>
+              </select>
+            </label>
+            <button className="dg-btn sm" disabled={!target} onClick={() => dispatch({ type: "SET_PROVISIONAL", acc: target, state: provState, by: accountId })}>
+              Set
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ORG LEADERSHIP — add or remove an account's org membership. Reducer-gated to admin or the
+          org's leadership; shown when the reader leads at least one org. */}
+      {orgsManagedBy(state, accountId).length > 0 && (
+        <div className="dg-assoc-admin">
+          <h4 className="dg-assoc-subh">Org leadership: membership</h4>
+          <OrgMembershipControl state={state} accountId={accountId} dispatch={dispatch} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrgMembershipControl({ state, accountId, dispatch }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const managed = orgsManagedBy(state, accountId);
+  const [org, setOrg] = useState(managed[0] || "");
+  const [acct, setAcct] = useState("");
+  const accts = ACCOUNTS.filter((a) => a.id !== accountId);
+  return (
+    <>
+      <label className="dg-field"><span>Organization</span>
+        <select value={org} onChange={(e) => setOrg(e.target.value)}>
+          {managed.map((o) => <option key={o} value={o}>{(orgRec(state, o) || {}).name || o}</option>)}
+        </select>
+      </label>
+      <label className="dg-field"><span>Account</span>
+        <select value={acct} onChange={(e) => setAcct(e.target.value)}>
+          <option value="">Choose an account…</option>
+          {accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </select>
+      </label>
+      <div className="dg-assoc-ctl">
+        <button className="dg-btn sm" disabled={!org || !acct} onClick={() => dispatch({ type: "SET_ORG_MEMBERSHIP", accountId: acct, orgId: org, join: true, by: accountId })}>Add to org</button>
+        <button className="dg-btn ghost sm" disabled={!org || !acct} onClick={() => dispatch({ type: "SET_ORG_MEMBERSHIP", accountId: acct, orgId: org, join: false, by: accountId })}>Remove</button>
+      </div>
+    </>
+  );
+}
 
 export function ProfileView({ state, accountId, dispatch, setModal, goBastion }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   // What has not been copied onto a sheet yet. Shown on the player's own profile so the
@@ -291,11 +428,11 @@ export function ItemCard({ it, state, accountId, dispatch, setModal, context }: 
   const lanes = lanesFor(it, state);
   const player = state.players[accountId];
   return (
-    <div className="dg-card item" style={{ "--rarity": RARITY[cat.rarity].color }}>
+    <div className="dg-card item" style={{ "--rarity": rarityOf(cat).color }}>
       <div className="dg-card-h">
         <div>
           <button className="dg-item-name link" onClick={() => setModal({ kind: "inspect", itemId: it.id })}>{cat.name}</button>
-          <div className="dg-item-sub"><span className="dg-rarity" style={{ color: RARITY[cat.rarity].color }}>{RARITY[cat.rarity].label}</span>
+          <div className="dg-item-sub"><span className="dg-rarity" style={{ color: rarityOf(cat).color }}>{rarityOf(cat).label}</span>
             <span className="dg-dot">·</span>{itemClassLabel(it.catalogId, it.itemClass)}</div>
         </div>
         <Seal prov={it.provenance} isEvent={it.itemClass === "EVENT_CERT"} review={it.review} />
@@ -607,7 +744,7 @@ export function PregenModal({ modal, state, dispatch, close, accountId }: { disp
                 <div className="dg-field2" style={{ marginTop: 8 }}>
                   <label className="dg-field"><span>Add item</span>
                     <select value={addCat} onChange={(e) => setAddCat(e.target.value)}>
-                      {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {RARITY[c.rarity].label}</option>)}
+                      {Object.values(CATALOG).filter((c) => c.rarity !== "unique").map((c) => <option key={c.id} value={c.id}>{c.name} · {rarityOf(c).label}</option>)}
                     </select>
                   </label>
                   <label className="dg-field"><span>Class</span>
@@ -744,7 +881,7 @@ export function RetireDiaryModal({ modal, state, accountId, dispatch }: { dispat
   );
 }
 
-export function PregenTransferModal({ modal, state, dispatch, close }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+export function PregenTransferModal({ modal, state, dispatch, close, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const ch = state.characters[modal.charId];
   const [to, setTo] = useState("");
   if (!ch) return (<><h3 className="dg-modal-h">Not found</h3><div className="dg-row-actions"><button className="dg-btn ghost" onClick={close}>Close</button></div></>);
@@ -761,7 +898,7 @@ export function PregenTransferModal({ modal, state, dispatch, close }: { dispatc
         </select>
       </label>
       <div className="dg-row-actions">
-        <button className="dg-btn" disabled={!to} onClick={() => { dispatch({ type: "TRANSFER_PREGEN", charId: ch.id, toAccount: to }); close(); }}>Transfer character</button>
+        <button className="dg-btn" disabled={!to} onClick={() => { dispatch({ type: "TRANSFER_PREGEN", charId: ch.id, toAccount: to, by: accountId }); close(); }}>Transfer character</button>
         <button className="dg-btn ghost" onClick={close}>Cancel</button>
       </div>
     </>

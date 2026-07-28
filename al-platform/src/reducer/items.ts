@@ -20,6 +20,7 @@ export const ITEM_ACTION_NAMES: readonly string[] = [
   "MARK_LOST", "MINT_BOOK_ITEM", "OFFER_CHARM_GIFT", "PROPOSE_TRADE", "REASSIGN_SHELF_ITEM", "REJECT_DM_ITEM",
   "REJECT_IMPORT_ITEM", "REJECT_PAPER_ITEM", "REJECT_SLOT_ITEM", "REMOVE_GIFT",
   "REMOVE_WISH", "REQUEST_AUTH", "ROLL_ITEM_SLOT", "SCRIBE_SCROLL",
+  "SELL_TO_RONALDO",
   "SEND_TRADE_PROPOSAL", "SET_CHARM_DESC", "SUBMIT_DISPOSAL", "SUBMIT_DM_ITEM", "SUBMIT_SLOT_ITEM",
   "TOGGLE_ATTUNED", "TOGGLE_CARRIED", "TOGGLE_EQUIPPED", "TOGGLE_GIFT_CARRIED",
   "TOGGLE_WISHLIST", "TRANSFER_PREGEN", "UNASSIGN_CERT", "VERIFY_DM_ITEM",
@@ -35,7 +36,7 @@ export const ITEM_ACTION_NAMES: readonly string[] = [
 // ============================================================================
 
 import type { AppState } from "../types";
-import { ATTUNE_SLOTS, CARRIED_LIMITS, MARKET_BY_ID, SCROLL_COST, TRADE_DT, attunedCount, canTradeAcct, cancelTradeItems, carriedCount, carriedCounts, carriedCraftTools, equipSlot, giftLimit, handOverItem, inputterOf, isDMRole, itemBucket, legendaryTierBlocked, logTradeCost, liveCharmItemsHeld, mayActOnChar, mayActOnItem, meetsReq, normalizeCarriedGifts, provOf, satisfyWishlist, tierFromLevel, toolSpecials, tradeLegal, tradeSideStale, verifyingDMs } from "../lib/rules";
+import { ATTUNE_SLOTS, CARRIED_LIMITS, MARKET_BY_ID, SCROLL_COST, TRADE_DT, sellValueOf, attunedCount, canTradeAcct, cancelTradeItems, carriedCount, carriedCounts, carriedCraftTools, equipSlot, giftLimit, handOverItem, inputterOf, isDMRole, itemBucket, legendaryTierBlocked, logTradeCost, liveCharmItemsHeld, mayActOnChar, mayActOnItem, meetsReq, normalizeCarriedGifts, provOf, satisfyWishlist, tierFromLevel, toolSpecials, tradeLegal, tradeSideStale, verifyingDMs } from "../lib/rules";
 import { ACCOUNTS, accName, catName, itemCat, itemClassOf, mkItem, putBlob, unverified, verified } from "../lib/core";
 import { findOrCreateThread } from "../bastion/engine";
 
@@ -63,6 +64,56 @@ export function itemActions(s: any, action: any, dropNotice: (p: any) => void): 
       s.items[nid].lineage = [{ holder: ch.name, note: "Issued with pre-generated character", adventure: advn }];
       return s;
     }
+    case "SELL_TO_RONALDO": {
+      // RONALDO, the Exchange's fence. HOUSE MECHANISM — see the rate note below for what is
+      // AL and what is ours. Frank's rulings, 27 Jul:
+      //   scope    — "Ronaldo deals in the non magical", so itemClass GEAR and nothing else.
+      //              GEAR is exactly ALDMG:157's "mundane non-story", and it is also the precise
+      //              complement of the trade path (isTradeableClass = MAGIC_ITEM | EVENT_CERT),
+      //              so nothing can be both traded and fenced.
+      //   approval — "unverified Magic items are tradeable. Unverified mundane items are not."
+      //              Verification gates the IRREVERSIBLE door only. A traded magic item is still
+      //              an item and can be clawed back if it proves invalid; gold cannot. Once a
+      //              mundane item becomes coin there is nothing left to remove, so the check has
+      //              to happen here or it never happens at all.
+      //   pack     — "it should only be pack because the pack that the player character has is
+      //              specific to that one character." Holder must be this CHARACTER. Shelf items
+      //              are deliberately out of reach: a shelf is not one character's property.
+      const ch = s.characters[action.charId];
+      if (!ch || ch.ownerId !== action.by) return s;
+      const ids = action.itemIds || [];
+      if (!ids.length) return s;
+
+      // Price first, and ALL-OR-NOTHING like CHECKOUT_MARKET: if any line is ineligible the whole
+      // sale is refused rather than silently fencing the subset. A partial sale would leave the
+      // player guessing which item Ronaldo took, and the gold is unrecoverable once moved.
+      let total = 0;
+      for (const id of ids) {
+        const it = s.items[id];
+        if (!it) return s;
+        if (it.itemClass !== "GEAR") return s;                                  // non-magical only
+        if (!it.provenance || it.provenance.state !== "VERIFIED") return s;      // unapproved gear is not sellable
+        if (it.holder.type !== "CHARACTER" || it.holder.id !== ch.id) return s;  // out of this character's pack
+        if (it.escrow) return s;                                                 // mid-trade, not his to take
+        if (it.review && it.review.flagged) return s;                            // under review: still the DM's business
+        total += sellValueOf(it.catalogId);
+      }
+
+      ch.gp = (ch.gp || 0) + total;
+      const date = todayLocal();
+      const names = ids.map((id) => catName(s.items[id].catalogId)).join(", ");
+      for (const id of ids) {
+        s.trades = s.trades.filter((t) => !(t.status === "PROPOSED" && (t.a.itemId === id || t.b.itemId === id)));
+        if (s.listings) s.listings = s.listings.filter((l) => l.itemId !== id);
+        delete s.items[id];
+      }
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EARNING", status: "APPROVED",
+        date, dtEarned: 0, gpEarned: total,
+        note: "Sold to Ronaldo — " + names + " (half price, ALDMG:157)" });
+      return s;
+    }
+
+
     case "DELETE_ITEM": {
       if (!mayActOnItem(s, action.itemId, action.by)) return s;   // only the holder (or an admin) may touch an item
       // I drop any pending trades that referenced this item — no orphan proposals left behind
@@ -365,9 +416,17 @@ export function itemActions(s: any, action: any, dropNotice: (p: any) => void): 
     case "VERIFY_SLOT_ITEM": {
       const slot = s.itemSlots && s.itemSlots[action.slotId];
       if (!slot || slot.status !== "SUBMITTED") return s;
+      // Frank's ruling, 27 Jul: "all items that were added by a player must be approved by a dm of
+      // the same organization and store." A slot fill IS a player entry, so it belongs here.
+      // verifyingDMs() already encodes exactly that pairing and was already enforced on the paper
+      // and import paths — the slot path was the one that only ever checked the DM role, so any
+      // DM in the system could approve any player's entry. Consistency, not a new rule.
+      // DELIBERATELY NOT applied to VERIFY_DM_ITEM: that item is DM-authored, and its verifier is
+      // the provisional DM's MENTOR, a different relationship the ruling does not speak to.
       if (!isDMRole(s, action.by)) return s;                       // only a DM may verify
       const it = s.items[slot.itemId]; if (!it) return s;
       const ch = s.characters[slot.charId];
+      if (!ch || !verifyingDMs(s, ch.ownerId).includes(action.by)) return s;
       const who = (ACCOUNTS.find((a) => a.id === action.by) || {} as any).name || "a DM";
       it.provenance = slot.via === "craft"
         ? verified("CRAFTED", slot.maker || who)                   // made at the keep; the DM checked it against the book
@@ -385,6 +444,10 @@ export function itemActions(s: any, action: any, dropNotice: (p: any) => void): 
       if (!slot || slot.status !== "SUBMITTED") return s;
       if (!isDMRole(s, action.by)) return s;
       const ch = s.characters[slot.charId];
+      // Same pairing as VERIFY_SLOT_ITEM. Rejection is gated too: the power to send a player's
+      // entry back is the same authority as approving it, and leaving it open would let any DM
+      // in the system bounce a claim they have no standing over.
+      if (!ch || !verifyingDMs(s, ch.ownerId).includes(action.by)) return s;
       const who = (ACCOUNTS.find((a) => a.id === action.by) || {} as any).name || "a DM";
       const nm = slot.entered ? slot.entered.name : "the item";
       if (slot.itemId) delete s.items[slot.itemId];                // it never entered play

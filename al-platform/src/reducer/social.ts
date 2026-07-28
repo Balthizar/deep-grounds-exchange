@@ -79,7 +79,12 @@ export function socialActions(s: any, action: any, dropNotice: (p: any) => void)
       return s;
     }
     case "DISMISS_NOTICE": {
-      s.notices = s.notices.filter((n) => n.id !== action.id);
+      // AUTHORITY (added 27 Jul, social.ts close-out). A notice carries its recipient in
+      // accountId; dismissing it belongs to that recipient (or an admin). Left open, one account
+      // could clear another's notifications. Low-stakes, but it is still someone else's inbox.
+      const n = s.notices.find((x) => x.id === action.id);
+      if (n && action.by && n.accountId && n.accountId !== action.by && !isAdmin(s, action.by)) return s;
+      s.notices = s.notices.filter((x) => x.id !== action.id);
       return s;
     }
     case "SEND_MESSAGE": {
@@ -142,6 +147,7 @@ export function socialActions(s: any, action: any, dropNotice: (p: any) => void)
       return s;
     }
     case "DISMISS_REPORT": {
+      if (!isAdmin(s, action.by)) return s;   // report triage is admin-only
       if (s.mod.reports) s.mod.reports = s.mod.reports.filter((r) => r.id !== action.id);
       return s;
     }

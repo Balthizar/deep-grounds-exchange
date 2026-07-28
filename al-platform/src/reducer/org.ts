@@ -1,4 +1,4 @@
-import { isAdmin } from "../lib/rules";
+import { isAdmin , mayResolveDmFlag, mayResolveStoreFlag, orgsManagedBy } from "../lib/rules";
 import { canManageOrg } from "../lib/rules";
 import { ACCOUNTS, accName, putBlob, sweepBlobs } from "../lib/core";
 
@@ -219,10 +219,14 @@ export function orgActions(s: any, action: any, dropNotice: (p: any) => void): A
       return s;
     }
     case "DISMISS_STORE_REQUEST": {
+      if (!isAdmin(s, action.by)) return s;   // admin screen — moderation of store requests
       s.storeRequests = (s.storeRequests || []).filter((r) => r.id !== action.id); dropNotice((n) => n.type === "storereq" && n.ref === action.id);
       return s;
     }
     case "ADD_STORE": {
+      // AUTHORITY (added 27 Jul): store-registry writes were ungated. A new store has no org tie
+      // yet, so the guard is "leads or assists SOME org" — orgsManagedBy is non-empty — or admin.
+      if (!isAdmin(s, action.by) && orgsManagedBy(s, action.by).length === 0) return s;
       if (!s.storeRegistry) s.storeRegistry = {};
       const id = "store_" + s.nextId++;
       s.storeRegistry[id] = { id, name: action.name || "New store", address: action.address || "", phone: action.phone || "", hours: action.hours || "", website: action.website || "", logo: action.logo || null, mapsUrl: action.mapsUrl || "" };
@@ -230,6 +234,8 @@ export function orgActions(s: any, action: any, dropNotice: (p: any) => void): A
       return s;
     }
     case "EDIT_STORE": {
+      // Standing over this specific store: admin, or a lead/assistant of an org that lists it.
+      if (!mayResolveStoreFlag(s, action.by, action.id)) return s;
       const r = s.storeRegistry[action.id];
       if (r) Object.assign(r, action.patch);
       // clear any flags on fields that were just edited
@@ -237,6 +243,7 @@ export function orgActions(s: any, action: any, dropNotice: (p: any) => void): A
       return s;
     }
     case "SET_STORE_LOGO": {
+      if (!mayResolveStoreFlag(s, action.by, action.id)) return s;   // same standing as EDIT_STORE
       const r = s.storeRegistry[action.id];
       if (r) { r.logo = putBlob(action.dataURL); sweepBlobs(s); }   // handle only
       return s;
@@ -253,11 +260,19 @@ export function orgActions(s: any, action: any, dropNotice: (p: any) => void): A
       return s;
     }
     case "RESOLVE_STORE_FLAG": {
+      // AUTHORITY (added 27 Jul). No actor here either — anyone could clear a store-data
+      // correction flag. Admin, or a lead/assistant of an org that lists this store.
+      const sf = (s.storeFlags || []).find((f) => f.id === action.id);
+      if (sf && !mayResolveStoreFlag(s, action.by, sf.storeId)) return s;
       s.storeFlags = (s.storeFlags || []).filter((f) => f.id !== action.id); dropNotice((n) => n.type === "storeflag" && n.ref === action.id);
       return s;
     }
     case "RESOLVE_FLAG": {
       const f = (s.dmFlags || []).find((x) => x.id === action.id);
+      // AUTHORITY (added 27 Jul, org.ts coverage). This took no actor: anyone could resolve any
+      // oversight flag, quietly burying a concern raised about a DM's table. Admin, or an org
+      // lead/assistant of an org this DM runs under — see mayResolveDmFlag.
+      if (f && !mayResolveDmFlag(s, action.by, f.dm)) return s;
       if (f) {
         f.status = "resolved";
         // if the flagged DM has no other open flags, clear the admin "DM flagged" notices for them

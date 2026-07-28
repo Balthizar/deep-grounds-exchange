@@ -97,6 +97,24 @@ export function tablesOn(state: AppState, dateStr) { return state.sessions.filte
 // My single source of truth for "is this account already committed on this night?"
 // Future me: any task that occupies an evening gets represented here — new task types land in
 // this one place, nowhere else.
+// PROPOSAL DATES HAVE TWO AUDIENCES (Frank's ruling, 27 Jul): "the provisional dungeon master
+// sees them as a ranking, but the mentor does not."
+//
+// The subtlety that makes these two functions necessary rather than a label: POSITION IS THE
+// SIGNAL. Handing the mentor the stored array and simply not writing "1st choice" next to it
+// still shows them the ranking, because the first one is first. Any list is ordered by
+// something, so the only way to not communicate preference is to order by something else.
+// Chronological is the neutral choice — it carries no preference and is what a person checking
+// their own availability wants anyway.
+//
+// Stored order IS the ranking, so it is never re-sorted in place; both views are derived.
+export function proposalDatesRanked(tp) {          // the provisional DM's own view
+  return [...((tp && tp.dates) || [])];
+}
+export function proposalDatesForMentor(tp) {       // the mentor's view: no preference conveyed
+  return [...((tp && tp.dates) || [])].sort();     // ISO datetimes sort chronologically as strings
+}
+
 export function nightCommitment(state: AppState, acct, dateStr, ignoreSessionId?) {   // ignore omitted = count every table
   for (const se of state.sessions) {
     if (se.status === "cancelled") continue;

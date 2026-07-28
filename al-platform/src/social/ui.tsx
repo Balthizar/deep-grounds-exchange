@@ -1,6 +1,6 @@
 import { threadCtx } from "../lib/core";
 import type { Action, AppState } from "../types";
-import { Empty, RARITY, SectionHead, getBlob } from "../lib/ui";
+import { Empty, SectionHead, getBlob, rarityOf } from "../lib/ui";
 import { accName, catName, itemCat, orgRec } from "../lib/core";
 import {
   CARD_NOTICES,
@@ -268,7 +268,7 @@ export function NotificationsView({ state, accountId, mode, dispatch, setTab, go
     if (t.session && state.sessions.some((se) => se.id === t.session)) goSchedule(t.session);
     else if (t.bastion && state.characters[t.bastion] && state.characters[t.bastion].bastion) goBastion(t.bastion);
     else setTab(t.tab);
-    if (!isAlert(n.type)) dispatch({ type: "DISMISS_NOTICE", id: n.id });   // informational → following the link handles it; alerts clear only on their action
+    if (!isAlert(n.type)) dispatch({ type: "DISMISS_NOTICE", id: n.id, by: accountId });   // informational → following the link handles it; alerts clear only on their action
   };
   if (!mine.length) return <Empty title="You're all caught up" body="Notifications land here as things happen — sign-ups, rewards, mentor requests, scheduled tables, and more. Follow one to go straight to where it's handled." />;
   const row = (n) => (
@@ -416,7 +416,7 @@ export function MessagesView({ state, accountId, dispatch, mode }: { dispatch: R
             <label className="dg-field"><span>You want (their item)</span>
               <select value={wantId} onChange={(e) => { setWantId(e.target.value); setGiveId(""); }}>
                 <option value="">Select an item…</option>
-                {theirItems.map((it) => <option key={it.id} value={it.id}>{itemCat(it).name} · {RARITY[itemCat(it).rarity].label} · {state.characters[it.holder.id].name}</option>)}
+                {theirItems.map((it) => <option key={it.id} value={it.id}>{itemCat(it).name} · {rarityOf(itemCat(it)).label} · {state.characters[it.holder.id].name}</option>)}
               </select>
             </label>
             <label className="dg-field"><span>You give (equal rarity, same campaign)</span>

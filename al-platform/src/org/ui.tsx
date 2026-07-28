@@ -428,10 +428,10 @@ export function StoreModal({ modal, state, dispatch, accountId, close }: { dispa
   const flags = r ? (state.storeFlags || []).filter((x) => x.storeId === r.id) : [];
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const save = () => {
-    if (adding) { dispatch({ type: "ADD_STORE", ...f, fromRequest: modal.fromRequest }); close(); }
-    else { dispatch({ type: "EDIT_STORE", id: r.id, patch: f }); setEdit(false); }
+    if (adding) { dispatch({ type: "ADD_STORE", ...f, fromRequest: modal.fromRequest, by: accountId }); close(); }
+    else { dispatch({ type: "EDIT_STORE", id: r.id, patch: f, by: accountId }); setEdit(false); }
   };
-  const onLogo = (e) => { const file = e.target.files && e.target.files[0]; if (!file) return; const rd = new FileReader(); rd.onload = () => dispatch({ type: "SET_STORE_LOGO", id: r.id, dataURL: rd.result }); rd.readAsDataURL(file); };
+  const onLogo = (e) => { const file = e.target.files && e.target.files[0]; if (!file) return; const rd = new FileReader(); rd.onload = () => dispatch({ type: "SET_STORE_LOGO", id: r.id, dataURL: rd.result, by: accountId }); rd.readAsDataURL(file); };
   const flag = (field) => { dispatch({ type: "FLAG_STORE_FIELD", storeId: r.id, field, by: accountId }); setReported([...reported, field]); };
   const FlagBtn = ({ field }) => (!admin && r ? (reported.includes(field) ? <span className="dg-flagged">reported</span> : <button className="dg-flagbtn" title="Report this as wrong" onClick={() => flag(field)}>⚑</button>) : null);
 
@@ -468,7 +468,7 @@ export function StoreModal({ modal, state, dispatch, accountId, close }: { dispa
       {admin && flags.length > 0 && (
         <div className="dg-storeflags">
           <div className="dg-insp-sec">Reported fields</div>
-          {flags.map((fl) => <div key={fl.id} className="dg-admin-row"><span>⚠ <b>{fl.field}</b> flagged by {accName(fl.by)}</span><button className="dg-btn ghost sm" onClick={() => dispatch({ type: "RESOLVE_STORE_FLAG", id: fl.id })}>Mark resolved</button></div>)}
+          {flags.map((fl) => <div key={fl.id} className="dg-admin-row"><span>⚠ <b>{fl.field}</b> flagged by {accName(fl.by)}</span><button className="dg-btn ghost sm" onClick={() => dispatch({ type: "RESOLVE_STORE_FLAG", id: fl.id, by: accountId })}>Mark resolved</button></div>)}
         </div>
       )}
       <div className="dg-row-actions">

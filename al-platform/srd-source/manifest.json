@@ -1,0 +1,64 @@
+{
+ "name": "SRD 5.2.1 machine-readable knowledge base",
+ "base": "SRD 5.2.1 (2024 rules), Wizards of the Coast, CC-BY-4.0.",
+ "access_notes": "All files are .json. Large lists are a JSON array with one compact record per line (grep-friendly AND valid JSON, uploadable as documents). Small files are pretty-printed.",
+ "files": {
+  "spells.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 339
+  },
+  "equipment.json": {
+   "status": "complete",
+   "format": "json"
+  },
+  "magic_items.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 258
+  },
+  "monsters.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 234
+  },
+  "animals.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 96
+  },
+  "classes.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 12,
+   "note": "All 12 classes reconstructed from 5e24srd.com (a clean SRD 5.2 CC-BY mirror). Each feature's text was rebuilt by matching (name, level) to the source; core fields (primary_ability, hit_die, saving_throws, proficiencies, armor_training, starting_equipment, spellcaster) set from each page's Core Traits. Embedded level tables were flattened inline. Sorcerer's full Metamagic Options and Warlock's full Eldritch Invocation Options are included within their respective features for completeness. Blockquote sidebars (Paladin oath-breaking, Wizard spellbook-copying) were excluded as non-feature commentary. Full file lints clean."
+  },
+  "species.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 9
+  },
+  "backgrounds.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 4
+  },
+  "feats.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 17
+  },
+  "glossary.json": {
+   "status": "complete",
+   "format": "json",
+   "records": 155,
+   "note": "Object Armor Class table (in 'Breaking Objects') lost its AC numeric values in the original parse; not yet restored."
+  },
+  "rules.json": {
+   "status": "complete",
+   "format": "json",
+   "records": "9 sections"
+  }
+ },
+ "merge_note": "For the 5.2.1+5.1 union, spells add 2 (Branding Smite, Feeblemind); equipment adds 0. Other 5.1 diffs pending. This KB is the 5.2.1 base; 5.1-only records can carry source='SRD 5.1'."
+}

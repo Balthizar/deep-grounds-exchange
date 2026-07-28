@@ -15,11 +15,19 @@
     "test:behaviour": "node harness/behaviour.cjs",
     "test:minified": "node harness/behaviour.cjs --minified",
     "generate": "node scripts/gen-srd.mjs",
-    "check": "tsc -b && npm run lint && npm run check:actions && npm run check:generated && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:transitions && vite build",
+    "check": "tsc -b && npm run lint && npm run check:actions && npm run check:generated && npm run check:conformance && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:reachability && npm run test:antiliteral && npm run test:transitions && npm run test:sampler && npm run test:render && vite build && npm run check:coverage",
     "test:immutable": "node harness/immutability.cjs",
     "check:generated": "node harness/check_generated.cjs",
     "test:transitions": "node harness/transitions.cjs",
-    "benchmark": "node server/stress.mjs"
+    "benchmark": "node server/stress.mjs",
+    "test:render": "node harness/render.cjs",
+    "check:conformance": "node harness/conformance.cjs",
+    "check:coverage": "node harness/coverage.cjs",
+    "closeout": "node harness/closeout.cjs",
+    "antiliteral": "node harness/anti_literal.cjs",
+    "test:antiliteral": "node harness/anti_literal.cjs",
+    "test:sampler": "node harness/sampler.cjs",
+    "test:reachability": "node harness/reachability.cjs"
   },
   "dependencies": {
     "react": "^19.2.7",

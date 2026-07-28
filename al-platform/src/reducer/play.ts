@@ -7,7 +7,7 @@ import { ACCOUNTS, accName, catName, itemCat, itemClassOf, mkItem, verified } fr
 import { ADV_BY_ID } from "../data/adventures";
 import { BASTION_PREREQS } from "../data/bastion";
 import { expireBastionCharms, expireCharmItemsFor, findOrCreateThread } from "../bastion/engine";
-import { isDMRole, isDeactivated, isSuspended, mayActOnChar, provOf, satisfyWishlist, sharesStore, storesOf } from "../lib/rules";
+import { mayReviewLog, isCertifiedDM, isDMRole, isDeactivated, isSuspended, mayActOnChar, provOf, satisfyWishlist, sharesStore, storesOf } from "../lib/rules";
 // ============================================================================
 // PLAY REDUCER ACTIONS - sessions and the DM pipeline.
 // Scheduling, signups, attendance, session completion, logsheets and their review,
@@ -38,6 +38,7 @@ export const PLAY_ACTION_NAMES: readonly string[] = [
   "PUBLISH_TABLE", "RECONCILE_WARHORN", "RECRUIT_EVENT", "REFUSE_CALL",
   "REJECT_LOG", "RELEASE_TABLE", "REMOVE_MODULE_CREDIT", "REQUEST_DM",
   "RETURN_LOG", "REVIEW_OBSERVER", "REVIEW_PROV_LOG", "SET_DM_NOTE",
+  "PROPOSE_PROV_TABLE", "PICK_PROV_TABLE_DATE", "DECLINE_PROV_TABLE",
   "SET_MENTOR", "SET_PROVISIONAL", "SET_WARHORN_SLUG", "SIGNUP_SESSION",
   "START_MENTOR_SEARCH", "SUBMIT_LOG", "SUBMIT_OBSERVER_LOG", "SUBMIT_PROV_LOG",
   "SUGGEST_ADVENTURE", "TOGGLE_ATTENDANCE", "TOGGLE_MODULE_AUTHOR",
@@ -182,7 +183,14 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "SUBMIT_LOG": {
-      s.logEntries.push({ id: "log" + s.nextId++, status: "SUBMITTED", ...action.entry });
+      // BUG (found 27 Jul by the coverage gate, first cluster of assertions written for it):
+      // the spread used to come LAST — `{ id, status: "SUBMITTED", ...action.entry }` — so a
+      // caller passing `status: "APPROVED"` overrode the literal and self-approved their own
+      // log, crediting DT, gold and items with no DM ever seeing it. Same exposure on `id`,
+      // which could have collided an existing entry. The spread now goes FIRST and the two
+      // fields the reducer owns are written after it, where a caller cannot reach them.
+      // The only caller (sessions/ui.tsx) passes neither, so nothing legitimate changes.
+      s.logEntries.push({ ...action.entry, id: "log" + s.nextId++, status: "SUBMITTED" });
       return s;
     }
     case "DECLARE_PREREQ": {
@@ -236,7 +244,7 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       const le = s.logEntries.find((l) => l.id === action.id);
       if (!le) return s;
       if (le.status === "APPROVED") return s;   // idempotent: already sealed — never re-credit DT / re-mint items
-      if (action.by !== le.dmId && !isAdmin(s, action.by)) return s;   // only the log's DM (or an admin) may approve
+      if (!mayReviewLog(s, le, action.by)) return s;   // the log's DM, an admin, or any DM from that event [Q: event authority, 27 Jul]
       dropNotice((n) => (n.type === "disposalreq" || n.type === "resubmit") && n.ref === le.id);   // alert cleared by review
       if (action.dmNote !== undefined) le.dmNote = action.dmNote;
       le.status = "APPROVED";
@@ -252,7 +260,11 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       const ch = s.characters[le.charId];
       ch.dt += le.dtEarned;
       const evL = le.eventId ? (s.events || []).find((e) => e.id === le.eventId) : null;
-      le.itemsEarned.forEach((ie) => {
+      // Defensive, not a live bug: the log UI always supplies itemsEarned, but SUBMIT_LOG spreads
+      // an arbitrary caller entry, so an incomplete one is constructible — and an unguarded
+      // forEach here would take the whole app down inside a reducer. Found while fixturing the
+      // event-authority assertions with a minimal log entry.
+      (le.itemsEarned || []).forEach((ie) => {
         const cat = itemCat(ie);
         const count = ie.qty || 1;
         for (let q = 0; q < count; q++) {
@@ -270,11 +282,38 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
     }
     case "SET_DM_NOTE": {
       const le = s.logEntries.find((l) => l.id === action.entryId);
+      // AUTHORITY (added 27 Jul, play.ts close-out). This took no actor: anyone could write a
+      // note that reads as the DM's own words onto anyone's log. Not a rewards exploit — an
+      // IMPERSONATION one, which is worse in a record a goat may show a future DM as evidence of
+      // what happened at a table.
+      // mayReviewLog is the right predicate rather than a bare dmId check: a dmNote is part of
+      // the review flow (APPROVE_LOG sets one too), so exactly the people who may approve,
+      // reject or return an entry may annotate it — including event DMs on an event-tied log,
+      // per the 27 Jul event ruling.
+      if (le && !mayReviewLog(s, le, action.by)) return s;
       if (le) le.dmNote = action.note;
       return s;
     }
     case "EDIT_LOG": {
       const le = s.logEntries.find((l) => l.id === action.entryId);
+      // AUTHORITY (added 27 Jul). This took no actor either, and it Object.assigns ARBITRARY
+      // fields onto any entry and resets it to SUBMITTED — so paired with APPROVE_LOG it was an
+      // edit-then-approve path over somebody else's record. Three parties have a legitimate
+      // claim: the character's owner (it is their sheet), the log's DM (it is their table), and
+      // an admin.
+      //
+      // AND AN APPROVED LOG IS SEALED. This is the one call here that was not already implied by
+      // existing precedent, so flag it if it is wrong: APPROVE_LOG deliberately refuses to
+      // re-approve, specifically so DT and items are never credited twice. If an approved entry
+      // could be edited it would drop back to SUBMITTED and be approved again, crediting the
+      // rewards a second time and routing straight around that guard. Sealed is the conservative
+      // reading; a DM who needs to correct an approved entry should RETURN_LOG it first.
+      if (le) {
+        const owner = s.characters[le.charId] ? s.characters[le.charId].ownerId : null;
+        const mayEdit = action.by === owner || action.by === le.dmId || isAdmin(s, action.by);
+        if (!mayEdit) return s;
+        if (le.status === "APPROVED") return s;
+      }
       if (le) {
         const wasReturned = le.status === "RETURNED";
         Object.assign(le, action.entry);
@@ -287,13 +326,13 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
     }
     case "RETURN_LOG": {
       const le = s.logEntries.find((l) => l.id === action.entryId);
-      if (le && action.by !== le.dmId && !isAdmin(s, action.by)) return s;   // only the log's DM (or an admin) may return
+      if (le && !mayReviewLog(s, le, action.by)) return s;   // the log's DM, an admin, or any DM from that event
       if (le) { le.status = "RETURNED"; if (le.entryType === "DISPOSAL" && s.items[le.itemId]) delete s.items[le.itemId].pendingDisposal; dropNotice((n) => (n.type === "disposalreq" || n.type === "resubmit") && n.ref === le.id); }
       return s;
     }
     case "REJECT_LOG": {
       const le = s.logEntries.find((l) => l.id === action.id);
-      if (le && action.by !== le.dmId && !isAdmin(s, action.by)) return s;   // only the log's DM (or an admin) may reject
+      if (le && !mayReviewLog(s, le, action.by)) return s;   // the log's DM, an admin, or any DM from that event
       if (le) { le.status = "REJECTED"; if (le.entryType === "DISPOSAL" && s.items[le.itemId]) delete s.items[le.itemId].pendingDisposal; dropNotice((n) => (n.type === "disposalreq" || n.type === "resubmit") && n.ref === le.id); }
       return s;
     }
@@ -325,6 +364,88 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       });
       return s;
     }
+    // ========================================================================
+    // PROVISIONAL TABLE PROPOSALS (Frank's ruling, 27 Jul). A provisional DM's table needs their
+    // mentor present, so the old path was: pick ONE date, mentor accepts or declines, repeat.
+    // Frank: "to make this less of a back-and-forth and back-and-forth... allow them to create a
+    // three ranking date for their table so they can pick three dates and their mentor DM needs
+    // to select one of the three dates or say that they're not available." One round, not N.
+    //
+    // A PROPOSAL RECORD, not three tentative sessions. Three sessions would each consume a table
+    // slot on their night, block other DMs through tablesOn/TABLE_COUNT, and count against
+    // nightCommitment for the mentor — so proposing would sabotage the very availability it is
+    // trying to discover. Nothing reaches the schedule until the mentor picks.
+    case "PROPOSE_PROV_TABLE": {
+      const prov = action.provDm;
+      if (action.by !== prov && !isAdmin(s, action.by)) return s;          // you propose your own table
+      if (provOf(s, prov) !== "provisional-dm") return s;                  // this path is for provisionals only
+      const mentor = s.mentors ? s.mentors[prov] : null;
+      if (!mentor) return s;                                              // no mentor bound, nobody to ask
+      const dates = [...new Set((action.dates || []).filter(Boolean))];    // ranked, first choice first
+      if (!dates.length || dates.length > 3) return s;                    // one to three, deduplicated
+      if (!action.adventureId) return s;
+      if (!s.tableProposals) s.tableProposals = [];
+      s.tableProposals = s.tableProposals.filter((tp) => !(tp.provDm === prov && tp.status === "PENDING"));   // one open proposal each
+      const pid = "tp" + s.nextId++;
+      s.tableProposals.push({ id: pid, provDm: prov, mentor, adventureId: action.adventureId,
+        storeId: action.storeId || "store_dj", capacity: action.capacity || 6, dates,
+        notes: action.notes || "", status: "PENDING", chosen: null });
+      s.notices.push({ id: "n" + s.nextId++, type: "provtableproposal", ctx: "dm", accountId: mentor,
+        who: accName(prov), count: dates.length, ref: pid });
+      return s;
+    }
+
+    // The mentor picks ONE of the ranked dates. Only then does a session exist.
+    case "PICK_PROV_TABLE_DATE": {
+      const tp = (s.tableProposals || []).find((x) => x.id === action.proposalId);
+      if (!tp || tp.status !== "PENDING") return s;
+      if (action.by !== tp.mentor && !isAdmin(s, action.by)) return s;     // only the mentor chooses
+      const datetime = action.datetime;
+      if (!tp.dates.includes(datetime)) return s;                         // must be one they offered
+      const dateStr = (datetime || "").slice(0, 10);
+      // The mentor rides along, so the same availability rule CREATE_SESSION enforces applies
+      // here — a mentor cannot choose a night they are already committed to.
+      if (nightCommitment(s, tp.mentor, dateStr)) return s;
+      if (nightCommitment(s, tp.provDm, dateStr)) return s;
+      const occupied = tablesOn(s, dateStr).map((x) => x.table);
+      if (occupied.length >= TABLE_COUNT) return s;                       // the room is full that night
+      const table = [1, 2, 3].find((t) => t <= TABLE_COUNT && !occupied.includes(t));
+      if (!table) return s;
+      const sid = "sess" + s.nextId++;
+      // mentorStatus is "accepted", not "pending": the mentor just chose this date, so asking
+      // them to confirm it again is the back-and-forth this whole mechanism removes.
+      s.sessions.push({ id: sid, adventureId: tp.adventureId, dmId: tp.provDm, datetime, table,
+        capacity: tp.capacity, storeId: tp.storeId, location: "", signups: [], observers: [],
+        openToShadow: false, mentorId: tp.mentor, mentorStatus: "accepted", status: "scheduled",
+        seriesPart: "", notes: tp.notes, preset: false, permaDeath: false, orgId: null, draft: false });
+      tp.status = "ACCEPTED"; tp.chosen = datetime; tp.sessionId = sid;
+      dropNotice((n) => n.type === "provtableproposal" && n.ref === tp.id);
+      s.notices.push({ id: "n" + s.nextId++, type: "provtablebooked", ctx: "dm", accountId: tp.provDm,
+        mentor: accName(tp.mentor), when: dateStr, sessionId: sid });
+      notifyAdvWishlisters(s, tp.adventureId, tp.provDm, dateStr, tp.provDm, sid);
+      return s;
+    }
+
+    // None of the three work. Says so once, clearly, rather than declining them one at a time.
+    //
+    // NO REASON IS STORED (Frank's ruling, 27 Jul): "a prescription message might be a little
+    // cold, but a conversation between mentor and mentee is the preferred avenue." A canned list
+    // is cold, and a free-text box is worse than either — it looks like the conversation without
+    // being one, and a sentence typed into a form field lands differently than the same sentence
+    // said to someone. So the decline carries NO explanation and instead opens the thread these
+    // two already have, and points the notice at it. The mechanism gets out of the way.
+    case "DECLINE_PROV_TABLE": {
+      const tp = (s.tableProposals || []).find((x) => x.id === action.proposalId);
+      if (!tp || tp.status !== "PENDING") return s;
+      if (action.by !== tp.mentor && !isAdmin(s, action.by)) return s;
+      tp.status = "DECLINED";
+      dropNotice((n) => n.type === "provtableproposal" && n.ref === tp.id);
+      const th = findOrCreateThread(s, tp.mentor, tp.provDm, "dm", "dm");
+      s.notices.push({ id: "n" + s.nextId++, type: "provtabledeclined", ctx: "dm", accountId: tp.provDm,
+        mentor: accName(tp.mentor), threadId: th.id });
+      return s;
+    }
+
     case "CREATE_SESSION": {
       const dateStr = (action.datetime || "").slice(0, 10);
       const occupied = tablesOn(s, dateStr).map((x) => x.table);
@@ -381,6 +502,16 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "CREATE_EVENT": {
+      // Frank's ruling, 27 Jul: any CERTIFIED DM may schedule an event or a table, "because they
+      // are the ones who know their availability." Previously unguarded — any account could
+      // create an event, its tables, and with notifyPlayers push a notice to every account at
+      // the listed stores. Provisional DMs are excluded by isCertifiedDM: their own tables need
+      // a mentor free that night, so standing up a whole event would route around that.
+      // NOTE: guarded on action.by, the ACTING account — NOT createdBy. createdBy is a form field
+      // naming the DM being scheduled, so authorising against it would let anyone pick a
+      // certified DM out of the dropdown and pass. The actor and the subject are not the same
+      // person and must not share a field.
+      if (!isCertifiedDM(s, action.by)) return s;
       if (!s.events) s.events = [];
       const eid = "ev" + s.nextId++;
       s.events.push({ id: eid, name: action.name, date: action.date, stores: action.stores || [], externalLink: action.externalLink || "", price: action.price || "", notifyPlayers: !!action.notifyPlayers, createdBy: action.createdBy, orgId: action.orgId || undefined });
@@ -643,6 +774,7 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "RECRUIT_EVENT": {
+      if (!isCertifiedDM(s, action.by)) return s;   // same standing as creating the event [27 Jul]
       const ev = (s.events || []).find((e) => e.id === action.eventId);
       if (!ev) return s;
       const recips = (action.dmIds && action.dmIds.length)
@@ -708,6 +840,14 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
     }
     case "CANCEL_SESSION": {
       const ss = s.sessions.find((x) => x.id === action.id);
+      // AUTHORITY (added 27 Jul, coverage paydown). This took NO actor at all: any dispatch
+      // cancelled any table and pushed a "your game is off" notice to every seated player.
+      // Derived from the precedent already in this file rather than invented — canPublishSession
+      // governs who may OPEN a table to players (its org leadership, or an admin), so the same
+      // standing governs closing it, plus the DM whose table it is. A seated player is NOT on
+      // this list: leaving a table is CANCEL_SIGNUP, which is a different thing from calling the
+      // whole game off for everyone else.
+      if (ss && action.by !== ss.dmId && !canPublishSession(s, action.by, ss)) return s;
       if (ss) {
         ss.status = "cancelled";
         ss.signups.forEach((u) => s.notices.push({ id: "n" + s.nextId++, ctx: "player", type: "sesscancel", accountId: u.accountId, adv: ADV_BY_ID[ss.adventureId] ? ADV_BY_ID[ss.adventureId].label : "a session" }));
@@ -776,6 +916,16 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       if (!isDMRole(s, action.by)) return s;
       const le = s.logEntries.find((l) => l.id === action.logId);
       if (!le) return s;
+      // MENTOR ONLY (Frank's ruling, 27 Jul): "I only want the mentor to be able to approve...
+      // and the admin, because the admin has access to approve everybody. But the mentor - the
+      // mentor was there, the mentor saw how the DM was. The other dungeon masters were not, so
+      // they don't know." isDMRole alone let ANY DM in the system rule a provisional ready.
+      //
+      // DELIBERATELY NARROWER THAN mayReviewLog(). Event authority widens on shared PRESENCE at
+      // an event; this narrows on having actually WATCHED the person run a table. A DM who ran
+      // the next table over at the same convention still did not see this one, so the event
+      // exception must not reach here. le.dmId is the mentor, bound at SUBMIT_PROV_LOG.
+      if (action.by !== le.dmId && !isAdmin(s, action.by)) return s;
       le.status = "APPROVED";
       le.readyVerdict = action.ready ? "ready" : "not-ready";
       const provDm = le.provDmId, mentor = le.dmId, ch = s.characters[le.charId];
@@ -816,6 +966,7 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "APPROVE_CERTIFICATION": {
+      if (!isAdmin(s, action.by)) return s;   // admin only — see APPROVE_PROVISIONAL
       const req = (s.provRequests || []).find((r) => r.id === action.requestId);
       if (!req) return s;
       if (!s.provisional) s.provisional = {};
@@ -829,6 +980,10 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "SUBMIT_OBSERVER_LOG": {
+      // Consistency with SUBMIT_PROV_LOG, which already requires this: a shadow files their OWN
+      // reflections. Left open, a third party could file a stranger's observer log and — once a
+      // mentor approved it — push them onto the certification path without their involvement.
+      if (action.by && action.by !== action.candidate && !isAdmin(s, action.by)) return s;
       const se = s.sessions.find((x) => x.id === action.sessionId);
       const mentor = se ? se.dmId : action.mentor;
       const adv = se && ADV_BY_ID[se.adventureId] ? ADV_BY_ID[se.adventureId].label : "a session";
@@ -843,6 +998,11 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       if (!isDMRole(s, action.by)) return s;
       const le = s.logEntries.find((l) => l.id === action.logId);
       if (!le) return s;
+      // MENTOR ONLY — Frank's ruling of 27 Jul on REVIEW_PROV_LOG applies here by the same
+      // reasoning, and this one matters MORE: approving with ready:true mints the provRequest
+      // that starts certification, so an unrelated DM could put a stranger on the path to DM
+      // standing over a table they never watched. le.dmId is the DM whose table was shadowed.
+      if (action.by !== le.dmId && !isAdmin(s, action.by)) return s;
       le.status = "APPROVED";
       le.readyVerdict = action.ready ? "ready" : "not-ready";
       const cand = le.observerId, mentor = le.dmId;
@@ -861,6 +1021,12 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "APPROVE_PROVISIONAL": {
+      // AUTHORITY (added 27 Jul, coverage paydown). There was no check here — any account could
+      // dispatch this and hand out DM standing. The dispatch site is admin-only in the UI, but
+      // this codebase already ruled that UI gating is not a guard: see REVIEW_PROV_LOG below,
+      // whose own comment records the identical hole being found by this same suite. isAdmin
+      // matches the screen these four are reached from.
+      if (!isAdmin(s, action.by)) return s;
       const req = (s.provRequests || []).find((r) => r.id === action.requestId);
       if (!req) return s;
       if (!s.provisional) s.provisional = {};
@@ -876,6 +1042,7 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "DISMISS_PROV_REQUEST": {
+      if (!isAdmin(s, action.by)) return s;   // admin only — see APPROVE_PROVISIONAL
       s.provRequests = (s.provRequests || []).filter((r) => r.id !== action.requestId);
       return s;
     }
@@ -942,6 +1109,9 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "MONITOR_REPORT": {
+      // The monitor files their OWN report. Left open, anyone could file a report in a monitor's
+      // name — and a monitor report can raise an escalation flag against a DM or resolve one.
+      if (action.by && action.by !== action.monitorId && !isAdmin(s, action.by)) return s;
       const se = s.sessions.find((x) => x.id === action.sessionId);
       if (se) { const u = se.signups.find((x) => x.accountId === action.monitorId && x.monitor); if (u) u.monitorReported = true; }
       const dm = action.flaggedDm;
@@ -1017,6 +1187,7 @@ export function playActions(s: any, action: any, dropNotice: (p: any) => void): 
       return s;
     }
     case "DENY_DM": {
+      if (!isAdmin(s, action.by)) return s;   // admin only — see APPROVE_PROVISIONAL
       s.dmRequests = s.dmRequests.filter((id) => id !== action.accountId);
       return s;
     }

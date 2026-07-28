@@ -20,14 +20,14 @@ const { reducer, seed } = require(require("path").resolve("b.cjs")).__b;
 let fails = 0;
 const ok = (name, cond) => { console.log(`  ${cond ? "ok  " : "FAIL"}  ${name}`); if (!cond) fails++; };
 const s = seed();
-const ch = Object.values(s.characters).find(c => c.ownerId === "acc_aldric" && !c.retired);
+const ch = Object.values(s.characters).find(c => (!c.status || c.status === "active") && !(s.roles[c.ownerId] || []).includes("admin") && !c.retired);
 // every domain I delegate to must route
 for (const [dom, act] of [
   ["bastion",   { type:"ADD_BASTION_FACILITY", charId:ch.id, by:ch.ownerId, defId:"parlor", size:"cramped" }],
   ["items",     { type:"IMPORT_CHARACTER_ITEM", charId:ch.id, by:ch.ownerId, name:"Probe", itemType:"weapon", rarity:"uncommon" }],
   ["character", { type:"SET_BIO", charId:ch.id, by:ch.ownerId, text:"probe" }],
   ["social",    { type:"MARK_THREAD_READ", threadId:(s.threads[0]||{}).id, by:ch.ownerId }],
-  ["org",       { type:"SET_ORG_MEMBERSHIP", by:"acc_admin", accountId:ch.ownerId, orgId:"scale", join:true }],
+  ["org",       { type:"SET_ORG_MEMBERSHIP", by:(Object.keys(s.roles).find(a => (s.roles[a]||[]).includes("admin"))), accountId:ch.ownerId, orgId:(Object.keys(s.organizations||{})[0]), join:true }],
   ["play",      { type:"SUGGEST_ADVENTURE", by:ch.ownerId, advId:"ddal09-01" }],
 ]) { let good=true; try { reducer(s, act); } catch(e) { good=false; } ok(`${dom} action routes`, good); }
 // the unknown-action guard must be live

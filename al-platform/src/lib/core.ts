@@ -23,12 +23,17 @@ export const d6 = () => 1 + Math.floor(Math.random() * 6);
 export const d6x100 = () => d6() * 100;                                  // the DMG's favourite bastion payout
 
 // ---- Accounts (one may be both player & DM; separate accounts differ) ----
+// Accounts carry `createdAt` (for cohort stratification in the test sampler) and `testingOptIn`
+// (consent to be used as a live-data test fixture). testingOptIn is OFF by default — an account
+// is never sampled unless the person affirmatively turned it on. The demo accounts are opted in
+// so the sampler has data to exercise against; a real signup starts false and shows a notice
+// explaining why opting in helps the platform.
 export const ACCOUNTS: any[] = [
-  { id: "acc_aldric", name: "Aldric",  kind: "player", device: "dev-01" },
-  { id: "acc_mira",   name: "Mira",    kind: "player", device: "dev-02" },
-  { id: "acc_oribel", name: "Mother Oribel", kind: "dm", device: "dev-03" },
-  { id: "acc_admin",  name: "Guildmaster (Admin)", kind: "admin", device: "dev-04" },
-  { id: "acc_frank",  name: "Frank Pettingill", kind: "dm", device: "dev-05" },
+  { id: "acc_aldric", name: "Aldric",  kind: "player", device: "dev-01", createdAt: "2025-11-04", testingOptIn: true },
+  { id: "acc_mira",   name: "Mira",    kind: "player", device: "dev-02", createdAt: "2025-12-18", testingOptIn: true },
+  { id: "acc_oribel", name: "Mother Oribel", kind: "dm", device: "dev-03", createdAt: "2026-01-09", testingOptIn: true },
+  { id: "acc_admin",  name: "Guildmaster (Admin)", kind: "admin", device: "dev-04", createdAt: "2025-10-01", testingOptIn: true },
+  { id: "acc_frank",  name: "Frank Pettingill", kind: "dm", device: "dev-05", createdAt: "2025-10-01", testingOptIn: true },
 ];
 
 // An item either points at MY CATALOGUE row or carries its own facts. Player-entered items

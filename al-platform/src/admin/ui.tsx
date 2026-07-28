@@ -94,7 +94,7 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
                 <span className="dg-row-actions">
                   {rev ? <span className="dg-muted sm">Under review — resolve first</span> : <button className="dg-btn sm" onClick={() => dispatch({ type: "APPROVE_DM", by: accountId, accountId: id })}>Approve as DM</button>}
                   {!rev && <MentorSearchBtn state={state} dispatch={dispatch} accountId={accountId} candidate={id} />}
-                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DENY_DM", accountId: id })}>Deny</button>
+                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DENY_DM", accountId: id, by: accountId })}>Deny</button>
                 </span>
               </div>
             );
@@ -131,9 +131,9 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
                 <span><b>{accName(req.candidate)}</b> — {accName(req.mentor)} {req.kind === "to-certified" ? "vouches they're ready to run a table alone" : "vouches they're ready to run a shadowed table"}</span>
                 <span className="dg-row-actions">
                   {req.kind === "to-certified"
-                    ? <button className="dg-btn sm" onClick={() => dispatch({ type: "APPROVE_CERTIFICATION", requestId: req.id })}>Certify as full DM</button>
-                    : <button className="dg-btn sm" onClick={() => dispatch({ type: "APPROVE_PROVISIONAL", requestId: req.id })}>Promote to provisional DM</button>}
-                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_PROV_REQUEST", requestId: req.id })}>Dismiss</button>
+                    ? <button className="dg-btn sm" onClick={() => dispatch({ type: "APPROVE_CERTIFICATION", requestId: req.id, by: accountId })}>Certify as full DM</button>
+                    : <button className="dg-btn sm" onClick={() => dispatch({ type: "APPROVE_PROVISIONAL", requestId: req.id, by: accountId })}>Promote to provisional DM</button>}
+                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_PROV_REQUEST", requestId: req.id, by: accountId })}>Dismiss</button>
                 </span>
               </div>
             ))}
@@ -179,7 +179,7 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
                   <div key={r.id} className="dg-reviewrep">
                     <div className="dg-reviewrep-q">“{r.text}”</div>
                     <div className="dg-reviewrep-m">Reported by {accName(r.reporter)}</div>
-                    <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_REPORT", id: r.id })}>Dismiss this report</button>
+                    <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_REPORT", id: r.id, by: accountId })}>Dismiss this report</button>
                   </div>
                 ))}
                 <div className="dg-row-actions">
@@ -271,7 +271,7 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
                   {flags.map((f) => (
                     <div key={f.id} className="dg-admin-row">
                       <span className="dg-muted sm">{f.kind === "monitor" ? "check-in" : "peer"} · {accName(f.by)} · {f.date}: {f.concern}</span>
-                      <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "RESOLVE_FLAG", id: f.id })}>Resolve</button>
+                      <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "RESOLVE_FLAG", id: f.id, by: accountId })}>Resolve</button>
                     </div>
                   ))}
                   <div className="dg-row-actions">
@@ -295,7 +295,7 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
                 <span><b>{rq.name}</b>{rq.note ? " — " + rq.note : ""}<br /><span className="dg-muted sm">requested by {accName(rq.by)}</span></span>
                 <span className="dg-row-actions">
                   <button className="dg-btn sm" onClick={() => setModal({ kind: "store", add: true, prefillName: rq.name, fromRequest: rq.id })}>Look up &amp; add</button>
-                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_STORE_REQUEST", id: rq.id })}>Dismiss</button>
+                  <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DISMISS_STORE_REQUEST", id: rq.id , by: accountId })}>Dismiss</button>
                 </span>
               </div>
             ))}

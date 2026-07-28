@@ -1,10 +1,10 @@
 import { TOOL_CRAFTS } from "../lib/rules";
 import { ACCOUNTS, accName } from "../lib/core";
-import { StatRow, attuneReq, labelSource } from "../lib/ui";
+import { StatRow, attuneReq, labelSource, rarityOf } from "../lib/ui";
 import { carriedCraftTools, meetsReq, provOf, toolSpecials } from "../lib/rules";
 
 import { CATALOG } from "../data/catalog";
-import { MARKET, MARKET_BY_ID, MARKET_CATS } from "../lib/rules";
+import { MARKET, MARKET_BY_ID, MARKET_CATS, ronaldoRefusal, ronaldoWillBuy, sellValueOf } from "../lib/rules";
 import { ScrollPicker, coinsFromGp } from "../lib/ui";
 import type { Action, AppState, ItemRecord } from "../types";
 import { Empty, RARITY, Seal, SectionHead } from "../lib/ui";
@@ -250,11 +250,11 @@ export function ListingCard({ it, state, setModal, accountId, onTag }: { state: 
   const isMine = ch && ch.ownerId === accountId;
   const tags = [cat.itemType, ...(cat.props || [])].filter((t, i, a) => t && a.indexOf(t) === i).slice(0, 4);
   return (
-    <div className="dg-card item" style={{ "--rarity": RARITY[cat.rarity].color }}>
+    <div className="dg-card item" style={{ "--rarity": rarityOf(cat).color }}>
       <div className="dg-card-h">
         <div>
           <button className="dg-item-name link" onClick={() => setModal({ kind: "inspect", itemId: it.id })}>{cat.name}</button>
-          <div className="dg-item-sub"><span className="dg-rarity" style={{ color: RARITY[cat.rarity].color }}>{RARITY[cat.rarity].label}</span>
+          <div className="dg-item-sub"><span className="dg-rarity" style={{ color: rarityOf(cat).color }}>{rarityOf(cat).label}</span>
             <span className="dg-dot">·</span>{ch.name} · {it.campaign}</div>
         </div>
         <Seal prov={it.provenance} isEvent={it.itemClass === "EVENT_CERT"} review={it.review} />
@@ -359,8 +359,8 @@ export function MarketModal({ modal, state, dispatch, accountId, close }: { disp
   const setNote = (uid, v) => setCart((c) => c.map((x) => x.uid === uid ? { ...x, note: v } : x));
   const bump = (uid, d) => setCart((c) => c.map((x) => x.uid === uid ? { ...x, qty: Math.max(1, x.qty + d) } : x));
   const remove = (uid) => setCart((c) => c.filter((x) => x.uid !== uid));
-  const totalDt = cart.reduce((s, c) => s + (MARKET_BY_ID[c.id].dt || 0) * c.qty, 0);
-  const totalGp = cart.reduce((s, c) => s + (MARKET_BY_ID[c.id].gp || 0) * c.qty, 0);
+  const totalDt = cart.reduce((s, c) => s + ((MARKET_BY_ID[c.id] || {}).dt || 0) * c.qty, 0);   // guarded: an unknown id used to throw here
+  const totalGp = cart.reduce((s, c) => s + ((MARKET_BY_ID[c.id] || {}).gp || 0) * c.qty, 0);
   const remDt = (ch.dt || 0) - totalDt, remGp = (ch.gp || 0) - totalGp;
   const over = remDt < 0 || remGp < 0;
   const checkout = () => { dispatch({ type: "CHECKOUT_MARKET", charId: ch.id, by: accountId, lines: cart.map((c) => ({ id: c.id, note: c.note, qty: c.qty })) }); close(); };
@@ -372,6 +372,8 @@ export function MarketModal({ modal, state, dispatch, accountId, close }: { disp
       <p className="dg-muted sm">Plan {ch.name}'s downtime and spending, then check out. Each line becomes a self-logged entry on their sheet. On hand: <b>{ch.dt} DT</b> · {(() => { const c = coinsFromGp(ch.gp || 0); return <b title={(ch.gp || 0).toFixed(2) + " gp"}>{c.gp} gp · {c.sp} sp · {c.cp} cp</b>; })()}.</p>
       <div className="dg-catlabel">Browse by category — tap one:</div>
       <div className="dg-rarityfilter">{MARKET_CATS.map(([id, label]) => <button key={id} className={"dg-rarpill" + (cat === id ? " on" : "")} onClick={() => setCat(id)}>{label}</button>)}</div>
+      {cat === "ronaldo" && <RonaldoPanel state={state} ch={ch} accountId={accountId} dispatch={dispatch} close={close} />}
+      {cat !== "ronaldo" && <>
       <div className="dg-insp-sec">Available</div>
       {cat === "consumables" && (
         <div className="dg-admin-row" style={{ display: "block" }}>
@@ -403,6 +405,8 @@ export function MarketModal({ modal, state, dispatch, accountId, close }: { disp
           </div>
         );
       })}
+      </>}
+      {cat !== "ronaldo" && <>
       <div className="dg-carttotals">
         <div className={remDt < 0 ? "neg" : ""}>Downtime: {totalDt} DT · {remDt} left</div>
         <div className={remGp < 0 ? "neg" : ""}>Gold: {totalGp} GP · {remGp} left</div>
@@ -411,6 +415,65 @@ export function MarketModal({ modal, state, dispatch, accountId, close }: { disp
       <div className="dg-row-actions">
         <button className="dg-btn" disabled={cart.length === 0 || over} onClick={checkout}>Check out</button>
         <button className="dg-btn ghost" onClick={close}>Cancel</button>
+      </div>
+      </>}
+    </div>
+  );
+}
+
+// ---------------------- Ronaldo, the Exchange's fence ----------------------
+// HOUSE MECHANISM. The 50% is AL (ALDMG:157); a standing fence is ours — see sellValueOf().
+// Every string here is Ronaldo's, per Frank: the refusals especially, because "Ronaldo's hands
+// are in his pockets" tells a player what to do next and "item not verified" does not.
+export function RonaldoPanel({ state, ch, accountId, dispatch, close }) {
+  const [picked, setPicked] = useState<string[]>([]);
+  const pack = Object.values(state.items).filter((it: any) =>
+    it.holder.type === "CHARACTER" && it.holder.id === ch.id);
+  const takes = pack.filter((it: any) => ronaldoWillBuy(state, it));
+  const passes = pack.filter((it: any) => !ronaldoWillBuy(state, it));
+  const toggle = (id) => setPicked((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+  const total = picked.reduce((s, id) => s + sellValueOf(state.items[id].catalogId), 0);
+  const sell = () => { dispatch({ type: "SELL_TO_RONALDO", charId: ch.id, by: accountId, itemIds: picked }); close(); };
+  return (
+    <div>
+      <p className="dg-muted sm">
+        Ah! You found Ronaldo. Mind the crates. Ronaldo doesn't ask where it's been — Ronaldo asks
+        whether it's <i>been</i>, which is a different question and a shorter one. Signed goods,
+        nothing magical, straight out of your own pack. Half the sticker, and if the halving leaves
+        a copper hanging that copper stays with Ronaldo. Overheads, my friend.
+      </p>
+      <div className="dg-insp-sec">What Ronaldo will take</div>
+      {takes.length === 0
+        ? <div className="dg-muted sm">Nothing here Ronaldo can use. Empty pack, or all of it magic, or none of it signed. Come back when the goblins have been generous.</div>
+        : takes.map((it: any) => (
+          <div key={it.id} className="dg-admin-row">
+            <span>
+              <b>{it.name || catName(it.catalogId)}</b>
+              <span className="dg-muted sm"> · Ronaldo pays {sellValueOf(it.catalogId)} GP</span>
+            </span>
+            <button className={"dg-btn sm" + (picked.includes(it.id) ? "" : " ghost")} onClick={() => toggle(it.id)}>
+              {picked.includes(it.id) ? "On the table" : "Offer it"}
+            </button>
+          </div>
+        ))}
+      {passes.length > 0 && <div className="dg-insp-sec">What Ronaldo won't touch</div>}
+      {passes.map((it: any) => (
+        <div key={it.id} className="dg-admin-row">
+          <span>
+            <b>{it.name || catName(it.catalogId)}</b>
+            <div className="dg-muted sm">{ronaldoRefusal(it)}</div>
+          </span>
+        </div>
+      ))}
+      <div className="dg-carttotals">
+        <div>On the table: {picked.length} · Ronaldo counts out <b>{total} GP</b></div>
+      </div>
+      {picked.length > 0 && (
+        <div className="dg-muted sm">One bad piece spoils the bundle — if Ronaldo can't take something on this table he takes none of it, and you'll not stand there sorting your luggage while he watches.</div>
+      )}
+      <div className="dg-row-actions">
+        <button className="dg-btn" disabled={picked.length === 0} onClick={sell}>Shake on it</button>
+        <button className="dg-btn ghost" onClick={close}>Another time</button>
       </div>
     </div>
   );
@@ -442,7 +505,7 @@ export function WishModal({ modal, dispatch, close, accountId }) {
         <>
           <label className="dg-field"><span>Item wanted</span>
             <select value={catId} onChange={(e) => setCatId(e.target.value)}>
-              {Object.values(CATALOG).map((c) => <option key={c.id} value={c.id}>{c.name} · {RARITY[c.rarity].label}</option>)}
+              {Object.values(CATALOG).map((c) => <option key={c.id} value={c.id}>{c.name} · {rarityOf(c).label}</option>)}
             </select>
           </label>
           <label className="dg-check"><input type="checkbox" checked={acceptVar} onChange={(e) => setAcceptVar(e.target.checked)} /> Also accept adventure variants of this item</label>
@@ -587,9 +650,9 @@ export function ProposeModal({ modal, state, dispatch, close }: { dispatch: Reac
     <>
       <h3 className="dg-modal-h">Propose this trade</h3>
       <div className="dg-swapbox">
-        <div className="dg-swapcol"><div className="dg-swaplabel">You give</div><div className="dg-swapitem" style={{ "--rarity": RARITY[itemCat(mineIt).rarity].color }}>{catName(mineIt.catalogId)}</div></div>
+        <div className="dg-swapcol"><div className="dg-swaplabel">You give</div><div className="dg-swapitem" style={{ "--rarity": rarityOf(itemCat(mineIt)).color }}>{catName(mineIt.catalogId)}</div></div>
         <div className="dg-swap">⇄</div>
-        <div className="dg-swapcol"><div className="dg-swaplabel">You receive</div><div className="dg-swapitem" style={{ "--rarity": RARITY[itemCat(theirsIt).rarity].color }}>{catName(theirsIt.catalogId)}</div></div>
+        <div className="dg-swapcol"><div className="dg-swaplabel">You receive</div><div className="dg-swapitem" style={{ "--rarity": rarityOf(itemCat(theirsIt)).color }}>{catName(theirsIt.catalogId)}</div></div>
       </div>
       <p className="dg-muted sm">Both sides must confirm. Nothing moves until the other player accepts; then 5 DT is debited from each and the items swap atomically.</p>
       <div className="dg-row-actions">
@@ -611,7 +674,7 @@ export function InspectModal({ modal, state, close, setModal, accountId }: { sta
     </>
   );
   const cat = itemCat(it);
-  const rc = RARITY[cat.rarity].color;
+  const rc = rarityOf(cat).color;
   const holderName = it.holder.type === "CHARACTER" ? (state.characters[it.holder.id]?.name || "—") : accName(it.holder.id) + " (shelf)";
   const timesTraded = it.lineage.filter((l) => (l.note || "").startsWith("Traded")).length;
   const prov = it.provenance;
@@ -620,7 +683,7 @@ export function InspectModal({ modal, state, close, setModal, accountId }: { sta
     <div className="dg-inspect" style={{ "--rarity": rc }}>
       <div className="dg-insp-head">
         <div className="dg-insp-name" style={{ color: rc }}>{cat.name}{cat.variant && <span className="dg-variant">adventure variant</span>}</div>
-        <div className="dg-insp-type">{cat.category} · <span style={{ color: rc }}>{RARITY[cat.rarity].label}</span>{req ? " · " + req : ""}</div>
+        <div className="dg-insp-type">{cat.category} · <span style={{ color: rc }}>{rarityOf(cat).label}</span>{req ? " · " + req : ""}</div>
       </div>
 
       {req && (

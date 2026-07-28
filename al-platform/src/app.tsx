@@ -22,9 +22,9 @@ import { ResourcesView } from "./authors/ui";
 import { MessagesView, NotificationsView } from "./social/ui";
 import { AdminView } from "./admin/ui";
 import { CommunityView, LicenseModal, ModuleEditModal, ModuleModal, OrgEditModal, OrgModal, OrganizationView, PollCard, StoreModal, StoreReqModal } from "./org/ui";
-import { CompleteSessionModal, DMDeskView, DMLogModal, EscalationModal, EventBuildModal, EventManageModal, LogEntryModal, LogModal, LogSheetModal, MentorOfferCard, MessageModal, MonitorReportModal, ObserverLogModal, ObserverPrompt, SessionModal, SessionsView, happeningDue } from "./sessions/ui";
+import { CompleteSessionModal, DMDeskView, DMLogModal, EscalationModal, EventBuildModal, EventManageModal, LogEntryModal, LogModal, LogSheetModal, MentorOfferCard, MessageModal, MonitorReportModal, ObserverLogModal, ObserverPrompt, ProvTablePrompt, ProvTableProposalCard, ProvTableProposeModal, SessionModal, SessionsView, happeningDue } from "./sessions/ui";
 import { DisposalModal, InspectModal, MarketModal, MarketView, ProposeModal, ReqAuthModal, WishModal, WorkbenchModal, findInterest, findMatches, findSoftMatches } from "./market/ui";
-import { CharEditModal, CharModal, HeroHallModal, PregenModal, PregenTransferModal, ProfileView, RetireDiaryModal, RetirementView } from "./player/ui";
+import { AccountView, CharEditModal, CharModal, HeroHallModal, PregenModal, PregenTransferModal, ProfileView, RetireDiaryModal, RetirementView } from "./player/ui";
 import { BastionAlerts, BastionBuildModal, BastionView, FacilityDetailModal, FurnishingModal, RuinModal, useNow } from "./bastion/ui";
 import { itemActions } from "./reducer/items";
 import { playActions } from "./reducer/play";
@@ -343,6 +343,7 @@ export default function App() {
   const myPolls = pollsFor(state, accountId).length;
 
   const T = {
+    account:  { id: "account",  label: "Profile",     icon: "☺" },
     profile:  { id: "profile",  label: "My Roster",   icon: "❖" },
     notifications: { id: "notifications", label: "Notifications", icon: "🔔" },
     market:   { id: "market",   label: "Market",      icon: "⇄" },
@@ -372,7 +373,7 @@ export default function App() {
     admin:  [T.admin, T.schedule, T.community, T.messages, T.notifications],
     dm:     [T.dm, T.schedule, T.community, T.messages, T.notifications],
     org:    [T.org, T.schedule, T.community, T.messages, T.notifications],
-    player: [T.profile, T.market, T.schedule, T.messages, T.notifications, T.bastions, T.retirement, T.community],
+    player: [T.account, T.profile, T.market, T.schedule, T.messages, T.notifications, T.bastions, T.retirement, T.community],
   };
   const tabs = (curMode === "dm" && isModuleAuthor(state, accountId)) ? [...tabsByMode.dm, T.resources] : tabsByMode[curMode];
   const [moreOpen, setMoreOpen] = useState(false);
@@ -418,6 +419,8 @@ export default function App() {
 
       {pollsFor(state, accountId).map((p) => <PollCard key={p.id} poll={p} accountId={accountId} dispatch={dispatch} />)}
       {(state.mentorOffers || []).filter((o) => o.candidate === accountId).map((o) => <MentorOfferCard key={o.id} offer={o} state={state} accountId={accountId} dispatch={dispatch} />)}
+      <ProvTablePrompt state={state} accountId={accountId} setModal={setModal} />
+      {(state.tableProposals || []).filter((tp) => tp.status === "PENDING" && tp.mentor === accountId).map((tp) => <ProvTableProposalCard key={tp.id} proposal={tp} state={state} accountId={accountId} dispatch={dispatch} />)}
       {observerTasksFor(state, accountId).map((se) => <ObserverPrompt key={se.id} sess={se} accountId={accountId} setModal={setModal} />)}
       {myAlerts.length > 0 && activeTab !== "notifications" && (
         <button className="dg-alertbanner" onClick={() => setTab("notifications")}>
@@ -480,6 +483,7 @@ export default function App() {
               reaches a retired hero on two screens — that pattern was right; it was just only used
               once. Tap it to go there. */}
           <BastionAlerts state={state} accountId={accountId} goBastion={goBastion} />
+          {activeTab === "account" && <AccountView state={state} accountId={accountId} dispatch={dispatch} />}
           {activeTab === "profile" && <ProfileView state={state} accountId={accountId} dispatch={dispatch} setModal={setModal} goBastion={goBastion} />}
           {activeTab === "notifications" && <NotificationsView state={state} accountId={accountId} mode={curMode} dispatch={dispatch} setTab={setTab} goSchedule={goSchedule} goBastion={goBastion} />}
           {activeTab === "retirement" && <RetirementView state={state} accountId={accountId} dispatch={dispatch} setModal={setModal} goBastion={goBastion} />}
@@ -557,7 +561,7 @@ function Modal({ modal, state, dispatch, close, accountId, setTab, setModal }: {
       <div className="dg-modal" onClick={(e) => e.stopPropagation()}>
         <button className="dg-modal-x" onClick={close} aria-label="Close">×</button>
         {modal.kind === "moduleedit" && <ModuleEditModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
-        {modal.kind === "log" && <LogModal modal={modal} state={state} dispatch={dispatch} close={close} setModal={setModal} />}
+        {modal.kind === "log" && <LogModal modal={modal} state={state} dispatch={dispatch} close={close} setModal={setModal} accountId={accountId} />}
         {modal.kind === "logsheet" && <LogSheetModal modal={modal} state={state} setModal={setModal} close={close} />}
         {modal.kind === "logentry" && <LogEntryModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} setModal={setModal} />}
         {modal.kind === "reqauth" && <ReqAuthModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
@@ -565,14 +569,15 @@ function Modal({ modal, state, dispatch, close, accountId, setTab, setModal }: {
         {modal.kind === "itementry" && <ItemEntryModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} close={close} />}
         {modal.kind === "disposal" && <DisposalModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
         {modal.kind === "dmlog" && <DMLogModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
-        {modal.kind === "observerlog" && <ObserverLogModal modal={modal} state={state} dispatch={dispatch} close={close} />}
+        {modal.kind === "observerlog" && <ObserverLogModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
+        {modal.kind === "provtable" && <ProvTableProposeModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
         {modal.kind === "escalate" && <EscalationModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
         {modal.kind === "monitorreport" && <MonitorReportModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} />}
         {modal.kind === "trade-propose" && <ProposeModal modal={modal} state={state} dispatch={dispatch} close={close} />}
         {modal.kind === "inspect" && <InspectModal modal={modal} state={state} close={close} setModal={setModal} accountId={accountId} />}
         {modal.kind === "wish" && <WishModal modal={modal} dispatch={dispatch} close={close} accountId={accountId} />}
         {modal.kind === "message" && <MessageModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} setTab={setTab} />}
-        {modal.kind === "session" && <SessionModal modal={modal} state={state} dispatch={dispatch} close={close} setModal={setModal} />}
+        {modal.kind === "session" && <SessionModal modal={modal} state={state} dispatch={dispatch} close={close} setModal={setModal} accountId={accountId} />}
         {modal.kind === "eventbuild" && <EventBuildModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} setModal={setModal} />}
         {modal.kind === "eventmanage" && <EventManageModal modal={modal} state={state} dispatch={dispatch} accountId={accountId} close={close} setModal={setModal} />}
         {modal.kind === "completesession" && <CompleteSessionModal modal={modal} state={state} dispatch={dispatch} close={close} />}
@@ -590,7 +595,7 @@ function Modal({ modal, state, dispatch, close, accountId, setTab, setModal }: {
         {modal.kind === "furnishing" && <FurnishingModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
         {modal.kind === "charedit" && <CharEditModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
         {modal.kind === "pregen" && <PregenModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
-        {modal.kind === "pregen-transfer" && <PregenTransferModal modal={modal} state={state} dispatch={dispatch} close={close} />}
+        {modal.kind === "pregen-transfer" && <PregenTransferModal modal={modal} state={state} dispatch={dispatch} close={close} accountId={accountId} />}
         {modal.kind === "herohall" && <HeroHallModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} close={close} />}
         {modal.kind === "confirm" && <ConfirmModal modal={modal} dispatch={dispatch} close={close} />}
         {modal.kind === "retirediary" && <RetireDiaryModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} />}
@@ -754,7 +759,12 @@ function reducerImpl(state: AppState, action: Action): AppState {
                  // an action touches one row and leaves the rest alone.
                  listings: 1, trades: 1, tickets: 1,
                  // grows with activity (every convention adds one); was in FLAT — same misclassification shape the ledger had
-                 events: 1 };
+                 events: 1,
+                 // provisional table proposals (27 Jul): grows with activity — one row per
+                 // proposal, and PICK/DECLINE mutate a single row and leave the rest alone.
+                 // Same shape as the six above, so DEEP. The draft refused to run until this
+                 // line existed, which is the guard working exactly as intended.
+                 tableProposals: 1 };
   const FLAT = { organizations: 1, moduleListings: 1, wishlists: 1, storeRegistry: 1, players: 1, bastionPacts: 1,
                  blocks: 1, itemSlots: 1, signups: 1, messages: 1, authors: 1,
                  // bounded by account / org / store count, so a whole-collection clone is cheap

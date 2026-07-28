@@ -31,7 +31,7 @@ const CARD_NOTICES = new Set(["poll", "mentoroffer"]);
 export function unreadFor(th, acc) { return th.messages.slice(th.lastRead[acc] || 0).filter((m) => m.from !== acc).length; }
 
 // Market categories and the treasure allowance - read by more than one section.
-export const MARKET_CATS = [["services", "Spellcasting services"], ["consumables", "Potions & scrolls"], ["mundane", "Mundane goods"], ["crafting", "Crafting"], ["advancement", "Advancement & study"]];
+export const MARKET_CATS = [["services", "Spellcasting services"], ["consumables", "Potions & scrolls"], ["mundane", "Mundane goods"], ["crafting", "Crafting"], ["advancement", "Advancement & study"], ["ronaldo", "Sell to Ronaldo"]];
 
 export // ALDMG p.3: unspecified treasure allowance per session, by tier (min–max GP)
 const TREASURE_ALLOWANCE = { 1: [100, 500], 2: [1000, 5000], 3: [10000, 50000], 4: [50000, 100000] };
@@ -99,6 +99,26 @@ export function isBlockedBy(state: AppState, target, sender) { return !!(state.b
 
 export function canManageOrg(state: AppState, acc, orgId) { return isAdmin(state, acc) || isOrgLeaderOf(state, acc, orgId) || isOrgAssistantOf(state, acc, orgId); }
 
+// Who may resolve an oversight flag raised against a DM (Frank's model, 27 Jul: authority is a
+// crucial security layer, and a flag cleared by the wrong person quietly buries a concern about
+// a DM's table). An admin always may. Otherwise you must lead or assist an organisation this DM
+// actually runs under — org membership via dmIds, since a flag record carries the DM but no
+// orgId. Deriving the tie this way rather than inventing an orgId field keeps the check honest:
+// it grants exactly the leads who have real standing over that DM, and nobody else.
+export function mayResolveDmFlag(state: AppState, acc, dmId) {
+  if (isAdmin(state, acc)) return true;
+  return Object.values(state.organizations || {}).some((o: any) =>
+    (o.dmIds || []).includes(dmId) && (o.leaderId === acc || (o.assistantIds || []).includes(acc)));
+}
+
+// Who may resolve a store-field flag: an admin, or a lead/assistant of an organisation that
+// lists this store. A store flag carries a storeId, so the tie to an org is direct via storeIds.
+export function mayResolveStoreFlag(state: AppState, acc, storeId) {
+  if (isAdmin(state, acc)) return true;
+  return Object.values(state.organizations || {}).some((o: any) =>
+    (o.storeIds || []).includes(storeId) && (o.leaderId === acc || (o.assistantIds || []).includes(acc)));
+}
+
 // ALPG p.1: creating a level-5 character grants 500 GP, 40 DT, and one of these starting magic items.
 export const L5_STARTING_ITEMS = ["l5_alltool", "l5_amulet", "l5_grimoire", "bagholding", "l5_bloodwell", "l5_dragonbelt", "l5_moonsickle", "l5_drum", "l5_rodpact", "l5_shield1", "wandwarmage", "l5_weapon1", "l5_wraps"];
 
@@ -165,7 +185,25 @@ export const MARKET: any[] = [
   { id: "buy_arrows",  name: "Buy Arrows (20)",                       cat: "mundane",     gp: 1,   output: "item", mint: "arrows20",              mintClass: "GEAR", note: "Mundane equipment." },
 ];
 
-export const MARKET_BY_ID = Object.fromEntries(MARKET.map((m) => [m.id, m]));
+// BUG (found 27 Jul): this index was a SNAPSHOT taken at module load, right here, immediately
+// after the 14 hand-written rows above. The 167 mundane gear rows are pushed into MARKET later,
+// from lib/ui.tsx. MARKET is an array and receives them; Object.fromEntries had already run, so
+// the index never did. Result: 163 of 185 rows rendered in the store and NONE of them could be
+// bought — CHECKOUT_MARKET looked up MARKET_BY_ID[id], got undefined, and returned out of the
+// line silently. No gold moved, no item minted, no error. The goat clicked buy and nothing
+// happened. (The cart UI was worse: market/ui.tsx dereferences .dt without a guard and would
+// have thrown.) Same shape as the CATALOG collision: a derived structure built before its
+// contributors finished registering.
+export const MARKET_BY_ID: Record<string, any> = Object.fromEntries(MARKET.map((m) => [m.id, m]));
+
+// Explicit re-index, called once by lib/ui.tsx after it finishes pushing the generated rows.
+// Explicit over clever: a Proxy or a length-keyed lazy rebuild would both work and both hide
+// WHEN the index becomes true. The order is the thing that broke, so the order is stated.
+// Mutates in place — six modules hold a reference to this object; replacing it would orphan them.
+export function rebuildMarketIndex() {
+  for (const k of Object.keys(MARKET_BY_ID)) delete MARKET_BY_ID[k];
+  for (const m of MARKET) MARKET_BY_ID[m.id] = m;
+}
 
 // Carry-count contribution of n packed units of a consumable. ALPG: magic ammunition/smokepowder
 // count as one per 5 shots (rounded up); potions/scrolls count one each.
@@ -352,6 +390,12 @@ export function logTradeCost(s: AppState, ch, gave, got, date) {
 export function mayActOnChar(s: AppState, charId, by) {
   const ch = s.characters[charId];
   if (!ch) return false;
+  // A pregen has no player owner yet (ownerId is null) — the DM who created it holds it via
+  // pregenOwner. Found 27 Jul during items.ts coverage: ADD_PREGEN_ITEM and TRANSFER_PREGEN both
+  // gate on this helper, so without the pregenOwner clause a DM could neither stock a pregen nor
+  // hand it off — the pregen feature was inert. (TRANSFER_PREGEN's UI dispatch also passed no
+  // actor at all; fixed at the call site.)
+  if (ch.pregen && ch.pregenOwner) return ch.pregenOwner === by || isAdmin(s, by);
   return ch.ownerId === by || isAdmin(s, by);
 }
 
@@ -521,6 +565,39 @@ export function equipSlot(cat) {
 
 export function isDMRole(state: AppState, acct) { return (state.roles[acct] || []).includes("dm"); }
 
+// EVENT-SCOPED AUTHORITY (Frank's ruling, 27 Jul). "If the player plays in an event, all dungeon
+// Masters from that event become valid approval sources for that event and any object tied to
+// that event. Dungeon Masters may not be from the same store or same organization when playing
+// at an event, they might be unrelated and just picked up the gig because they wanted to go."
+//
+// A deliberate EXCEPTION to the same-org-and-store pairing verifyingDMs() encodes. The home table
+// and the convention floor are different situations: at a home table the shared store IS the
+// trust relationship; at an event the shared EVENT is, and demanding a store match there would
+// strand a goat whose only DM that weekend was a visitor who drove in for the gig.
+//
+// The widening is ONE-WAY and event-scoped: an event DM gains authority over records tied to
+// that event and nothing else. It does not touch that player's ordinary home-table logs.
+//
+// There is no DM roster on the event record, and deliberately so — the roster IS whoever ran a
+// table there, derived live, so a DM who picks up a last-minute table has authority the moment
+// the session exists rather than when somebody remembers to add them to a list.
+export function eventDMs(state: AppState, eventId) {
+  if (!eventId) return [];
+  return [...new Set((state.sessions || [])
+    .filter((ss) => ss.eventId === eventId && ss.dmId)
+    .map((ss) => ss.dmId))];
+}
+
+// Who may approve, reject, or return a log entry: the DM whose table it was, an admin, or —
+// when the entry is tied to an event — any DM who ran a table at that event.
+export function mayReviewLog(state: AppState, le, by) {
+  if (!le) return false;
+  if (by === le.dmId) return true;
+  if (isAdmin(state, by)) return true;
+  if (le.eventId && isDMRole(state, by) && eventDMs(state, le.eventId).includes(by)) return true;
+  return false;
+}
+
 export function isDeactivated(state: AppState, acct) { return !!(state.mod && state.mod.deactivated && state.mod.deactivated.includes(acct)); }
 
 export function isFirearm(catalogId) { const c = CATALOG[catalogId]; return !!(c && c.firearm); }   // ALPG: firearms are kept but not traded/crafted/replicated
@@ -531,6 +608,50 @@ export function isFirearm(catalogId) { const c = CATALOG[catalogId]; return !!(c
 // legitimate possession, and the whole point of keeping the row (rather than deleting it, as the
 // superseded structural exclusion did) is that a goat can record what a DM handed them.
 export function isAwardOnly(catalogId) { const c = CATALOG[catalogId]; return !!(c && c.awardOnly); }
+
+// RONALDO'S RATE. The 50% is AL and citable: ALDMG:157 — "A character sells items for half price
+// before the session's end". The DM's Guide attributes that to the ALPG, but ALPG:176 and :254
+// only defer onward to the PH, and the PH selling rule is NOT in the SRD (swept all 11 KB files:
+// zero hits for sell/sold/resale/vendor). So the NUMBER is AL; the citation chain dead-ends
+// outside anything we may ship. ALDMG:157 governs because it is the AL-specific document.
+//
+// What is OURS, and must never be dressed as AL: Ronaldo's permanent availability. ALDMG:157
+// conditions a sale on the settlement and NPC plausibly having the item, on the DM's discretion
+// (ALPG:254), and on it happening before the session's end. A standing Exchange fence satisfies
+// none of the three. That is a HOUSE MECHANISM of the Deep Grounds Exchange, adopted knowingly.
+//
+// Rounding is DOWN, and deliberately: half of an odd-GP item favours the house, never the seller.
+export function sellValueOf(catalogId) {
+  const c = CATALOG[catalogId];
+  return Math.floor(((c && c.gp) || 0) / 2);
+}
+
+// What Ronaldo will take, as one predicate so the UI and the reducer cannot drift apart.
+// Award-only rows (firearms, poisons) ARE sellable: ALPG:312 grants mundane firearms a sell door
+// explicitly, and `awardOnly` closes acquisition — the store and the craft bench — not disposal.
+// That asymmetry is the whole point of the flag, so isAwardOnly is deliberately NOT consulted here.
+export function ronaldoWillBuy(s: AppState, it) {
+  return ronaldoRefusal(it) === null;
+}
+
+// Why Ronaldo says no, in Ronaldo's words. The reasons live HERE and not in the market component
+// so the predicate and the explanation can never disagree — a refusal the UI cannot explain is
+// the same bug as a refusal the reducer does not enforce. Returns null when he'll take it.
+// Order matters: he objects to the most obvious thing first, the way a person does.
+export function ronaldoRefusal(it) {
+  if (!it) return "Ronaldo sees nothing. Is this a joke?";
+  if (it.itemClass !== "GEAR")
+    return "Magic. No. Ronaldo loves you, but no — somebody always recognises the cloak. Trade that among your own people.";
+  if (it.holder.type !== "CHARACTER")
+    return "That lives on a shelf back at the keep. The keep has opinions. Ronaldo does not do business with buildings.";
+  if (it.escrow)
+    return "Ronaldo counts two hands on this already. Finish that, then come back.";
+  if (it.review && it.review.flagged)
+    return "Somebody with a ledger is looking at this one. Ronaldo does not need the attention. Sort it out first.";
+  if (!it.provenance || it.provenance.state !== "VERIFIED")
+    return "Nobody signed for this. Ronaldo doesn't ask where it's been — Ronaldo asks whether it's been. Get it signed, then we talk.";
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // ITEM INDEX — "what does THIS character hold?"
@@ -634,6 +755,20 @@ export function normalizeCarriedGifts(s: AppState, ch) {   // after a tier chang
 // ALPG v2026.4 "Carried Magic Items by Tier"
 
 export function provOf(state: AppState, acct) { return (state.provisional && state.provisional[acct]) || "none"; }
+
+// CERTIFIED DM (Frank's ruling, 27 Jul): "I do want any certified dm to be able to schedule an
+// event or table because they are the ones who know their availability."
+//
+// Deliberately EXCLUDES a provisional DM. A provisional's own table already requires their
+// mentor to be free that night and to confirm the hold (see CREATE_SESSION and
+// ACCEPT_MENTOR_TABLE) — letting them stand up a whole event would route around the supervision
+// their status exists to provide. Certified means the mentor bond has been released.
+//
+// Admin passes because an admin passes everything.
+export function isCertifiedDM(state: AppState, acct) {
+  if (isAdmin(state, acct)) return true;
+  return isDMRole(state, acct) && provOf(state, acct) === "certified";
+}
 
 // Every DM who shares a store with this account.
 
