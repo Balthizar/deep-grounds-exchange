@@ -51,6 +51,26 @@ to kill.
 **The tell, in one line.** If the answer already exists in something you decomposed, and you are
 about to grep for it instead, you are about to repeat P1.
 
+**Further instances (28 Jul), both the same root:**
+
+- **The "no event flag" claim.** Asserted to Frank that nothing in the code distinguished an
+  event item from a play item. Wrong: `Seal` (src/lib/ui.tsx) has keyed gold-vs-red on
+  `itemClass === "EVENT_CERT"` the entire time — gold for event awards/certs, red for earned-in-
+  play, plus `?` pending and `⚑` under-review. The claim came from memory instead of a source
+  read. The rule is not only for gates: **do not describe the system's behaviour from memory when
+  the source is one grep away.** Read `Seal`, then speak.
+
+- **Reachability's indirect-dispatch blind spot.** The gate measured "a `type:` literal in a
+  `dispatch()` call" and flagged the nine item-verification actions as PENDING — but
+  `VerifyCard` (src/sessions/ui.tsx) dispatches every one through a lookup table:
+  `dispatch({ type: A[0] })` where `A = { slot:["VERIFY_SLOT_ITEM", ...], ... }[kind]`. The names
+  live in the table literal, not the call, so the literal-only scan couldn't see them — a P1
+  false-NEGATIVE (harmless in direction, but it sent the agent to "build" a screen that already
+  existed). Fix: the gate now also harvests action names from the table a dispatched variable
+  indexes into. Lesson: before building a screen the worklist says is missing, CONFIRM it is
+  missing by reading the feature file — the worklist is a measurement and measurements can under-
+  report. The screen existing all along was findable in thirty seconds of reading `VerifyCard`.
+
 **The cost caveat.** The *most* rigorous measurement (e.g. firing every UI handler under jsdom and
 observing real dispatches at runtime) is sometimes so fragile it becomes its own liability. P1
 does not demand maximum rigor — it demands measuring the *right thing* by its structure rather than
@@ -67,3 +87,114 @@ instruction layer that stops the bad reasoning upstream. When a mistake recurs, 
 should have caught it. A new *result* bug → a new or tightened gate. A recurrence of the same
 *reasoning* mistake in a new location → a principle here, with its originating bug, so it is caught
 before it produces a result the next time.
+
+**Further instance (28 Jul, found by external review):** closeout.cjs computed its own "reachable"
+set with the crude uppercase-string scan — the exact method reachability.cjs was rebuilt to
+replace — so the two tools could disagree, and closeout ran the method P1 forbids. This is the
+duplicate-parser trap: when a truth is rebuilt in one place, every OTHER consumer of that truth
+must be repointed at it, not left running the old derivation. Fix: reachability.cjs exports its
+dispatch-shape detector; closeout.cjs imports and consumes it. One source of truth, no competing
+parsers. Lesson: after rebuilding a measurement, grep for every other place that measures the same
+thing — the old copy does not announce itself.
+
+**Further instance (28 Jul, my own error, not a gate's).** Asked to confirm the special facilities
+had their furniture, I read the SOURCE DECLARATION `export const FACILITY_FURNISHINGS = {}` in
+registry.ts, saw empty braces, and told Frank the furniture was GONE and the facilities unfurnished —
+an alarming, wrong conclusion that scared him for no reason. The truth: the object is populated at
+MODULE LOAD by registerFacility() side effects (`FACILITY_FURNISHINGS[id] = spec.furnishings`), so
+the runtime object is full while the literal reads empty. All four specials furnish correctly. This
+is the P1 failure in its purest form and worth remembering precisely BECAUSE it was me, not a
+scanner: I read raw source text (the empty literal) instead of measuring observed runtime state
+(the populated object after registration). The fix that generalizes: when a value is assigned
+dynamically (registration, side effect, builder), NEVER judge its contents from the declaration —
+instantiate it and inspect the live object. A declaration is a promise, not a measurement. Guardrail
+added: a ⚠ comment on the declaration itself so the next reader (human or model) doesn't repeat it.
+
+## The harness must pass its own gate (self-verification)
+A verification harness you cannot trust to verify ITSELF is a harness you cannot fully trust on
+anything. Every suite checks the product; one suite must check the harness.
+
+ORIGINATING BUGS (both found the instant the self-check first ran, 19 days in):
+- `phase1c_bench.cjs` and `closeout.cjs` existed on disk but were not in the `check` gate. One was a
+  true orphan-in-spirit; both are legitimately held-out tools — but nothing recorded that, so they
+  were indistinguishable from a suite that had silently fallen out of the gate. A test that never
+  runs gives false confidence, and the gate was blind to it because suites are wired in by script
+  NAME, not by path — the coupling is invisible to every other check.
+
+THE RULE: every suite file is in exactly one of two states, never a silent third:
+  1. reached by `check`, or
+  2. on a DECLARED exclusion list, each entry carrying a written reason.
+Adding a suite without doing one or the other is now itself a gate failure. The exclusion list is
+also checked for rot (a name on it must still exist on disk) and the self-check verifies it is
+itself in the gate — otherwise a self-verifier that never runs verifies nothing.
+
+THE DEEPER PRINCIPLE (portable): an exclusion is a ruling, and a ruling is written down, never
+silent. The harness declares its own edges in the same voice it demands of the product. Point the
+tools back at themselves; the recursion closing is the proof the tools are trustworthy.
+
+## Green should be itemized, not trusted (the gate report)
+"Gate green" means more when green is enumerated. Every suite already printed its own summary; they
+just scrolled past inside the run. `harness/report.cjs` runs the full gate IN ORDER (order parsed
+from package.json's `check`, so it can't drift from the real gate), captures each suite's existing
+summary line, times each step, and prints one itemized report + a machine-readable last_report.json.
+It reimplements no suite — it's a thin reporting layer over output that already existed. Run:
+`npm run report`. (It is itself a declared self_check exception: a runner that runs the gate cannot
+be a step inside the gate without recursing.)
+
+## The `next` driver: formalized triage, tempered by a CITED profile (not the machine's opinion)
+The user rejected a `next` driver that imposes the machine's idea of "best." Instead it formalizes
+the triage the user and agent ran by hand a dozen times, from three labeled, never-blended inputs:
+work-state, test-state, and LOOSE ENDS (open items carrying no supporting note — the silent ones,
+the most dangerous). It proposes the top three next steps, each with a cited why-trail, ordered with
+tempering from a behavioral model.
+
+The critical ruling: a behavioral model is inference about a person — the least verifiable input in
+the harness. So it obeys the same law as everything else: DECISION_LOG.md records cited decisions
+(no inference); BEHAVIORAL_PROFILE.md records patterns that each CITE the log entries supporting
+them; the profile only *tempers ordering* and appears in its own labeled column, never blended into
+a verdict. A trait that cannot be wrong does not belong in the profile. Files: harness/next.cjs
+(mechanical synthesis), NEXT_PROTOCOL.md (the agent flow a script can't do: milestone prompt → read
+whether the reply implies deciding → reassure → triage → hand back → log the decision).
+
+PORTABLE: this is the project's second general artifact (after the harness itself) — a formalized,
+auditable triage-and-behavioral-awareness layer for AI-assisted work, not specific to this platform.
+
+## Finish-to-DEPTH, not breadth: an open tool means its subsystem is unfinished
+The `next` driver first measured BREADTH (counters: minted facilities, sourced subjects) and ranked
+"start facility #9" above "finish the started-but-half-built library book generator." The user did
+the triage better than the tool, because the tool lacked a distinction the user carries: a facility
+with pending book tooling is NOT minted in full, so its subsystem is unfinished, and finishing it
+outranks starting any new breadth. "Started but not finished to depth" is the true in-progress state.
+
+FIX (in the user's ordered sequence):
+1. FIRST, the miscount: the driver counted every ✅/⬜ in the roadmap file, including prose notes,
+   reading 107 against a 100-subject list. Now it counts only numbered roadmap lines
+   (/^\s*\d+\.\s*[✅⬜]/), so stray marks in commentary can never inflate the count again. A triage
+   tool that mismeasures cannot be trusted to triage — fix the instrument before extending it.
+2. THEN the logic: a DECLARED, inspectable IN_PROGRESS_TOOLS list marks a subsystem unfinished; each
+   entry outranks new breadth (weight 90, below only a red gate), and starting a new facility is
+   explicitly DEMOTED with a cited why-trail while any tool is open.
+
+PORTABLE: when a triage tool and the user disagree, the user's ruling is a new requirement FOR THE
+TOOL. Encode it so the tool reaches the user's conclusion next time, rather than treating the
+disagreement as a one-off override.
+
+## Derive "unfinished" from structure, never from a hand-seeded list
+A hand-seeded list of in-progress work only catches what the user REMEMBERED to seed — worthless
+against the thing they forgot they left open. The user's own words: "it is possible I left other
+things open I forgot about." So the `next` driver's finish-to-depth input is now DERIVED by
+harness/completeness.cjs from the codebase itself:
+  - a tool declares an intended target in source ("grows to the chosen 100", library_subjects.ts:118);
+  - its actual extent is measured at runtime (24 registered);
+  - actual << intended => the tool is unfinished;
+  - a subsystem whose source DEPENDS on that tool (engine.ts:912 calls the generator) is unfinished
+    by transitivity.
+Plus one honest lexical signal: a USER-FACING "coming next / not yet available" string is a promise
+to the user that something is incomplete (real, unlike a code comment or flavor prose). This second
+signal independently surfaced the workbench item-crafting feature — exactly the "thing I forgot"
+case.
+
+Every finding cites the file:line it was read from, so the driver's citation means the recommendation
+was genuinely reasoned from evidence, not a fact injected by the agent and read back (the
+opinion-laundering failure mode). PORTABLE: when a tool must reason about state, it reads the state,
+it does not accept the state as a parameter from whoever is being advised.

@@ -201,6 +201,10 @@ export const BASTION_FACILITIES: Record<string, any> = {
   armory: { id: "armory", name: "Armory", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["trade", "maintain"], note: "A hall of mannequins, weapon-racks, shield-hooks, and ammunition chests, kept by a quartermaster. Issue Trade and the racks are stocked \u2014 armor, Shields, weapons, and ammunition \u2014 for 100 GP plus 100 for each Bastion Defender, halved if the Bastion has a Smithy. While it is stocked your defenders are harder to kill: any event that rolls to see whether you lose defenders rolls a d8 in place of each d6. The equipment is expended the moment such an event ends \u2014 whatever you have or lost \u2014 leaving the Armory bare until you Stock it again." },
   archive: { id: "archive", name: "Archive", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 13, orders: ["research", "maintain"],
     note: "A repository of valuable books, maps, and scrolls \u2014 usually attached to a Library behind a locked or secret door (DMG). The Research order sends the archivist hunting helpful lore for 7 days: they gain knowledge as if they had cast Legend Lore (an SRD spell \u2014 the pointer, not the text), and share it the next time you speak. The Reference Book is chosen ONCE, one of five subjects; while you and the book are in your Bastion, the DM grants the book's study benefit at the table. The DMG's own five titles are not SRD, so each house shelves the Exchange's own edition \u2014 a cavern's arcana book and a ship's are not the same book." },
+  scriptorium: { id: "scriptorium", name: "Scriptorium", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 9, orders: ["craft", "maintain"], note: "A room of desks and writing supplies. Its scribe will copy a nonmagical book (you supply the blank book), scribe a spell scroll of 3rd level or lower from their own class list, or run off up to fifty broadsheets or pamphlets \u2014 and carry them anywhere within fifty miles. You choose the scribe: a Novice Mage scribes Wizard scrolls, an Acolyte scribes Cleric scrolls.", scribeClasses: [{ id: "mage", label: "Novice Mage", cls: "Wizard", role: "Novice Mage" }, { id: "acolyte", label: "Acolyte", cls: "Cleric", role: "Acolyte" }], outputs: { craft: [{ id: "book_replica", label: "A book replica \u2014 copy of a nonmagical book (you supply a blank book; 7 days)", catalogId: "g_book", needsBlankBook: true }, { id: "spell_scroll", label: "A spell scroll \u2014 your scribe's class, 3rd level or lower (a DM verifies)", scroll: true, maxLevel: 3 }, { id: "paperwork", label: "Paperwork \u2014 up to 50 broadsheets or pamphlets (1 GP each, 7 days; delivered within 50 miles)", paperwork: true, perCopy: 1 }] } },
+  smithy: { id: "smithy", name: "Smithy", kind: "special", space: "roomy", prereq: null, hirelings: 2, minLevel: 5, orders: ["craft", "maintain"], note: "A forge, an anvil, and the tools of the trade. Its smiths will make anything smith's tools can make \u2014 a blade, a harness of armour, a length of chain \u2014 and, once you have the standing for it, forge an Armament from the magic tables.", tool: "g_tool_smith", outputs: { craft: [{ id: "smith_mundane", label: "Smith's work \u2014 anything smith's tools can make (a DM verifies against the tool's list)", tool: "g_tool_smith" }, { id: "armament_common", label: "A Common magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "common", minLevel: 9 }, { id: "armament_uncommon", label: "An Uncommon magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "uncommon", minLevel: 9 }] } },
+  workshop: { id: "workshop", name: "Workshop", kind: "special", space: "roomy", prereq: null, hirelings: 3, minLevel: 5, orders: ["craft", "maintain"], note: "A creative space fitted with six kinds of artisan's tools of your choosing. Its three hirelings craft anything those tools can make \u2014 and, once you have the standing for it, an Implement from the magic tables. You pick the six tools when you build it.", toolChoice: { count: 6, from: ["g_tool_carpenter", "g_tool_cobbler", "g_tool_glassblow", "g_tool_jeweler", "g_tool_leather", "g_tool_mason", "g_tool_painter", "g_tool_potter", "g_tool_tinker", "g_tool_weaver", "g_tool_woodcarver"] }, outputs: { craft: [{ id: "gear_chosen", label: "Adventuring gear \u2014 anything the workshop's chosen tools can make (a DM verifies)", toolChoice: true }, { id: "implement_common", label: "A Common magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "common", minLevel: 9 }, { id: "implement_uncommon", label: "An Uncommon magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "uncommon", minLevel: 9 }] } },
+  library: { id: "library", name: "Library", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["research", "maintain"], note: "A collection of books with desks and reading chairs. Its librarian will research a topic \u2014 a legend, an event or place, a person, a kind of creature, or a famous object \u2014 and return with up to three accurate things you did not know. It is also a place to shelve the books your characters carry.", shelvesBooks: true },
   observatory: { id: "observatory", name: "Observatory", kind: "special", space: "roomy", prereq: "spell_focus", hirelings: 1, minLevel: 13, orders: ["empower", "maintain"],
     note: "Situated atop the keep, a telescope aimed at the night sky. A Long Rest up here grants the Observatory Charm; the Empower order sends someone \u2014 you or the hireling \u2014 to explore the eldritch mysteries of the stars for 7 consecutive nights, and on an odd die an unknown power bestows a Charm you can keep or gift (my Q15 ruling: it is minted as a gift-only item with a lifetime).",
     charm: { name: "Observatory Charm", desc: "One casting of Contact Other Plane, no spell slot spent. Lasts 7 days or until you use it \u2014 and you can't gain this Charm again while you still have it (DMG, Observatory).", grant: "You spent a Long Rest at the eyepiece, and the far corners of Wildspace looked back: for a week you can put one question to the other side without paying a slot for the asking." } },
@@ -1399,6 +1403,92 @@ export function composeArchiveTitle(rng: () => number, formId?: string, opts?: {
   return out;
 }
 
+
+// ============================================================================
+// LIBRARY BOOK GENERATION — title + the chained, tag-drifting three-fact paragraph.
+// The title reuses the Archive's HOUSE voice + FLOURISH (shared registers) but its own library
+// FRAMES; the frame's genre selects the connective sentence. The paragraph is the machine Frank
+// designed (29 Jul): a seeded chain that drifts along shared aspect tags so it reads like a writer
+// expanding one thread of the subject, never a non-sequitur.
+// ============================================================================
+import { LIBRARY_SUBJECTS, LIBRARY_TITLE_FRAMES, LIBRARY_CONNECTIVES } from "./library_subjects";
+import type { LibrarySubject, LibraryFact } from "./library_subjects";
+
+// A library book's title. Seeded by the caller (keep + shelf + subject + week) so the same book is
+// always the same book. Returns { title, genre } — the genre rides through to the paragraph so voice
+// and title agree.
+export function composeLibraryTitle(rng: () => number, subjectLabel: string, formId?: string): { title: string; genre: string } {
+  const d = <T,>(t: readonly T[]): T => t[Math.floor(rng() * t.length)];
+  const len = 1 + Math.floor(rng() * 6);
+  const frame = d(LIBRARY_TITLE_FRAMES);
+  // Avoid a double article: a frame ending in "of" followed by a subject starting with "The"
+  // ("...of The Ring of Winter") reads better with the leading article dropped ("...of the Ring of
+  // Winter"). Lower-case it rather than cut it, so the article survives mid-title.
+  const subj = /\bof$/.test(frame.text) ? subjectLabel.replace(/^The /, "the ") : subjectLabel;
+  let out = frame.text + " " + subj;
+  if (len >= 4) out += (ARCHIVE_TITLE_HOUSE[formId || "keep"] || ARCHIVE_TITLE_HOUSE.keep)[Math.floor(rng() * (ARCHIVE_TITLE_HOUSE[formId || "keep"] || ARCHIVE_TITLE_HOUSE.keep).length)];
+  if (len >= 6) out += ARCHIVE_TITLE_FLOURISH[Math.floor(rng() * ARCHIVE_TITLE_FLOURISH.length)];
+  return { title: out, genre: frame.genre };
+}
+
+// The chained draw. Roll #1 free; its tags seed the thread. Roll #2 from the pool that shares >=1
+// tag with #1 (preferring #1's PRIMARY, accepting a shared SECONDARY — the drift); roll #3 sharing
+// >=1 tag with #2. If a constrained pool runs dry, widen to any remaining fact of the subject (still
+// on-subject, just a looser association) so the chain never fails. Then the genre connective closes
+// it. Returns the stitched paragraph.
+function factTags(f: LibraryFact): string[] { return [f.p].concat(f.s || []); }
+function shareTag(a: LibraryFact, b: LibraryFact): boolean { const A = new Set(factTags(a)); return factTags(b).some((x) => A.has(x)); }
+
+export function composeLibraryParagraph(rng: () => number, subject: LibrarySubject, genre: string): string {
+  const facts = subject.facts || [];
+  if (!facts.length) return "";
+  const pick = <T,>(pool: T[]): T => pool[Math.floor(rng() * pool.length)];
+  const used = new Set<number>();
+  const take = (candidates: number[]): number => {
+    const avail = candidates.filter((i) => !used.has(i));
+    const pool = avail.length ? avail : facts.map((_, i) => i).filter((i) => !used.has(i));
+    const idx = pick(pool);
+    used.add(idx);
+    return idx;
+  };
+  // #1 — free
+  const i1 = take(facts.map((_, i) => i));
+  const f1 = facts[i1];
+  // #2 — prefer the seed's PRIMARY tag, then any shared tag (the drift)
+  const primaryPool = facts.map((_, i) => i).filter((i) => !used.has(i) && factTags(facts[i]).includes(f1.p));
+  const sharedPool = facts.map((_, i) => i).filter((i) => !used.has(i) && shareTag(f1, facts[i]));
+  const i2 = take(primaryPool.length && Math.floor(rng() * 3) < 2 ? primaryPool : (sharedPool.length ? sharedPool : facts.map((_, i) => i)));
+  const f2 = facts[i2];
+  // #3 — chain off #2's tags
+  const chainPool = facts.map((_, i) => i).filter((i) => !used.has(i) && shareTag(f2, facts[i]));
+  const i3 = take(chainPool.length ? chainPool : facts.map((_, i) => i));
+  const f3 = facts[i3];
+  // connective — voice tied to the title's genre
+  const conns = LIBRARY_CONNECTIVES[genre] || LIBRARY_CONNECTIVES.account;
+  const conn = conns[Math.floor(rng() * conns.length)];
+  return [f1.t, f2.t, f3.t, conn].join(" ");
+}
+
+// Is there a Library subject deep enough to write a real book about? (Falls back gracefully if not.)
+export function librarySubjectFor(key?: string): LibrarySubject | null {
+  if (!key) return null;
+  return LIBRARY_SUBJECTS[key.toLowerCase()] || null;
+}
+export function anyLibrarySubject(rng: () => number): LibrarySubject | null {
+  const keys = Object.keys(LIBRARY_SUBJECTS);
+  return keys.length ? LIBRARY_SUBJECTS[keys[Math.floor(rng() * keys.length)]] : null;
+}
+
+// Book-shelf capacity, size-scaled (Frank, 29 Jul). Archive base 10, Library base 20 (double). Every
+// size tier up DOUBLES the cap (cramped→roomy→vast = ×1, ×2, ×4). Special facilities are DMG
+// size-locked, so in practice each sits at its own tier's cap unless it can be resized — the scaling
+// simply resolves to the facility's actual size. Non-shelving facilities return 0.
+export function bookShelfCap(defId: string, size?: string): number {
+  const base = defId === "archive" ? 10 : defId === "library" ? 20 : 0;
+  if (!base) return 0;
+  const tier = Math.max(0, ["cramped", "roomy", "vast"].indexOf(size || "roomy"));
+  return base * Math.pow(2, tier);
+}
 
 export const BASTION_PREREQS: Record<string, any> = {
   spell_focus:  { id: "spell_focus",  short: "Spellcasting Focus",

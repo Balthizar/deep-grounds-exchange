@@ -1,4 +1,5 @@
 import { todayLocal } from "../lib/util";
+import { bookShelfCap } from "../data/bastion";
 import { isAdmin } from "../lib/rules";
 import SPELLS from "../data/srd/spells.json";
 
@@ -167,15 +168,27 @@ export function itemActions(s: any, action: any, dropNotice: (p: any) => void): 
       const dupe = Object.values(s.items).find((x: any) => x.bookItem && x.name === title
         && x.holder && x.holder.type === "CHARACTER" && x.holder.id === ch.id);
       if (dupe) return s;                                             // one copy per shelf — click twice, own once
+      // Size-scaled shelf cap (Frank, 29 Jul): Archive 10, Library 20, doubling per size tier. Count
+      // the character's books of THIS kind (a library book carries a paragraph; an archive book a
+      // link) against the minting facility's cap. At the cap, the shelf is full.
+      const cap = bookShelfCap(String(action.defId || "archive"), String(action.size || "roomy"));
+      if (cap > 0) {
+        const isLibraryBook = !!String(action.paragraph || "").trim();
+        const held = Object.values(s.items).filter((x: any) => x.bookItem && x.holder && x.holder.type === "CHARACTER" && x.holder.id === ch.id && (!!x.paragraph === isLibraryBook)).length;
+        if (held >= cap) return s;                                     // the shelf is full — cap reached
+      }
       const topic = String(action.topic || "").trim().slice(0, 140);
+      const paragraph = String(action.paragraph || "").trim().slice(0, 900);   // Library books CONTAIN their three sourced facts as a paragraph; Archive books carry a wiki link instead
       const iid = "it" + s.nextId++;
       s.items[iid] = mkItem(iid, null, "STORY_ITEM", ch.campaign,
         verified("ARCHIVE", "the Archive at " + ((ch.bastion && ch.bastion.name) || "the keep")),
         { type: "CHARACTER", id: ch.id },
-        { name: title, bookItem: true,
-          source: "The Deep Grounds Exchange \u2014 Archive",
-          notes: "A decorative copy, bound the week it was most thumbed" + (topic ? " \u2014 consulted on the matter of " + topic : "") + ". Flavor only; it does nothing.",
-          topic: topic || null, wikiUrl: (action.wiki || null) });
+        { name: title, bookItem: true, inPack: false,   // lands on the shelf, not the pack — the player packs it when they want it at the table (Frank, 28 Jul: a pack full of every book is clutter)
+          source: "The Deep Grounds Exchange \u2014 " + (paragraph ? "Library" : "Archive"),
+          notes: paragraph
+            ? "The librarian's gathered notes \u2014 three things worth knowing, bound together."
+            : "A decorative copy, bound the week it was most thumbed" + (topic ? " \u2014 consulted on the matter of " + topic : "") + ". Flavor only; it does nothing.",
+          topic: topic || null, wikiUrl: paragraph ? null : (action.wiki || null), paragraph: paragraph || null });
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
         date: todayLocal(), dtSpent: 0, gpSpent: 0,
         spentOn: "copied from the Archive: \u00ab" + title + "\u00bb",

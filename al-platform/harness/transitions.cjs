@@ -28,7 +28,7 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { normalizeCarriedGifts as __ncg, liveCharmItemsHeld as __lch } from "./lib/rules";' +
   '\nimport { CHARM_FORMS as __cf, CHARM_MATERIALS as __cm, CHARM_MARKS as __ck, CHARM_QUIRKS as __cq, composeCharmAppearance as __cca } from "./data/charms";' +
   '\nimport { BASTION_LIFE_TASKS as __lt, FACILITY_RUIN as __fr, FACILITY_REACTIONS as __rx, BASTION_SIZE_FLAVOR as __sf } from "./bastion/registry";' +
-  '\nimport { ARCHIVE_BOOK_SUBJECTS as __abs, ARCHIVE_TITLE_SUBJECTS as __t1, ARCHIVE_TITLE_VERBS as __t2, ARCHIVE_TITLE_OBJECTS as __t3, ARCHIVE_TITLE_MANNERS as __t4, ARCHIVE_TITLE_HOUSE as __t5, ARCHIVE_TITLE_FLOURISH as __t6, composeArchiveTitle as __cat, ARCHIVE_TITLE_FRAMES as __tf, ARCHIVE_LORE_GLOBAL as __lg, ARCHIVE_LORE_BY_REGION as __lr, rollLoreTopic as __rlt, BASTION_REGIONS as __brs } from "./data/bastion";\n' +
+  '\nimport { ARCHIVE_BOOK_SUBJECTS as __abs, ARCHIVE_TITLE_SUBJECTS as __t1, ARCHIVE_TITLE_VERBS as __t2, ARCHIVE_TITLE_OBJECTS as __t3, ARCHIVE_TITLE_MANNERS as __t4, ARCHIVE_TITLE_HOUSE as __t5, ARCHIVE_TITLE_FLOURISH as __t6, composeArchiveTitle as __cat, ARCHIVE_TITLE_FRAMES as __tf, ARCHIVE_LORE_GLOBAL as __lg, ARCHIVE_LORE_BY_REGION as __lr, rollLoreTopic as __rlt, BASTION_REGIONS as __brs, bookShelfCap as __bsc } from "./data/bastion";\n' +
   '\nimport { BASTION_FACILITIES as __bf } from "./data/bastion";\n' +
   '\nimport { CATALOG as __cg } from "./data/catalog";\n' +
   '\nimport { MARKET as __mkt, MARKET_BY_ID as __mbi, TOOL_CRAFTS as __tc } from "./lib/rules";\n' +
@@ -38,9 +38,9 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { nightCommitment as __nc, proposalDatesRanked as __pdr, proposalDatesForMentor as __pdm, hasPlayedUnder as __hpu } from "./lib/play";\n' +
   '\nimport { isTradeableClass as __itc, ronaldoWillBuy as __rwb, sellValueOf as __svo, eventDMs as __edm, mayReviewLog as __mrl, tradeLegal as __tl, verifyingDMs as __vd, storesOf as __so } from "./lib/rules";\n' +
 '\n' +
-  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, BASTION_FACILITIES: __bf, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu };\n');
+  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, BASTION_FACILITIES: __bf, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, bookShelfCap: __bsc, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu };\n');
 execSync('npx --no-install esbuild src/__t.tsx --bundle --format=cjs --outfile=./t.cjs --external:react --external:react-dom --loader:.tsx=tsx --loader:.json=json --jsx=automatic', { stdio: "ignore" });
-const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe } = require(path.resolve("t.cjs")).__t;
+const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, bookShelfCap, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe } = require(path.resolve("t.cjs")).__t;
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => { checks++; if (!cond) { fails++; console.log("  FAIL  " + msg); } };
@@ -3123,8 +3123,193 @@ for (const [name, fn] of T) {
 }
 
 // ---------------------------------------------------------------------------------------
+// SCRIPTORIUM — scribe hire (class gates the scroll pool) + the three craft outputs
+// ---------------------------------------------------------------------------------------
+{
+  let s = seed();
+  let ch = Object.values(s.characters).find((c) => c.bastion && !c.retired && c.status !== "dead");
+  ch.level = 13; ch.gp = 20000;
+  ch.bastion.facilities = (ch.bastion.facilities || []).filter((f) => (BASTION_FACILITIES[f.defId] || {}).kind !== "special");
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "scriptorium" });
+  ch = s.characters[ch.id];
+  const fac = (ch.bastion.facilities || []).find((f) => f.defId === "scriptorium");
+  ok(!!fac, "a scriptorium can be built at 9 with no prerequisite");
+  if (fac) {
+    fac.building = null;
+    const scribe0 = (fac.henchmen || [])[0];
+    ok(scribe0 && !scribe0.scribeClass, "the scribe arrives unassigned — no class until you hire");
+    // an undeclared class (the After Dark warlock) is refused at the AL facility
+    s = reducer(s, { type: "SET_SCRIPTORIUM_SCRIBE", charId: ch.id, by: ch.ownerId, facId: fac.id, scribeId: "warlock", name: "X" });
+    ok(!s.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id).henchmen[0].scribeClass,
+      "an undeclared scribe class (warlock) is refused — the AL Scriptorium is Cleric or Wizard only");
+    // hire the acolyte → Cleric pool
+    s = reducer(s, { type: "SET_SCRIPTORIUM_SCRIBE", charId: ch.id, by: ch.ownerId, facId: fac.id, scribeId: "acolyte", name: "Rathburn" });
+    const sc = s.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id);
+    ok(sc.henchmen[0].scribeClass === "Cleric" && sc.henchmen[0].name === "Rathburn",
+      "hiring the Acolyte sets the scribe's class (Cleric) and name — the choice is a real hire");
+    ok(s.logEntries.some((l) => (l.spentOn || "").includes("took on Rathburn")), "the hire is on the ledger");
+    // a stranger cannot hire the scribe
+    const before = sc.henchmen[0].scribeClass;
+    const sX = reducer(s, { type: "SET_SCRIPTORIUM_SCRIBE", charId: ch.id, by: "acct_absent_x", facId: fac.id, scribeId: "mage", name: "Y" });
+    ok(sX.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id).henchmen[0].scribeClass === before,
+      "only the owner hires the scribe");
+    // Craft: Spell Scroll → an unfilled scroll slot gated to the scribe's class
+    const t = { n: 4, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t, { facId: fac.id, orderId: "craft", outId: "spell_scroll" }, false);
+    const slot = Object.values(s.itemSlots || {}).find((sl) => sl.via === "scribe");
+    ok(!!slot && slot.scribeClass === "Cleric", "Craft: Spell Scroll mints an unfilled slot gated to the scribe's class");
+    ok(t.benefits.some((b) => /Cleric/.test(b) && /Spell Scroll/.test(b)), "the scroll benefit names the scribe's class");
+    // Craft: Paperwork → charges per copy, no keepable item
+    const gp0 = s.characters[ch.id].gp;
+    const t2 = { n: 5, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t2, { facId: fac.id, orderId: "craft", outId: "paperwork", count: 50 }, false);
+    ok(s.characters[ch.id].gp === gp0 - 50, "Craft: Paperwork charges 1 GP per copy (50 = 50 gp)");
+    ok(t2.benefits.some((b) => /broadsheets/.test(b) && /fifty miles/.test(b)), "the paperwork benefit names the fifty-mile delivery");
+  }
+}
+
+// ---------------------------------------------------------------------------------------
 // FUZZ - random sequences, invariants after every step
 // ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// SMITHY — two smiths, tool-derived mundane craft, and the Armaments magic path
+// ---------------------------------------------------------------------------------------
+{
+  let s = seed();
+  let ch = Object.values(s.characters).find((c) => c.bastion && !c.retired && c.status !== "dead");
+  ch.level = 13; ch.gp = 20000;
+  ch.bastion.facilities = (ch.bastion.facilities || []).filter((f) => (BASTION_FACILITIES[f.defId] || {}).kind !== "special");
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "smithy" });
+  ch = s.characters[ch.id];
+  const fac = (ch.bastion.facilities || []).find((f) => f.defId === "smithy");
+  ok(!!fac, "a smithy can be built at 5 with no prerequisite");
+  if (fac) {
+    fac.building = null;
+    ok((fac.henchmen || []).length === 2 && fac.henchmen.every((h) => h.name && typeof h.age === "number"),
+      "the smithy arrives with TWO named, aged smiths (DMG: Hirelings 2)");
+    // Craft: Smith's Tools -> a tool-derived slot (the toolkit defines what's makeable)
+    const t = { n: 3, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t, { facId: fac.id, orderId: "craft", outId: "smith_mundane" }, false);
+    const toolSlot = Object.values(s.itemSlots || {}).find((sl) => sl.via === "tool");
+    ok(!!toolSlot && toolSlot.tool === "g_tool_smith",
+      "Craft: Smith's Tools mints a tool-derived slot \u2014 the toolkit (g_tool_smith) defines what's makeable, a DM verifies");
+    ok(t.benefits.some((b) => /these tools can make/.test(b)), "the benefit states the DMG rule: anything these tools can make");
+    // Craft: Magic Item (Armament) -> the Armaments slot path, same as the Arcane Study's Arcana
+    const t2 = { n: 4, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t2, { facId: fac.id, orderId: "craft", outId: "armament_uncommon" }, false);
+    const magSlot = Object.values(s.itemSlots || {}).find((sl) => sl.table === "armaments");
+    ok(!!magSlot && magSlot.rarity === "uncommon", "Craft: Magic Item (Armament) mints an Armaments-table slot at the chosen rarity");
+  }
+}
+
+// ---------------------------------------------------------------------------------------
+// WORKSHOP — three artisans, the six-tool choice, tool-derived gear, and the Implements path
+// ---------------------------------------------------------------------------------------
+{
+  let s = seed();
+  let ch = Object.values(s.characters).find((c) => c.bastion && !c.retired && c.status !== "dead");
+  ch.level = 13; ch.gp = 20000;
+  ch.bastion.facilities = (ch.bastion.facilities || []).filter((f) => (BASTION_FACILITIES[f.defId] || {}).kind !== "special");
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "workshop" });
+  ch = s.characters[ch.id];
+  const fac = (ch.bastion.facilities || []).find((f) => f.defId === "workshop");
+  ok(!!fac, "a workshop can be built at 5 with no prerequisite");
+  if (fac) {
+    fac.building = null;
+    ok((fac.henchmen || []).length === 3 && fac.henchmen.every((h) => h.name && typeof h.age === "number"),
+      "the workshop arrives with THREE named, aged artisans (DMG: Hirelings 3)");
+    // gear craft before tools chosen -> prompt, no slot
+    const t0 = { n: 3, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t0, { facId: fac.id, orderId: "craft", outId: "gear_chosen" }, false);
+    ok(!!t0.prompt && !Object.values(s.itemSlots || {}).some((x) => x.via === "toolset"),
+      "gear craft before the tools are chosen prompts the choice and mints nothing");
+    // a 5-tool pick is rejected; exactly 6 required
+    s = reducer(s, { type: "SET_WORKSHOP_TOOLS", charId: ch.id, by: ch.ownerId, facId: fac.id, tools: ["g_tool_carpenter", "g_tool_jeweler", "g_tool_leather", "g_tool_weaver", "g_tool_tinker"] });
+    ok(!s.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id).chosenTools, "a five-tool pick is rejected — the Workshop takes exactly six");
+    // an out-of-list tool is rejected
+    s = reducer(s, { type: "SET_WORKSHOP_TOOLS", charId: ch.id, by: ch.ownerId, facId: fac.id, tools: ["g_tool_carpenter", "g_tool_jeweler", "g_tool_leather", "g_tool_weaver", "g_tool_tinker", "g_tool_smith"] });
+    ok(!s.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id).chosenTools, "an out-of-list tool (smith's) is rejected — only the DMG's eleven are choosable");
+    // a valid six-tool pick stores
+    s = reducer(s, { type: "SET_WORKSHOP_TOOLS", charId: ch.id, by: ch.ownerId, facId: fac.id, tools: ["g_tool_carpenter", "g_tool_jeweler", "g_tool_leather", "g_tool_weaver", "g_tool_tinker", "g_tool_woodcarver"] });
+    const wsf = s.characters[ch.id].bastion.facilities.find((f) => f.id === fac.id);
+    ok((wsf.chosenTools || []).length === 6, "a valid six-tool pick is stored on the facility");
+    // gear craft now mints a toolset slot referencing the six
+    const t1 = { n: 4, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t1, { facId: fac.id, orderId: "craft", outId: "gear_chosen" }, false);
+    const gslot = Object.values(s.itemSlots || {}).find((x) => x.via === "toolset");
+    ok(!!gslot && (gslot.tools || []).length === 6, "Craft: Adventuring Gear mints a slot deriving across the six chosen tools");
+    // implement magic craft
+    const t2 = { n: 5, date: "2026-07-25", resolved: false, orders: [], benefits: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t2, { facId: fac.id, orderId: "craft", outId: "implement_uncommon" }, false);
+    ok(Object.values(s.itemSlots || {}).some((x) => x.table === "implements"), "Craft: Magic Item (Implement) mints an Implements-table slot");
+  }
+}
+
+// ---------------------------------------------------------------------------------------
+// LIBRARY — Research: Topical Lore (3 facts, DM-narrated) + a place to shelve books
+// ---------------------------------------------------------------------------------------
+{
+  let s = seed();
+  let ch = Object.values(s.characters).find((c) => c.bastion && !c.retired && c.status !== "dead");
+  ch.level = 13;
+  ch.bastion.facilities = (ch.bastion.facilities || []).filter((f) => (BASTION_FACILITIES[f.defId] || {}).kind !== "special");
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "library" });
+  ch = s.characters[ch.id];
+  const fac = (ch.bastion.facilities || []).find((f) => f.defId === "library");
+  ok(!!fac, "a library can be built at 5 with no prerequisite");
+  if (fac) {
+    fac.building = null;
+    ok((fac.henchmen || []).length === 1 && fac.henchmen.every((h) => h.name && typeof h.age === "number"),
+      "the library arrives with one named, aged librarian");
+    // Research: Topical Lore
+    const t = { n: 3, date: "2026-07-25", resolved: false, orders: [], benefits: [], mintables: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t, { facId: fac.id, orderId: "research", detail: "the ruins of Myth Drannor" }, false);
+    ok(t.benefits.some((b) => /Topical Lore/.test(b) && /three accurate/.test(b)), "Library research yields Topical Lore — three accurate previously-unknown facts (DM-narrated)");
+    ok(t.benefits.some((b) => /Myth Drannor/.test(b)), "the research names the commissioned topic");
+    ok((t.mintables || []).length > 0, "a book of the week is mintable from the library research");
+    ok(s.logEntries.some((l) => /Library: Research/.test(l.spentOn || "")), "the commission is on the ledger as Library: Research");
+    // the library shelves books (declares shelvesBooks like the archive)
+    ok(!!(BASTION_FACILITIES.library || {}).shelvesBooks, "the library declares shelvesBooks — it is a place to store books, DMG's 'collection of books'");
+  }
+}
+
+// ---------------------------------------------------------------------------------------
+// LIBRARY BOOKS — the Archive/Library content split: Archive book = title + wiki link (no facts);
+// Library book = title + three sourced facts as a paragraph (no link). Size-scaled shelf caps.
+// ---------------------------------------------------------------------------------------
+{
+  let s = seed();
+  let ch = Object.values(s.characters).find((c) => c.bastion && !c.retired && c.status !== "dead");
+  ch.level = 13;
+  ch.bastion.facilities = (ch.bastion.facilities || []).filter((f) => (BASTION_FACILITIES[f.defId] || {}).kind !== "special");
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "library" });
+  s = reducer(s, { type: "ADD_BASTION_FACILITY", charId: ch.id, by: ch.ownerId, defId: "archive" });
+  ch = s.characters[ch.id];
+  const lib = (ch.bastion.facilities || []).find((f) => f.defId === "library");
+  const arc = (ch.bastion.facilities || []).find((f) => f.defId === "archive");
+  if (lib && arc) {
+    lib.building = null; arc.building = null;
+    // Library research on a deep subject -> a book that CONTAINS three sourced facts
+    const t = { n: 3, date: "2026-07-25", resolved: false, orders: [], benefits: [], mintables: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t, { facId: lib.id, orderId: "research", detail: "Waterdeep" }, false);
+    const libMint = (t.mintables || [])[0];
+    ok(!!libMint && !!libMint.paragraph && !libMint.wiki, "a Library book CONTAINS a paragraph of sourced facts and carries no wiki link");
+    ok(!!libMint && /Waterdeep|City of Splendors|Undermountain|harbor|Lords/.test(libMint.paragraph || ""), "the Library paragraph is real sourced content about the subject");
+    // Archive research -> a book that POINTS via a wiki link, no facts inside
+    const t2 = { n: 4, date: "2026-07-25", resolved: false, orders: [], benefits: [], mintables: [] };
+    resolveBastionOrder(s, s.characters[ch.id], t2, { facId: arc.id, orderId: "research", detail: "the Sundering" }, false);
+    const arcMint = (t2.mintables || [])[0];
+    ok(!!arcMint && !!arcMint.wiki && !arcMint.paragraph, "an Archive book POINTS via a wiki link and contains no facts");
+    // minting a library book shelves it with its paragraph
+    s = reducer(s, { type: "MINT_BOOK_ITEM", charId: ch.id, by: ch.ownerId, title: libMint.title, topic: libMint.topic, paragraph: libMint.paragraph, defId: "library", size: "roomy" });
+    const stored = Object.values(s.items).find((x) => x.bookItem && x.paragraph);
+    ok(!!stored && stored.inPack === false && !!stored.paragraph, "a minted Library book shelves (inPack false) carrying its paragraph");
+    // size-scaled caps
+    ok(bookShelfCap("archive", "roomy") === 20 && bookShelfCap("library", "roomy") === 40 && bookShelfCap("library", "cramped") === 20 && bookShelfCap("library", "vast") === 80,
+      "shelf caps scale: Archive 10 base, Library 20 base, doubling per size tier (cramped/roomy/vast)");
+  }
+}
+
 let rng = 123456789;
 const rand = () => (rng = (rng * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
 

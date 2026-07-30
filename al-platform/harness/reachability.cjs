@@ -40,19 +40,20 @@ const PENDING_SCREEN = {
   // Account-status surface: SET_MENTOR, SET_PROVISIONAL, GRANT_ROLE, SET_ORG_MEMBERSHIP shipped
   // 27 Jul via AccountAssociations (src/player/ui.tsx) — removed from the worklist, and the gate
   // confirmed the dispatch is real by failing STALE PENDING until they were removed.
-  SUBMIT_DM_ITEM:     "DM screen: submit an item awarded at your table",
-  VERIFY_DM_ITEM:     "mentor screen: verify a provisional's DM-awarded item",
-  REJECT_DM_ITEM:     "mentor screen: reject a provisional's DM-awarded item",
-  VERIFY_PAPER_ITEM:  "DM screen: verify an out-of-table (paper) item",
-  REJECT_PAPER_ITEM:  "DM screen: reject an out-of-table (paper) item",
-  VERIFY_IMPORT_ITEM: "DM screen: verify an imported character item",
-  REJECT_IMPORT_ITEM: "DM screen: reject an imported character item",
-  VERIFY_SLOT_ITEM:   "DM screen: verify a typed-slot claim",
-  REJECT_SLOT_ITEM:   "DM screen: reject a typed-slot claim",
-  ROLL_ITEM_SLOT:     "character screen: the roll button for a typed item slot",
-  ACCEPT_CHARM_GIFT:      "player screen: accept a charm gifted by another PC",
-  LOG_BASTION_NEGLECT:    "DM/admin screen: adjudicate bastion neglect",
-  RENAME_FACILITY_HENCHMAN: "bastion screen: name a facility's hireling",
+  // The eight VERIFY_*/REJECT_* item actions shipped all along — VerificationQueue → VerifyCard
+  // (src/sessions/ui.tsx) dispatches every one through a lookup table; the gate simply couldn't
+  // see the indirect pathway until 28 Jul. Removed from the worklist once the gate learned to read
+  // it. SUBMIT_DM_ITEM shipped 28 Jul via DMAwardItem (src/sessions/ui.tsx) — the DM's award-entry
+  // screen, mounted in the DM desk ahead of the verification queue.
+  // ROLL_ITEM_SLOT shipped 28 Jul via DMAwardItem's "Grant a rolled item slot" section — the DM
+  // grants a typed slot the player fills from their books, and a DM verifies the fill.
+  // ACCEPT_CHARM_GIFT shipped 28 Jul via IncomingCharmGifts (src/player/ui.tsx) — the recipient's
+  // accept/decline surface on the roster; the giver's offer/withdraw side already existed.
+  // RENAME_FACILITY_HENCHMAN shipped 28 Jul via HirelingModal (src/bastion/ui.tsx) — the "✎ Name"
+  // button on a facility's people now opens a real modal that dispatches it.
+  // LOG_BASTION_NEGLECT shipped 28 Jul via BastionNeglectPanel (src/admin/ui.tsx) — admin-only
+  // hand-logging of neglect. This EMPTIES the worklist: every reducer action is now dispatched
+  // from a real screen. New pending actions go here with a one-line note on where their screen lives.
 };
 
 // ---- DISCOVER: reducer-declared actions ------------------------------------------------------
@@ -96,6 +97,24 @@ function dispatchedTypes(text) {
     for (const am of body.matchAll(/\baction:\s*\{[^}]*\btype:\s*"([A-Z][A-Z0-9_]*)"/g)) found.add(am[1]);
     callRe.lastIndex = open + 1;
   }
+
+  // INDIRECT (lookup-table) pathway. A dispatch may name its type through a variable indexed into
+  // a table:  dispatch({ type: A[0], ... })  where  const A = { slot:["VERIFY_SLOT_ITEM",
+  // "REJECT_SLOT_ITEM"], ... }[kind].  The action names are real dispatches but live in the table
+  // literal, not in the dispatch call — the literal-only scan misses them, a P1 false-negative
+  // (see COMPILER_PRINCIPLES.md): the nine item-verification actions read as "pending" though
+  // VerifyCard dispatches every one. When a file dispatches through an indexed variable, harvest
+  // the uppercase action-name strings from that variable's table literal.
+  for (const dm of text.matchAll(/\bdispatch\(\s*\{\s*type:\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*[[.]/g)) {
+    const varName = dm[1];
+    const declRe = new RegExp("\\b(?:const|let|var)\\s+" + varName + "\\s*=\\s*\\{", "g");
+    let d;
+    while ((d = declRe.exec(text))) {
+      const open = text.indexOf("{", d.index);
+      const table = balancedFrom(text, open);
+      for (const tm of table.matchAll(/"([A-Z][A-Z0-9_]*)"/g)) found.add(tm[1]);
+    }
+  }
   return found;
 }
 
@@ -107,12 +126,24 @@ const walk = (dir, out = []) => {
   }
   return out;
 };
-const dispatched = new Set();
-for (const f of walk(path.join(root, "src"))) {
-  const rel = path.relative(root, f).replace(/\\/g, "/");
-  if (rel.includes("/reducer/") || rel.endsWith("bastion/actions.ts") || rel.endsWith("types.ts")) continue;
-  for (const t of dispatchedTypes(stripComments(fs.readFileSync(f, "utf8")))) dispatched.add(t);
+// The canonical reachable set — every action DISPATCHED from a real screen, measured by dispatch
+// shape (dispatchedTypes), not raw string presence. Exported so closeout.cjs consumes THIS instead
+// of re-deriving a weaker copy (P1: one source of truth; do not maintain duplicate parsers).
+function dispatchedActions(rootDir) {
+  const found = new Set();
+  for (const f of walk(path.join(rootDir, "src"))) {
+    const rel = path.relative(rootDir, f).replace(/\\/g, "/");
+    if (rel.includes("/reducer/") || rel.endsWith("bastion/actions.ts") || rel.endsWith("types.ts")) continue;
+    for (const t of dispatchedTypes(stripComments(fs.readFileSync(f, "utf8")))) found.add(t);
+  }
+  return found;
 }
+module.exports = { dispatchedTypes, balancedFrom, dispatchedActions };
+
+// Everything below runs the GATE — only when invoked directly, so `require`-ing this file for its
+// detector (closeout.cjs does) does not trigger the gate or its process.exit.
+if (require.main === module) {
+const dispatched = dispatchedActions(root);
 
 // ---- ADJUDICATE ------------------------------------------------------------------------------
 const pendingKeys = new Set(Object.keys(PENDING_SCREEN));
@@ -160,3 +191,4 @@ if (problems.length) {
 }
 console.log(`\nREACHABILITY: every action is dispatched or declared (${pendingKeys.size} pending screen, ${INTERNAL.size} internal)`);
 process.exit(0);
+}

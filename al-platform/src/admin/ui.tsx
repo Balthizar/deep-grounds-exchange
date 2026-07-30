@@ -72,6 +72,42 @@ export function WarhornImportPanel({ state, dispatch, accountId }: { dispatch: R
   );
 }
 
+// BASTION NEGLECT ADJUDICATION (28 Jul). LOG_BASTION_NEGLECT — admin-only. Neglect normally accrues
+// on its own from away turns; this is the DM/admin adjudication door for the rare case where it must
+// be logged by hand (ALPG: "DMs adjudicate rolls"). Players never self-report neglect.
+export function BastionNeglectPanel({ state, dispatch, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const keeps = Object.values(state.characters).filter((c: any) => c.bastion && !c.bastion.abandoned);
+  const [charId, setCharId] = useState("");
+  const [turns, setTurns] = useState("1");
+  if (!keeps.length) return null;
+  const target: any = state.characters[charId];
+  return (
+    <div className="dg-panel">
+      <div className="dg-panel-h">Bastion adjudication</div>
+      <div className="dg-muted sm" style={{ marginBottom: 8 }}>
+        Neglect accrues on its own from untended turns. Use this only to record neglect by hand when a ruling calls for it — it can't be undone from here, so enter what you mean to.
+      </div>
+      <label className="dg-field"><span>Keep</span>
+        <select value={charId} onChange={(e) => setCharId(e.target.value)}>
+          <option value="">Choose a keep…</option>
+          {keeps.map((c: any) => <option key={c.id} value={c.id}>{c.name} — {accName(c.ownerId)}{typeof c.bastion.neglect === "number" && c.bastion.neglect > 0 ? " · " + c.bastion.neglect + " already" : ""}</option>)}
+        </select>
+      </label>
+      {target && (
+        <div className="dg-muted sm" style={{ marginBottom: 6 }}>
+          {target.name} is level {target.level}; a keep is looted at {target.level} untended turns.
+          {typeof target.bastion.neglect === "number" ? " Currently " + (target.bastion.neglect || 0) + "." : ""}
+        </div>
+      )}
+      <label className="dg-field"><span>Turns of neglect to log</span>
+        <input type="number" min="1" value={turns} onChange={(e) => setTurns(e.target.value)} /></label>
+      <div className="dg-row-actions" style={{ marginTop: 6 }}>
+        <button className="dg-btn sm" disabled={!charId || !(+turns > 0)} onClick={() => { dispatch({ type: "LOG_BASTION_NEGLECT", charId, by: accountId, turns: +turns }); setCharId(""); setTurns("1"); }}>Log neglect</button>
+      </div>
+    </div>
+  );
+}
+
 export function AdminView({ state, dispatch, setModal, accountId, setTab }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const unverified = Object.values(state.items).filter((it) => it.provenance.state === "UNVERIFIED");
   const traded = state.trades.filter((t) => t.status === "SETTLED");
@@ -283,6 +319,8 @@ export function AdminView({ state, dispatch, setModal, accountId, setTab }: { di
           </div>
         );
       })()}
+
+      <BastionNeglectPanel state={state} dispatch={dispatch} accountId={accountId} />
 
       <div className="dg-panel">
         <div className="dg-panel-h">Stores</div>

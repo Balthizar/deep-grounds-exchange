@@ -1,7 +1,16 @@
 // ============================================================================
 // MY CATALOG — the curated item catalog: SRD magic items, PH 2024 variants, and my
 // campaign-authored items. HAND-CURATED by me — not generated from srd-source/.
+//
+// THE CATALOG IS BORN COMPLETE. The mundane gear (weapons, armour, adventuring gear) and the
+// generic spell-scroll rows are MERGED IN at the bottom of this file, so that importing CATALOG
+// from anywhere — UI, reducer, harness, mint suite — always yields the full item universe. This
+// merge used to live in app.tsx as a load-order side effect; that made CATALOG's completeness
+// depend on the UI entry point having run first, which silently broke every consumer that imported
+// it in isolation (craftItemsFor saw 0 weapons in tests, and would have shipped an empty smith
+// craft-list). The data layer owns the data. (Moved 29 Jul; see the merge block below.)
 // ============================================================================
+import MUNDANE_GEAR from "./srd/mundane_gear.json";
 
 // ---- Catalog (SRD-derived + one admin-authored variant) ----
 export const CATALOG: Record<string, any> = {
@@ -114,3 +123,58 @@ export // CC-BY-4.0 asks that attribution accompany the material in the work. A 
 // and p5_sources asserts it survives minification. Wizards prescribes this sentence verbatim and
 // forbids any other attribution to them, so it is quoted exactly and nothing is added to it.
 const SRD_ATTRIBUTION = "This work includes material from the System Reference Document 5.2 (\u201CSRD 5.2\u201D) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
+
+// ================================================================================================
+//  THE MERGE (moved here from app.tsx, 29 Jul, so CATALOG is complete on import regardless of who
+//  imports it — the audit found craftItemsFor filtering a pre-merge CATALOG and seeing 0 weapons).
+//
+//  Future me: this was `Object.assign(CATALOG, MUNDANE_GEAR)` and it REPLACED rows wholesale. In my
+//  pointer architecture there is exactly one way to corrupt everything at once: an unguarded write
+//  to the pointee. My items store a catalogId and nothing else, so a row that changes here doesn't
+//  drift, it mutates RETROACTIVELY. `arrows20` is defined twice (hand-written as ammunition, and in
+//  the generated SRD block); Object.assign let the generated row win and the id survived while the
+//  MEANING died (itemType "ammunition" -> "gear"), making consumableUnitCount's ALPG rule
+//  unreachable. WHITELIST, NOT BLACKLIST: an UNDECLARED collision throws at load; a declared one
+//  merges only the fields the generator claims to own.
+const GENERATOR_OWNS = ["name", "gp"];   // exactly what make_srd_gear.py claims to correct
+const CATALOG_COLLISIONS: Record<string, string> = {
+  arrows20: "Hand-written as ammunition. itemType/props/desc drive consumableUnitCount's ALPG " +
+            "one-per-5-shots rule and the isAmmo item card; SRD 5.2 owns only its name, cost and " +
+            "weight. The generator renames 'Arrows (20)' -> 'Arrows' and prices it at 1 GP.",
+};
+for (const [gid, row] of Object.entries(MUNDANE_GEAR as Record<string, any>)) {
+  if (!CATALOG[gid]) { CATALOG[gid] = row; continue; }
+  if (!CATALOG_COLLISIONS[gid]) {
+    throw new Error(
+      'CATALOG collision: the generated MUNDANE_GEAR block would overwrite the hand-written "' +
+      gid + '". IDS ARE FOREVER, so the id is not the problem — the silent replacement is. Declare ' +
+      'it in CATALOG_COLLISIONS with a reason, or give one of them a new id.'
+    );
+  }
+  const kept = CATALOG[gid];
+  const merged: any = { ...kept };
+  for (const f of GENERATOR_OWNS) if (row[f] !== undefined) merged[f] = row[f];
+  merged.srd = true;
+  merged.mundane = true;
+  CATALOG[gid] = merged;
+}
+
+// GENERIC SPELL-SCROLL CATALOGUE — one row per level. The spell a scroll bears is INSTANCE data on
+// the item, not a catalogue row, so ten rows serve all 339 spells. All ids are new; a collision
+// here is a real bug, so it throws.
+const SCROLL_CATALOG: Record<string, any> = {
+  scroll_L0: { id: "scroll_L0", name: "Spell Scroll (Cantrip)", srd: true, rarity: "common", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 0, desc: "A spell scroll bearing a cantrip spell, named by its scribe." },
+  scroll_L1: { id: "scroll_L1", name: "Spell Scroll (Level 1)", srd: true, rarity: "common", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 1, desc: "A spell scroll bearing a level 1 spell, named by its scribe." },
+  scroll_L2: { id: "scroll_L2", name: "Spell Scroll (Level 2)", srd: true, rarity: "uncommon", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 2, desc: "A spell scroll bearing a level 2 spell, named by its scribe." },
+  scroll_L3: { id: "scroll_L3", name: "Spell Scroll (Level 3)", srd: true, rarity: "uncommon", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 3, desc: "A spell scroll bearing a level 3 spell, named by its scribe." },
+  scroll_L4: { id: "scroll_L4", name: "Spell Scroll (Level 4)", srd: true, rarity: "rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 4, desc: "A spell scroll bearing a level 4 spell, named by its scribe." },
+  scroll_L5: { id: "scroll_L5", name: "Spell Scroll (Level 5)", srd: true, rarity: "rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 5, desc: "A spell scroll bearing a level 5 spell, named by its scribe." },
+  scroll_L6: { id: "scroll_L6", name: "Spell Scroll (Level 6)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 6, desc: "A spell scroll bearing a level 6 spell, named by its scribe." },
+  scroll_L7: { id: "scroll_L7", name: "Spell Scroll (Level 7)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 7, desc: "A spell scroll bearing a level 7 spell, named by its scribe." },
+  scroll_L8: { id: "scroll_L8", name: "Spell Scroll (Level 8)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 8, desc: "A spell scroll bearing a level 8 spell, named by its scribe." },
+  scroll_L9: { id: "scroll_L9", name: "Spell Scroll (Level 9)", srd: true, rarity: "legendary", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 9, desc: "A spell scroll bearing a level 9 spell, named by its scribe." },
+};
+for (const [sid, row] of Object.entries(SCROLL_CATALOG)) {
+  if (CATALOG[sid]) throw new Error('CATALOG collision on generic scroll "' + sid + '" — scroll_L* ids are reserved for the generated scroll catalogue.');
+  CATALOG[sid] = row;
+}

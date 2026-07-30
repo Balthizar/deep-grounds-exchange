@@ -543,3 +543,195 @@ and the Exchange follows the letter of it only because AL requires it.
 
 **Shipped instead:** the DMG model verbatim, plus free flavor — the Stock Armory narration now names
 each Bastion form's own kit (`ARMORY_KIT_BY_FORM`), since flavor never touches legality.
+
+### Item awards at Session's End: DUPLICATION, not distribution (ruled 28 Jul, cited)
+ALPG v2026.4 **line 322** ("Magic Items (Session's End)"), verbatim: "Each character keeps magic
+items your party or a character obtained (not consumed or destroyed) from treasure sections or
+italicized encounter text." Line 338 says the same for gifts/boons/charms: "Each character keeps the
+Supernatural Gift...". So RAW is **duplication** — every attendee keeps a copy; there is no scarcity,
+no one-item-to-one-player, no vote.
+
+CORRECTION of an earlier misread: line 214 ("your party determines who **uses** it **for the
+adventure**") is the IN-SESSION holding rule (who wields the single item during play), NOT the
+retention rule. Retention lives in the separate "Session's End" section (line 322). Paraphrasing
+away "uses" and "for the adventure" turned an in-play rule into a false keep-rule. The existing
+CompleteSessionModal behavior ("goes to every attendee's character") was CORRECT all along.
+
+Only genuinely divided at Session's End:
+- **Gold / gold-value treasure** (line 330) — converted to GP, divided evenly. (Already built: gp-split.)
+- **Mundane equipment** (line 330) — "divided as your party chooses" (table consensus).
+- **Player-choice items** (line 325) — each keeps their individually-chosen variant (still per-character).
+
+DECISION: the whole distribution/vote/tiebreak/power-score/combat-trait design is DROPPED — it solved
+a problem RAW doesn't pose, and building it would be a house rule dressed as AL compliance. Orgs lean
+most-permissive; this codebase leans **least-permissive-but-cited**, and duplication is the cited,
+legally-defensible reading. Spec deleted; no code reached src/.
+
+### Bastion loss model — vocabulary + destruction ruling (28 Jul, owner: Frank)
+THREE distinct events, which the code currently conflates under "raze":
+- **Tear down** (voluntary, your own crew): demolishing your own facility to rebuild/replace. You
+  have all the time in the world; you move your things out first. NO loss. NOTE: the shipped
+  RAZE_BASTION action IS this event and is MIS-NAMED — you do not "raze" your own keep; razing is
+  something done TO you. Rename candidate: TEAR_DOWN / DEMOLISH. (Cosmetic; flagged, not yet done.)
+- **Razed / destroyed** (aggressive, enemy force): an attack or event burns it down. No time to
+  move anything. Staff die, facilities burn, and everything in them is LOST — total loss UNLESS the
+  item is in the Vault.
+- **Looted** (neglect): staff abandon, site eventually stripped. Already modeled (engine ~line 173).
+
+THE VAULT (unbuilt; one of the 26 remaining): "a fireproof box you can put stuff in that is unable
+to be opened by anyone." GENERAL-PURPOSE (protects any item, not just books) and TOTAL (survives
+every loss path — fire, raze, invading army). It is the ONLY protection against destruction loss.
+That is the Vault's entire reason to exist.
+
+WHY THIS MATTERS (the design point): the DMG bastion system is soft on loss because it offloads
+stakes to a home-game DM. ORGANIZED PLAY HAS NO SUCH DM. If the platform doesn't model loss, loss
+never happens and the bastion is riskless. Modeling destruction loss is therefore not a minor
+feature — it is what gives the bastion stakes at operational scale, and it is core to the product
+thesis (the books assume a DM who supplies what the rules leave out; org play doesn't have one).
+
+STATUS: destruction-loss model is its OWN FRONT, awaiting owner rulings (how an attack escalates to
+total loss; precise "all defenders then all staff" sequence; frequency; how walls/vault change
+odds). The existing attack path is the flat DMG model — see the 26-Jul FINDINGS "Armory/Bastion-
+attack design complaint." The book carry/shelf loop (below) ships against EXISTING loss now, with a
+declared open hook for the full model + Vault.
+
+### "After Dark" — parked sandbox concept (28 Jul, owner: Frank)
+A separate, just-for-fun redesign of the bastion system, held entirely OUT of AL. It gathers the
+alternate mechanics recorded across the bastion design complaints (see "Armory / Bastion-attack
+design complaint, 26 Jul" and the "Bastion loss model" entry, 28 Jul) — the pieces that are good
+design but cannot ship because they would substitute a system for the DMG's and thereby violate AL.
+
+Founding constraint: it produces NOTHING for AL characters (no gold, items, downtime, eligibility,
+or provenance), which is the only reason it can exist alongside an AL-compliant platform. AL has no
+jurisdiction over a toy that awards nothing. That firewall — total state separation between the
+sandbox and the AL engine — is architectural, not incidental, and would need to be gate-enforced;
+a hidden entry route is flavor, never the boundary.
+
+Status: PARKED. Not built, not scoped for build. Recorded so the concept and its codename survive.
+Kept deliberately vague here; the full design belongs in its own document if/when it is picked up.
+
+Scriptorium note (28 Jul): the AL Scriptorium ships DMG-strict — its scribe hireling is one of two
+classes the player picks (Novice Mage → Wizard scrolls; Acolyte → Cleric scrolls, themed by the
+bastion's region's faith as pure flavor). The DMG grants "Cleric or Wizard" only, so scribes for
+class-restricted lists the DMG does NOT authorize belong in After Dark, not the AL facility:
+  - Initiate → Warlock scrolls (Warlock-only spells).
+  - Druid (2E starting title: "Aspirant" — confirmed) → Druid scrolls (Druid-only spells).
+Sorcerer/Bard are not separate scribe options — no meaningful sorcerer-only scroll list. Rationale
+for the split: adding Warlock/Druid scribing to the AL facility would expand it past its DMG grant
+(the AL line); After Dark is unbound by the DMG, so its Scriptorium scribes every class list.
+
+After Dark Scriptorium scale (28 Jul): up to FOUR scribes (Novice Mage/Wizard, Acolyte/Cleric,
+Initiate/Warlock, Aspirant/Druid — the full class spread) plus one apprentice/assistant post. Each
+scribe post is its own class choice presented as candidates (same hire mechanic as AL). AL caps at
+what facility size grants and the two legal classes; After Dark lifts both.
+
+After Dark facility sizes (28 Jul): all facilities START CRAMPED and are grown Cramped → Roomy →
+Vast by the player. This is a HOUSE RULE, not a bug-fix: the DMG assigns each special facility a
+FIXED listed Space (Arcane Study Roomy, Barrack Vast, Sanctum Vast, etc. — verified verbatim,
+Bastions.md), and a facility comes AT that space. Starting them cramped would shrink them below their
+rulebook size = an AL violation, so the AL platform keeps DMG-listed starting spaces (enlargeable
+upward via the 500 GP/25-day and 2,000 GP/80-day ladder). The start-small-and-earn-growth model is a
+sandbox-only redesign — one more reason After Dark exists: to run the size/economy the way the owner
+wants without breaking AL.
+
+After Dark discovery seed (28 Jul): Ronaldo (the market vendor) very SUBTLY seeds the phrase "after
+dark" into his ordinary sales patter — peppered in, low frequency, always in-character, never as
+advice or a wink. "Come back after dark, I might have something." "Prices run different after dark."
+Merchant turns-of-phrase that a player reads past at first, but that accumulate until they think
+"wait — he keeps saying that" and try /afterdark in the URL. The Easter egg announces its own key
+without admitting it is one. IMPLEMENTATION DISCIPLINE (the subtlety IS the feature): rate-limited
+(a whisper, not a billboard — NOT every transaction), always in-character, NEVER explanatory (Ronaldo
+must never seem to know he's leaking anything, never say "you should go after dark"). The word works
+by repetition, not emphasis. A heavy-handed version ruins it. Never states it's a game or a
+simulation — just that certain things happen after dark.
+
+After Dark doorkeeper (28 Jul): Ronaldo is also who GREETS you on the other side of the door. He
+leaked the password in his patter, so of course he's waiting — the reveal is that the leaking was
+never accidental; he was inviting the person sharp enough to notice. On arrival he explains the
+system and states the guardrails IN FICTION: "this won't touch your real fortress, this won't touch
+your real character — this is something built just for you, the one smart enough to find it." That
+greeting is load-bearing: it is where the "produces nothing for your real character" firewall is
+promised TO THE PLAYER, delivered as warm dialogue rather than a disclaimer. It must be unambiguous.
+Ronaldo is the single consistent voice across both halves — the merchant who sells legal gear by day
+and runs the after-hours game by night.
+
+THE BOOK (28 Jul, owner's plan): once the bastion system is finished and wired to the chronicle,
+gather the accumulated After Dark design + every "the DMG is toothless / won't let me do the logical
+thing" complaint in this file, and construct a DM's Guild supplement: **"Better Bastions: Your
+Fortress After Dark"** — the full re-engineered system (real economy, staff you hire/lose/pay,
+cause-based facility loss, enemy destruction, the size ladder, the scribe classes, PvP) sold as a
+PDF. DM's Guild is the correct venue: it licenses Forgotten Realms + D&D IP, so this may reference
+the DMG's system and name Realms deities/places directly. COLLECTION DISCIPLINE: keep logging the
+gripes-with-reasoning as they surface (each is a future book section); do NOT build the manuscript
+until the system is done — the book is the OUTPUT of finishing, harvested from FINDINGS, not a
+parallel task. When ready, graduate the After Dark notes out of FINDINGS into a dedicated design doc
+structured as the supplement's skeleton (philosophy → each subsystem as a chapter with rules AND
+rationale).
+
+UI note for After Dark: it should render as a NEGATIVE of the AL bastion colour palette — inverted
+colours — so the sandbox is instantly, viscerally distinct from the real system. Doubles as a soft
+safety cue: you can never mistake which world you're in at a glance (reinforces the firewall, though
+it is never the firewall itself).
+
+## Toolkit-derivation bug: CATALOG merge was a load-order side effect (29 Jul)
+The audit (Frank's "does a toolkit facility make everything the toolkit can make?") found TWO real
+bugs in the craft-derivation, both masked because workbench item-crafting is marked "coming next":
+
+1. **The merge lived in app.tsx as a top-level side effect.** `MUNDANE_GEAR` (weapons, armour, gear)
+   and the generic scroll rows were merged into CATALOG *in app.tsx*, so CATALOG was only complete
+   AFTER the UI entry point ran. Every consumer that imported CATALOG in isolation (craftItemsFor in
+   tests, the mint suite, any non-app entry) saw the pre-merge 32-item magic catalogue. So
+   `craftRuleMatches` filtered a CATALOG with ZERO mundane weapons/armour — the smith's "any melee
+   weapon / any medium+heavy armour" rule silently resolved to nothing, and the smith made 10 items
+   (its explicit list) instead of ~42. FIX: moved the merge (with its collision guard intact) into
+   data/catalog.ts, so CATALOG is born complete for every importer. This is the correct level — the
+   data layer owns the data; completeness must not depend on who imported first.
+2. **The `except` match was full-name equality, not keyword.** `except.has(name.toLowerCase())` only
+   dropped an item whose whole name equalled the keyword — worked for "Whip"→"whip" by luck, but let
+   "Hide Armor" through the smith's "medium armour except hide" because the name isn't "hide". FIX:
+   match the keyword as a whole WORD in the name (word-boundary regex). Verified: smith now makes 42
+   (Longsword, Plate, Chain Mail ✓) and excludes Whip/Club/Greatclub/Quarterstaff/Hide/firearms;
+   woodcarver makes 22 (bows ✓, excludes sling/firearms).
+
+Both are P1 in spirit (measure the OUTPUT, not the structure): the code *looked* wired; running the
+derivation end-to-end and checking the item set against expectation is what exposed both. Lint
+baseline moved 168 → 169 (one added helper trips the same style rule; 0 errors).
+
+## Library book generation — the sourced, tag-drifting three-fact paragraph (29 Jul)
+The Archive and Library felt near-identical (both = title + wiki link). Now they differ in KIND:
+- **Archive book** = a POINTER: title + wiki link, no facts inside. The link is the depth (deep dive).
+- **Library book** = CONTAINED knowledge: title + three tied-together SOURCED sentences forming a
+  short paragraph, no link. The three facts ARE the DMG's "up to three accurate pieces of
+  information," physically in the book.
+
+THE MACHINE (Frank's design, arrived at over a long thread):
+- Each subject has a d-table of UP TO 20 facts (die floats to the subject's real sourced count —
+  never padded; thin subjects fill fewer). Each fact = a single sourced sentence carrying a SET of
+  aspect tags (primary + secondaries) from a controlled vocabulary (LIBRARY_ASPECTS, 11 tags).
+- CHAINED DRAW: roll fact #1 free → its tags seed the thread → roll #2 sharing >=1 tag (prefer #1's
+  PRIMARY, accept a shared SECONDARY = the drift) → roll #3 sharing >=1 tag with #2 → roll a genre
+  connective sentence (voice tied to the title's genre) → stitch. Graceful widening if a pool runs
+  dry. Produces an ARC that reads like a writer expanding one thread of the subject (Frank's
+  battle→sewers→hiding-spot associative flow), never a non-sequitur.
+- HONEST BY CONSTRUCTION: facts NEVER combine across subjects — all of a subject's facts are about
+  that one subject — so no draw can produce an untrue statement. This is what dissolved the
+  validity-table / constraint-engine / reverse-decomposition paths we explored: the danger was always
+  CROSS-subject composition, and the d-choose-3-within-a-subject model structurally cannot do it.
+  C(20,3)=1,140 raw combos per full subject before tag-threading and genre framing — deep AND safe.
+- Titles: copies the Archive's title SYSTEM (house voice + flourish) but library-themed FRAMES; the
+  frame's genre (chronicle/journal/account/companion/curiosities) selects the connective voice so
+  framing agrees with the title.
+- Shelf caps, size-scaled: Archive base 10, Library base 20, doubling per size tier (cramped/roomy/
+  vast). bookShelfCap(defId,size). Special facilities are DMG size-locked so each sits at its tier.
+
+SUBJECT SELECTION (the eventual 100): deepest within the DMG's five topic types (legend / event /
+location / person / creature / object), chosen for having the most sourced material — so most fill
+toward 20. Seeded with WATERDEEP (20 facts, fully sourced from the FR wiki: /Waterdeep,
+/History_of_Waterdeep, /Waterdeep/Sewers, /Undermountain, /Skullport), multi-tagged, underground
+cluster deliberately deep so the drift is demonstrable. Proof: six seeds produced six distinct,
+coherent, all-true books (one pure trade thread, one pure underground thread, one that walks the
+city down into its sewers and Skullport). The other 99 grow incrementally, same as the facilities.
+
+SOURCING NOTE: facts are the Exchange's OWN short sentences stating real facts drawn from the cited
+page (never copied text), flavor-grade, presented as the librarian's gathered notes — consistent
+with DMG "the DM determines what you learn" (platform facts are courtesy; the DM governs at table).

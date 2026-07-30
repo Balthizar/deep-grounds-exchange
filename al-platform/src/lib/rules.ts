@@ -17,6 +17,7 @@ const NOTICE_CLASS = {
   dmitemreq: "alert", dmitemno: "alert", dmitemnomentor: "alert", importreq: "alert", importrejected: "alert", paperreq: "alert", paperno: "alert",
   provreq: "alert", certreq: "alert", storereq: "alert", storeflag: "alert",
   bastionwalkout: "alert", bastionruined: "alert", facilitydormant: "alert",   // your keep is emptying out — you need to see this
+  charmgift: "alert",   // a charm is offered to you — accept or decline; stays until you resolve it
 };
 
 // Notice classification and org-id helpers, read by the shell and the social package.

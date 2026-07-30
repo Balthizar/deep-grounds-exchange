@@ -160,6 +160,43 @@ function OrgMembershipControl({ state, accountId, dispatch }: { dispatch: React.
   );
 }
 
+// INCOMING CHARM GIFTS (28 Jul). The recipient's accept surface — the ACCEPT_CHARM_GIFT worklist
+// item. A charm another PC gifted sits in escrow addressed to one of your characters; it does not
+// age there. This lists those pending offers with Accept (start its clock now — do it just before
+// you sit at a table) and Decline. The giver's side (offer/withdraw) already lived on the item
+// card; this is the missing recipient side.
+export function IncomingCharmGifts({ state, accountId, dispatch }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const mineChars = new Set(Object.values(state.characters).filter((c) => c.ownerId === accountId).map((c) => c.id));
+  const offers = Object.values(state.items).filter((it: any) =>
+    it.charmItem && it.escrow && it.pendingGift && mineChars.has(it.pendingGift.toCharId));
+  if (!offers.length) return null;
+  return (
+    <div className="dg-panel">
+      <div className="dg-panel-h">{offers.length === 1 ? "A charm is offered to you" : offers.length + " charms are offered to you"}</div>
+      <div className="dg-muted sm" style={{ marginBottom: 8 }}>
+        A charm doesn't age while it waits here — its week starts the moment you accept. If you're sitting down at a table soon, accept it just before you play. Gift-only; it can't be traded or sold.
+      </div>
+      {offers.map((it: any) => {
+        const to = state.characters[it.pendingGift.toCharId];
+        const from = state.characters[it.pendingGift.fromCharId];
+        return (
+          <div key={it.id} className="dg-card">
+            <div className="dg-card-h"><div>
+              <span className="dg-item-name">{it.charmName}</span>
+              <div className="dg-item-sub">for {to ? to.name : "—"}{from ? " · from " + from.name : ""}</div>
+            </div></div>
+            {it.charmDesc && <p className="dg-muted sm" style={{ margin: "4px 0" }}>{it.charmDesc}</p>}
+            <div className="dg-row-actions" style={{ marginTop: 6 }}>
+              <button className="dg-btn sm" onClick={() => dispatch({ type: "ACCEPT_CHARM_GIFT", itemId: it.id, by: accountId })}>Accept — start its week</button>
+              <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "DECLINE_CHARM_GIFT", itemId: it.id, by: accountId })}>Decline</button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ProfileView({ state, accountId, dispatch, setModal, goBastion }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   // What has not been copied onto a sheet yet. Shown on the player's own profile so the
   // checklist is one click from the character it applies to.
@@ -229,6 +266,7 @@ export function ProfileView({ state, accountId, dispatch, setModal, goBastion }:
           : <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "REQUEST_DM", accountId })}>Request Dungeon Master status</button>;
       })()}
       {!player ? <Empty title="No characters here" body="This account runs tables — switch to Player mode elsewhere, or add a character below." /> : (<>
+      <IncomingCharmGifts state={state} accountId={accountId} dispatch={dispatch} />
       <div className="dg-chargrid">
         {activeChars.map((ch) => <CharacterCard key={ch.id} ch={ch} state={state} accountId={accountId} dispatch={dispatch} setModal={setModal} goBastion={goBastion} />)}
       </div>

@@ -48,22 +48,13 @@ for (const f of suites) {
 }
 const asserted = new Set([...corpus.matchAll(/"([A-Z][A-Z0-9_]*)"/g)].map((m) => m[1]));
 
-// ---- 2. REACHABLE: named anywhere outside the reducers ----------------------------
-const walk = (dir, out = []) => {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) walk(p, out);
-    else if ((e.name.endsWith(".tsx") || e.name.endsWith(".ts")) && !e.name.startsWith("__")) out.push(p);
-  }
-  return out;
-};
-let ui = "";
-for (const f of walk(path.join(root, "src"))) {
-  const rel = path.relative(root, f).replace(/\\/g, "/");
-  if (rel.includes("/reducer/") || rel.endsWith("types.ts") || rel.endsWith("bastion/actions.ts")) continue;
-  ui += "\n" + strip(fs.readFileSync(f, "utf8"));
-}
-const reachable = new Set([...ui.matchAll(/"([A-Z][A-Z0-9_]*)"/g)].map((m) => m[1]));
+// ---- 2. REACHABLE: dispatched from a real screen ----------------------------------
+// Consume the CANONICAL reachability detector (reachability.cjs) rather than re-deriving a weaker
+// copy. The old scan here counted any uppercase string outside the reducers — a comment or a type
+// union read as "reachable" (P1: measure dispatch shape, not raw text; one source of truth). Now
+// closeout and the reachability gate cannot disagree, because they run the same code.
+const { dispatchedActions } = require("./reachability.cjs");
+const reachable = dispatchedActions(root);
 
 // ---- 3. GUARDED: consults an identity before mutating -----------------------------
 const ACTOR = /action\.(by|acc|accountId|dmId|candidate|mentee|monitorId|provDm|sender)\b|isAdmin|mayActOn|isDMRole|isCertifiedDM|verifyingDMs|mayReviewLog|canPublishSession|canTradeAcct|hasPlayedUnder|isModuleAuthor|ownerId/;

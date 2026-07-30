@@ -19,12 +19,21 @@ import { catName, itemCat } from "../lib/core";
 // sword)") from being swept into "any melee weapon". A smith makes mundane steel, not artifacts.
 export function craftRuleMatches(rule) {
   const cat = (rule.category || "").toLowerCase();
-  const except = new Set((rule.except || []).map((x) => x.toLowerCase()));
+  const except = (rule.except || []).map((x) => x.toLowerCase());
+  // The `except` entries are KEYWORDS, not full names: smith's "medium armor except hide" must drop
+  // "Hide Armor", and "melee weapon except club" must drop "Club". Match the keyword as a whole WORD
+  // in the item's name (word-boundary), so "hide" catches "Hide Armor" but not "Rawhide Shield", and
+  // "club" catches "Club"/"Greatclub" as intended. Full-name equality (the old test) only worked by
+  // luck where a name happened to equal its keyword (Whip), and silently let "Hide Armor" through.
+  const isExcepted = (name) => {
+    const n = (name || "").toLowerCase();
+    return except.some((kw) => new RegExp("(^|\\W)" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|\\W)").test(n));
+  };
   return Object.values(CATALOG).filter((it) =>
     it.mundane &&
     !(it as any).awardOnly &&   // Q16: award-only rows (firearms, poisons) are never craftable
     (it.category || "").toLowerCase().includes(cat) &&
-    !except.has((it.name || "").toLowerCase())
+    !isExcepted(it.name)
   ).map((it) => it.id);
 }
 

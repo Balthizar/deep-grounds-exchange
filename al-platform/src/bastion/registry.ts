@@ -74,7 +74,7 @@ export const HENCH_LAST = ["Ashdown", "Brightwood", "Coalfield", "Duskwater", "E
 
 export const HENCH_ROLES = ["Steward", "Guard", "Cook", "Scribe", "Apprentice", "Groundskeeper", "Porter", "Hostler", "Herbalist", "Smith's mate", "Quartermaster", "Runner", "Watchman", "Housekeeper", "Clerk"];
 
-export const randHench = () => ({ name: pick(HENCH_FIRST) + " " + pick(HENCH_LAST), role: pick(HENCH_ROLES), traits: pickN(HENCH_TRAITS, 3) });
+export const randHench = () => ({ name: pick(HENCH_FIRST) + " " + pick(HENCH_LAST), age: 22 + Math.floor(Math.random() * 43), role: pick(HENCH_ROLES), traits: pickN(HENCH_TRAITS, 3) });
 
 export const FURNISHING_TIER_BY_ID: Record<string, any> = {}; FURNISHING_TIERS.forEach((t) => { FURNISHING_TIER_BY_ID[t.id] = t; });
 
@@ -97,6 +97,25 @@ export const furnTierIndex = (id) => Math.max(0, FURNISHING_TIERS.findIndex((t) 
 // What it's CALLED as it climbs is mine, and it's the part the goat actually reads.
 //
 // The player can rename and rewrite any of it. This is the opening offer, not the last word.
+// FORM-SPECIFIC FACILITY NAMES (28 Jul, Frank). A facility reads differently by the bastion's FORM:
+// an Archive in a keep is "The Muniment Room", in a vessel "The Chart Room". The flavored name leads;
+// the canonical name (def.name) is shown as a SUBTITLE so anyone who can't place the flavored name
+// still knows what the room is. Forgotten-Realms register, form-specific, display-only — the
+// mechanical id never changes. Keyed `defId@form`; falls back to def.name when a form has no entry.
+//
+// DESIGN NOTE — the RUIN form is deliberately named as a RESTORED 2ND-EDITION (AD&D) STRONGHOLD.
+// "Ruin" is vague in the DMG (a ruined temple? fort? town?), so the Exchange anchors it: these are
+// the remains of an older age of strongholds, raised again. The ruin names use overt 2E/AD&D
+// vocabulary — Athenaeum, Stronghold Arsenal, Astrologer's Spire, Mage's Sanctum — so a player who
+// knew 2E clocks it IMMEDIATELY ("I know what this is"). It is a deliberate nod to the strongholds
+// of old, fitting because 5.5E sits decades after 2E in real time. Loud on purpose; the subtitle
+// keeps it legible for everyone else.
+export const FACILITY_FORM_NAMES: Record<string, string> = {};
+// facilityFormName(defId, form, fallbackName) → the flavored primary name for this form, or the
+// canonical name when the form has no override.
+export const facilityFormName = (defId: string, form?: string | null, fallback?: string) =>
+  (form && FACILITY_FORM_NAMES[defId + "@" + form]) || fallback || defId;
+
 export const FURNISHING_LADDER = {
   // ---- BEDROOM ----
   // ---- DINING ----
@@ -121,6 +140,13 @@ export function furnishingName(slot, tier, form, fallback) {
   return l[Math.min(i, l.length - 1)] || fallback || slot;
 }
 
+// ⚠ POPULATED AT MODULE LOAD, NOT HERE. This declaration is INTENTIONALLY empty — every facility's
+// furnishings are written in by registerFacility() (see line ~326: `FACILITY_FURNISHINGS[id] =
+// spec.furnishings`), which runs for each room at the bottom of this file. So at RUNTIME this object
+// is full (armory 4, arcane_study 4, observatory 2, archive 2, plus all basics), even though the
+// source literal reads `{}`. DO NOT conclude "the furniture is missing" from the empty braces —
+// measure the runtime object, not this declaration. (A static read of these braces once caused a
+// false "the furniture vanished" alarm; see COMPILER_PRINCIPLES.md, P1.)
 export const FACILITY_FURNISHINGS = {
   // basics: "nonmagical furnishings and decor appropriate for that facility"
   // specials: each entry's own description
@@ -217,7 +243,7 @@ export function staffFacility(s: AppState, fac: Facility, count?) {          // 
   for (let i = 0; i < want; i++) {
     const r = randHench();
     const role = roles ? roles[Math.min(fac.henchmen.length, roles.length - 1)] : r.role;
-    fac.henchmen.push({ id: "h" + s.nextId++, name: r.name, role, traits: r.traits || [], bonds: [], note: "" });
+    fac.henchmen.push({ id: "h" + s.nextId++, name: r.name, age: r.age, role, traits: r.traits || [], bonds: [], note: "" });
   }
   return fac.henchmen;
 }
@@ -312,6 +338,33 @@ export function hirelingLossReason(fac) {
 // partial overrides — any of { why, to, generic } — and the rest falls through to the general set.
 export const FACILITY_REACTIONS: Record<string, any> = {};   // defId -> { why?, to?, generic? }  (authored with each facility, later)
 
+// SCRIBE FLAVOR (28 Jul, Frank). "It's unlikely you'd have the same feeling walking into the
+// scriptorium of a Novice Mage as opposed to the realm of an Aspirant Druid." The scribe's CLASS
+// colors how the room reads — a garnish layered ON TOP of the form/size flavor, not a replacement.
+// Pure narrative, keyed to the scribe's class (set at hire). The Acolyte line is themed by the
+// faith named in the scribe's role ("Acolyte of Lathander") when one is present. After Dark adds the
+// Initiate (Warlock) and Aspirant (Druid) lines; the AL facility only ever has Wizard/Cleric scribes.
+export const SCRIBE_FLAVOR: Record<string, string> = {
+  Wizard: "The room reads like a mage's: geometry in the margins, wax and lamp-oil in the air, the ink ruled to a hair and the pens cut to points a hair finer. Nothing here is where it is by accident.",
+  Cleric: "The room reads like a devotion: a candle kept burning that is not for the light, the first fair copy of the day given over before any commission, and a stillness to the desk that feels less like quiet than like listening.",
+};
+// After-Dark-only scribe voices (recorded, not surfaced in the AL facility):
+export const SCRIBE_FLAVOR_AFTERDARK: Record<string, string> = {
+  Warlock: "The room reads wrong by a degree you can't name: the ink a little too black, a line of the day's copying always left unfinished, and the sense the desk is where a bargain gets kept rather than where words get written.",
+  Druid: "It is less a room than a green corner brought indoors: bark and pressed leaf as often as parchment, sap and river-stone in the air, the writing growing across the page the way a thing grows rather than the way a thing is set down.",
+};
+// The scribe's flavor line for a facility, given the posted hireling. Reads the class; themes the
+// Cleric line by the faith in the role when present. Returns "" when no scribe is posted.
+export const scribeFlavorFor = (hireling: any) => {
+  if (!hireling || !hireling.scribeClass) return "";
+  let line = SCRIBE_FLAVOR[hireling.scribeClass] || "";
+  if (hireling.scribeClass === "Cleric" && typeof hireling.role === "string") {
+    const m = /Acolyte of (\w[\w'\- ]*)/.exec(hireling.role);
+    if (m) line = "The room reads like a devotion to " + m[1].trim() + ": a candle kept burning that is not for the light, the first fair copy of the day given over before any commission, and a stillness to the desk that feels less like quiet than like listening.";
+  }
+  return line;
+};
+
 // 4 · SIZE FLAVOR — new socket (declaration + read + bedroom table)
 export const BASTION_SIZE_FLAVOR: Record<string, any> = {};   // defId -> { form: [cramped, roomy, vast] }
 
@@ -324,6 +377,7 @@ export function registerFacility(spec: FacilitySpec) {
   if (spec.roles)            FACILITY_ROLES[id] = spec.roles;
   if (spec.staffBySize)      FACILITY_STAFF_BY_SIZE[id] = spec.staffBySize;
   if (spec.furnishings)      FACILITY_FURNISHINGS[id] = spec.furnishings;
+  if (spec.formNames)        Object.assign(FACILITY_FORM_NAMES, spec.formNames);
   if (spec.furnishingWeight) Object.assign(FURNISHING_WEIGHT, spec.furnishingWeight);
   if (spec.furnishingLadder) Object.assign(FURNISHING_LADDER, spec.furnishingLadder);
   if (spec.sizeFlavor)       BASTION_SIZE_FLAVOR[id] = spec.sizeFlavor;
@@ -340,6 +394,7 @@ export function registerFacility(spec: FacilitySpec) {
 // house, who keeps it, and the week it has when nobody is looking.
 registerFacility({
   id: "armory",
+  formNames: { "armory@keep": "The Arsenal", "armory@tower": "The Warding Vault", "armory@manor": "The Gun Room", "armory@cavern": "The Deep Arsenal", "armory@ruin": "The Stronghold Arsenal", "armory@grove": "The Warden's Cache", "armory@vessel": "The Magazine", "armory@hamlet": "The Muster House" },
   roles: ["Quartermaster"],
   furnishings: [{ slot: "armorstand", name: "mannequins for displaying armor", plural: true }, { slot: "weaponrack", name: "racks for storing weapons", plural: true }, { slot: "shieldhooks", name: "hooks for holding Shields", plural: true }, { slot: "ammochests", name: "chests for holding ammunition", plural: true }],
   furnishingWeight: { armorstand: 4, weaponrack: 3 },
@@ -410,7 +465,232 @@ registerFacility({
 // ═══════════════════════════ end ARMORY mint ═══════════════════════════
 
 registerFacility({
+  id: "library",
+  formNames: { "library@keep": "The Library", "library@tower": "The Study Tower", "library@manor": "The Great Library", "library@cavern": "The Deep Library", "library@ruin": "The Scholars' Library", "library@grove": "The Reading Grove", "library@vessel": "The Chart-Library", "library@hamlet": "The Reading Room" },
+  roles: ["Librarian"],
+  furnishings: [{ slot: "readingdesks", name: "reading-desks and chairs", plural: true }, { slot: "bookcollection", name: "a standing collection of books" }],
+  furnishingWeight: { readingdesks: 3, bookcollection: 4 },
+  furnishingLadder: {
+  readingdesks:          ["a plain reading-table and a chair","good reading-desks with lamps and sloped rests","broad reading-desks ranked in rows, each lamped and railed","fitted reading-carrels with green-shaded lamps and locking book-rests","a master's reading-room, every desk and lamp and chair set for long hours over a book"],
+  "readingdesks@keep":   ["a table for the clerk to read at","good reading-desks kept to the keep's records","broad desks for the household to consult the muster-books","fitted reading-carrels with the standing orders always to hand","the keep's own reading-room, where terms and treaties have been pored over by lamplight through every season"],
+  "readingdesks@tower":  ["a reading-table by the high window","good reading-desks fitted to the round wall","broad curved desks following the tower, lamps on swing-arms","fitted carrels rising with the tower stair, each with its own lamp","a scholar's reading-room coiled up the tower, the light always right whatever the hour"],
+  "readingdesks@manor":  ["a small reading-table and a good chair","good reading-desks of waxed mahogany","broad library-desks with brass lamps and tooled rests","fitted reading-carrels of figured wood, each lamped and quiet","a grand reading-room a cabinet-maker signed, the finest seat in the house for a long book"],
+  "readingdesks@cavern": ["a stone reading-slab and a chair","good reading-desks the cave-damp cannot warp","broad desks fitted to niches, lamps on cut shelves","fitted rock-cut carrels with green-shaded lamps, dry in the deep","a reading-room cut into the living stone, cool and lamp-warmed, that keeps a book safe to read for a hundred years"],
+  "readingdesks@ruin":   ["a sound old reading-table scrubbed for use","good reading-desks mended from a grander room's wreck","broad desks rebuilt in the old scholarly style","fitted carrels restored from the ruin's own reading-room","the college's own reading-room, brought back to a lamplit quiet it last held four centuries gone"],
+  "readingdesks@grove":  ["a plank reading-bench in a green nook","good reading-desks of grown wood, roofed in leaf","broad desks the grove roofs against the rain, lamps hung from boughs","fitted carrels of living heartwood, the wood keeping the books dry","a reading-glade the grove tends, green-lit and quiet, that keeps a book from the wet"],
+  "readingdesks@vessel": ["a fold-down reading-shelf against the bulkhead","good sea-desks, fiddled and lamped for the roll","broad fitted reading-desks beneath the stern-windows","fitted reading-carrels gimballed level, lamps gasketed against the salt","the great cabin's own reading-room, that has kept a book steady and a lamp lit through three oceans"],
+  "readingdesks@hamlet": ["a reading-table by the window","good reading-desks of scrubbed pine","broad desks for the whole green to come and read","fitted reading-carrels, the best seats in the district for a book","the village's own reading-room, where three generations have come to read what they could not own"],
+  bookcollection:          ["a shelf or two of well-thumbed books","a good collection on open shelves","tall cases of books, sorted and full","fitted glazed cases, the collection ranked and catalogued","a great standing collection a librarian spent a life gathering, every shelf full and known by heart"],
+  "bookcollection@keep":   ["a shelf of the keep's records and a few histories","good cases of chronicles and campaign-histories","tall cases of the keep's whole standing record","fitted cases of muster-rolls, treaties, and war-histories","the keep's own great collection, that holds the written memory of every season it has stood"],
+  "bookcollection@tower":  ["a shelf of treatises up the stair","good cases fitted to the round wall","tall cases spiralling the tower, a ladder on a rail","fitted glazed cases climbing into the tower's dark","a scholar's collection that climbs the whole tower, the volume you want somewhere in the lamplit spiral"],
+  "bookcollection@manor":  ["a modest case of fine bindings","a good library of tooled and gilded books","tall glazed cases of fine editions, a rolling ladder","fitted library-cases of figured wood, the collection gilt and ranked","a great house-library a bibliophile built, the finest private collection in the district"],
+  "bookcollection@cavern": ["a shelf of books cut into the rock","good cases set in dry carved niches","tall cases fitted to the living rock, sealed against the wet","fitted rock-cut cases with lamp-niches the damp never reaches","a great collection cut into the cavern wall, that the deep has kept dry and readable a hundred years"],
+  "bookcollection@ruin":   ["a salvaged shelf of books the rot spared","good cases mended from the old library's wreck","tall cases rebuilt in the grand old style","fitted cases restored from the ruin's own reading-room","the college's own great collection, dug from the ivy and the damp and standing full again"],
+  "bookcollection@grove":  ["a sheltered shelf of books in oilcloth","good cases of grown wood, roofed against the rain","tall cases the grove grew a green roof over","fitted living cases the wood keeps dry, the books safe in the green","a collection the grove itself shelters, that the canopy keeps from the wet and the wood from the worm"],
+  "bookcollection@vessel": ["a fiddled shelf of books against the roll","good sea-cases with bars across the fronts","tall fitted cases battened and barred for weather","fitted bulkhead cases gasketed against the salt","the ship's own collection, charts and books both, that has crossed three oceans dry"],
+  "bookcollection@hamlet": ["a shelf of the green's shared books","a good parish collection on open shelves","tall cases of the district's kept books","fitted cases, the whole green's lending-collection","the village's own collection, every book the green has shared and lent and kept for three generations"],
+},
+  sizeFlavor: {
+  keep:   ["A reading-nook off the hall \u2014 a desk, a lamp, and shelves enough for one to study by.","A proper library now, reading-desks and cases a household can consult at leisure.","A great library hall, reading-carrels ranked down the middle and cases of books to the rafters."],
+  tower:  ["A landing given a desk and a case, the one quiet place to read in a tower of stairs.","A proper library coiled into the tower, desks at the window and cases up the round.","A great library spiralling the tower's height, tier on tier of books climbing into the lamplit dark."],
+  manor:  ["A small book-closet, a reading-chair and a case of fine bindings.","A proper library, reading-desks and cases enough for a household of readers.","A grand house-library the length of the wing, cases floor to ceiling and a ladder on a rail."],
+  cavern: ["A niche in the rock with a stone desk and a case, dry and lamp-warmed.","A proper rock-cut library, desks and fitted cases safe from the cave-damp.","A great vaulted library deep in the stone, cases cut into walls that climb past the lamplight."],
+  ruin:   ["A corner of a great old library made sound, a desk and one stocked case.","A library reclaimed to use, the near cases mended and the near desk scrubbed to a shine.","The great college library entire, restored and re-shelved, a hall built for a fellowship of scholars."],
+  grove:  ["A reading-bench and a sheltered case in a green nook, roofed against the rain.","A proper reading-glade, desks and grown cases the wood keeps dry.","A great open library under a living roof, reading-carrels and cases ranked among the trees."],
+  vessel: ["A reading-shelf and a barred case in a corner of the cabin, the one dry place to read.","A proper day-cabin library, gimballed desks and battened cases beneath the stern-windows.","The great cabin given to reading, desks and barred cases the whole beam of the ship."],
+  hamlet: ["The reading-table and one case of shared books, the green's whole collection.","A proper reading-room, desks and the parish's lending-cases.","The great room of the biggest house given to books, cases the whole green comes to read from."],
+},
+  ruin: {
+  ruin:   "It was a college library once, and a working reading-room again, and a ruin a second time \u2014 the mended cases toppled anew, the scrubbed desks under moss, the re-shelved books swollen with the damp they were saved from and fused shut on their shelves.",
+},
+  reactions: {
+  why:  ["a volume had been shelved out of its order","a reader had left a book face-down and cracked its spine","the catalogue had not been kept up with the week's returns","a lamp had been left to smoke against the bindings"],
+  to:   ["reshelved it right without a word said","showed the fault once, plainly, and let it be learned","spent an hour setting the run of shelves back in order","trimmed the wick and wiped the smoke from the spines"],
+},
+  lifeTasks: {
+  keep:   ["reshelved the week's returns in their right order","read a reader's request against the catalogue","dusted a run of shelves and squared the spines","copied a passage a member of the household had asked for","mended a cracked spine with paste and a careful hand","carried a stack of consulted books back to their cases","trimmed the reading-lamps and set them right for the evening","catalogued a book newly come to the collection","set a reserved volume aside on the librarian's desk","let the last reader out and banked the reading-room lamps","checked a returned book for a reader's forgotten marks","read the day's returns back against the borrowing-list"],
+  tower:  ["reshelved returns up the winding stair, an armful at a time","read a request against the catalogue by the high window","dusted the curved cases and squared the spines to the wall","copied a passage from a treatise shelved up the tower","mended a spine by the one steady light","carried consulted books back up the spiral to their tier","trimmed the swing-arm lamps over each desk","catalogued a new volume into the tower's rising shelves","set a reserved book on the desk by the window","banked the reading-room lamps and left the tower to its quiet","checked a returned book against the tower's borrowing-slate","read the returns back against the list on the winding stair"],
+  manor:  ["reshelved the fine editions in their gilded order","read a request against the house catalogue","dusted the waxed cases with a soft cloth","copied a passage for the mistress's correspondence","mended a tooled binding with a bookbinder's care","carried the morning's reading back to its cases","trimmed the brass reading-lamps and polished their shades","catalogued a fine new acquisition into the collection","set a reserved volume on the reading-desk with a marker","banked the library lamps and left the room to the cedar-smell","checked a returned book for a pressed flower or a forgotten card","read the returns back against the house's borrowing-book"],
+  cavern: ["reshelved returns in the dry rock-cut cases","read a request against the catalogue by lamplight","dusted the cases the deep had kept from the damp","copied a passage from a book the cold kept perfectly","mended a spine by the steady windless lamp","carried consulted books back through the carved dark","trimmed the reading-lamps the rock keeps from guttering","catalogued a book into the rock-cut collection","set a reserved volume aside where the damp couldn't reach it","banked the reading-room lamps and left the stone its silence","checked a returned book for the deep's slow damp","read the returns back, the rock giving no echo to lose a word in"],
+  ruin:   ["reshelved returns in a library four hundred years silent","read a request against a catalogue mended from the ruin's own","dusted cases the ivy had only lately let go","copied a passage from a book the rot had nearly reached","mended a spine with paste made to a recipe on the wall","carried consulted books up from a store long lost","trimmed lamps set where the old college's lamps once stood","catalogued a book the ruin itself had kept sound","set a reserved volume on a desk a dead scholar once used","banked the lamps and left the great room to the owls at its end","checked a returned book for four centuries' worth of damage","read the returns back and felt the company of every scholar before"],
+  grove:  ["reshelved returns in the cases the grove keeps dry","read a request against the catalogue in the green light","dusted the grown-wood cases under the leaf-roof","copied a passage by the light that came down through the boughs","mended a spine with the grove's own quiet patience","carried consulted books back to the sheltered cases","trimmed the lamps hung from the boughs over each desk","catalogued a book into the grove's green collection","set a reserved volume aside in the driest nook","banked the lamps and left the reading-glade to the wood's quiet","checked a returned book for the damp the grove keeps out","read the returns back to the trees in the still green air"],
+  vessel: ["reshelved returns in the barred cases against the roll","read a request against the ship's catalogue","dusted the sea-cases and re-barred their fronts","copied a passage from a book braced against the heave","mended a spine pinned flat where the salt couldn't reach","carried consulted books back through the moving ship","trimmed the gimballed lamps over the reading-desks","catalogued a book into the ship's dry collection","set a reserved volume aside oilskin-wrapped","banked the lamps and left the reading-room to the creak of the hull","checked a returned book for the salt and the damp","read the returns back against the roll, holding every title"],
+  hamlet: ["reshelved the green's shared books in their order","read a neighbour's request against the parish catalogue","dusted the lending-cases and squared the spines","copied a passage for a neighbour who couldn't borrow it long","mended a well-loved book the whole green had read","carried the day's reading back to the shared cases","trimmed the reading-room lamps for the evening callers","catalogued a book newly given to the collection","set a reserved book aside for the neighbour who asked","banked the lamps and locked the reading-room for the night","checked a returned book for a child's careful or careless hand","read the returns back against the green's borrowing-list"],
+},
+});
+
+
+registerFacility({
+  id: "workshop",
+  formNames: { "workshop@keep": "The Workshop", "workshop@tower": "The Maker's Floor", "workshop@manor": "The Craft Room", "workshop@cavern": "The Deep Workshop", "workshop@ruin": "The Artisans' Hall", "workshop@grove": "The Craftwood", "workshop@vessel": "The Carpenter's Walk", "workshop@hamlet": "The Craftsman's Shop" },
+  roles: ["Artisan", "Journeyman", "Apprentice"],
+  furnishings: [{ slot: "benches", name: "workbenches and vises", plural: true }, { slot: "toolwall", name: "a wall of racked tools and materials" }],
+  furnishingWeight: { benches: 4, toolwall: 4 },
+  furnishingLadder: {
+  benches:          ["a plank bench and a single vise","good workbenches with vises and clamps","broad joined benches, each with its own vise and bench-stops","fitted benches with lamp-arms, tool-wells, and a bench-hook at every station","a master's run of benches, every surface true, every vise a maker set to their own hand"],
+  "benches@keep":   ["a work-bench for the garrison's mending","good benches kept to the keep's repairs","broad benches fit to keep a company's kit in order","fitted benches with a station for each hand of the household","the keep's own benches, that have turned out everything from arrow-shafts to gate-gear through every season"],
+  "benches@tower":  ["a bench wedged into the tower's round","good benches fitted to the curved wall","broad benches following the tower's curve, tools up the wall between","fitted benches with lamp-arms swung out over each, tools racked in the round","a maker's run of benches spiralling the tower, each set true against the curve"],
+  "benches@manor":  ["a small craft-bench for the estate's needs","good benches kept trim in the craft room","broad cabinet-maker's benches, waxed and true","fitted benches of figured hardwood, tools in felt-lined wells","a masterwork run of benches a joiner signed, the pride of the craft room"],
+  "benches@cavern": ["a stone-topped bench cut into the rock","good benches of close-grained wood the damp won't warp","broad benches fitted to carved niches, lamps on cut shelves above","fitted benches with rock-cut tool-wells, dry in the deep","benches of petrified wood bedded in the living stone, true and everlasting"],
+  "benches@ruin":   ["a sound old bench salvaged and scrubbed","good benches mended from a grander workshop's wreck","broad benches rebuilt in the old guild style","fitted benches restored from the ruin's own fine joinery","the guild's own benches, brought back to a working shine four centuries on"],
+  "benches@grove":  ["a plank bench across two stumps","good benches of grown wood, weather-smoothed","broad benches the grove half-grew to shape, roofed in leaf","fitted benches of living heartwood, tool-wells the wood keeps dry","benches grown whole from standing trees, that the grove tends and will not let warp"],
+  "benches@vessel": ["a fold-down bench against the bulkhead","good sea-benches, fiddled and cleated for the roll","broad fitted benches with clamps and stops for a working deck","fitted benches gimballed to stay true in any sea, tools lashed to hand","the carpenter's own benches off a great ship, that have made a repair in the teeth of a gale"],
+  "benches@hamlet": ["a deal work-bench by the window","good benches of scrubbed pine","broad benches fit for the whole green's mending","fitted benches, the best in the district, tools on the wall above","the village's own benches, where every broken thing on the green has been made whole for three generations"],
+  toolwall:          ["a shelf of a few tools and offcuts","a good rack of tools and a bin of materials","tall racks of tools and sorted materials, each on its hook","fitted tool-walls, every tool silhouetted on its board, materials glazed against dust","a maker's wall a guild would envy, six trades' tools and their materials ranked and full"],
+  "toolwall@keep":   ["a rack of the garrison's working tools","good racks of tools for the keep's repairs","tall racks of six trades' tools for the household's needs","fitted tool-walls with a board for each artisan's hand","the keep's own tool-wall, stocked to mend or make near anything at an hour's notice"],
+  "toolwall@tower":  ["a shelf of tools up the stair","good curved racks fitted to the wall","tall racks spiralling with the tower stair, a ladder on a rail","fitted tool-tiers rising into the tower's dark, lamp-niches between","a tool-wall that climbs the whole tower, six trades' kit findable by long habit"],
+  "toolwall@manor":  ["a modest cabinet of good tools","a good glazed tool-cabinet","tall glazed tiers of fine tools and materials, a rolling ladder","fitted tool-cases of figured wood, every trade sorted","a tool-wall a master joiner signed, the finest-kept in the house"],
+  "toolwall@cavern": ["a shelf of tools cut into the rock","good racks set in carved niches, dry against the damp","tall tiers fitted to the living rock, sealed against the wet","fitted rock-cut tool-shelving with lamp-niches the damp never reaches","tool-tiers cut whole from the cavern wall, six trades' kit kept dry a hundred years"],
+  "toolwall@ruin":   ["a salvaged rack or two, scrubbed sound","good racks mended from the old workshop's stores","tall tiers rebuilt in the grand guild style","fitted tool-shelving restored from the ruin's own stores","the guild's own tool-wall, raised again where the ivy had it, and filling with six trades' kit"],
+  "toolwall@grove":  ["a sheltered shelf of tools and stock","good racks of grown wood, roofed against the rain","tall tiers the grove grew a green roof over","fitted living tool-shelving the wood keeps dry","a tool-wall grown from standing trees, that the grove roofs and keeps from the damp"],
+  "toolwall@vessel": ["a fiddled rack against the roll","good sea-racks with bars across the fronts","tall fitted tiers battened and barred for weather","fitted bulkhead tool-shelving, gasketed against the salt","the carpenter's tool-wall off a great ship, six trades' kit kept dry across three oceans"],
+  "toolwall@hamlet": ["a shelf of the shop's few tools","a good dresser given over to tools and stock","tall racks of the green's shared trade-tools","fitted tool-shelves, the district's whole working kit","the village's own tool-wall, where every trade the green has needed is ranked and findable"],
+},
+  sizeFlavor: {
+  keep:   ["A work-corner off the yard \u2014 a bench, a rack, and light enough for one to make by.","A proper workshop now, benches and a tool-wall three artisans can work at once.","A great craft-hall, benches ranked down the middle and six trades' tools to the rafters."],
+  tower:  ["A bench wedged into the tower's base, the one still place to make in a tower of stairs.","A proper workshop coiled into the tower, benches at the wall and tools up the round.","A great craft-hall spiralling the tower's height, tier on tier of tools climbing into the lamp-lit dark."],
+  manor:  ["A small craft-closet, a bench and a tool-cabinet and quiet.","A proper craft room, benches and tools enough for a household's whole making.","A grand craft-room the length of the wing, tool-walls floor to ceiling and a ladder on a rail."],
+  cavern: ["A niche in the rock with a stone bench and a rack, dry and lamp-warmed.","A proper rock-cut workshop, benches and fitted tools safe from the cave-damp.","A great vaulted craft-hall deep in the stone, tool-tiers cut into walls past the lamplight."],
+  ruin:   ["A corner of a great old workshop made sound, a bench and one stocked rack.","A workshop reclaimed to use, the near benches mended and the near tools scrubbed to a shine.","The great guild workshop entire, restored and re-stocked, a hall built for a college of artisans."],
+  grove:  ["A bench and a sheltered rack in a green nook, roofed against the rain.","A proper craft-glade, benches and grown tool-tiers the wood keeps dry.","A great open craft-hall under a living roof, benches and tools ranked among the trees."],
+  vessel: ["A carpenter's bench and a barred rack in a corner, the one dry place to make.","A proper ship's workshop, gimballed benches and battened tools below.","The whole hold given to making, benches and barred tool-tiers the beam of the ship."],
+  hamlet: ["The shop's bench and one rack of tools, the green's whole making.","A proper craftsman's shop, benches and the district's shared trade-tools.","The great room of the biggest house given to craft, tool-walls the whole green comes to."],
+},
+  ruin: {
+  ruin:   "It was a guild workshop once, and a working craft-hall again, and a ruin a second time \u2014 the mended benches split anew, the scrubbed tools red with rust, the six trades' materials it was re-stocked with gone to rot under the fallen roof.",
+},
+  reactions: {
+  why:  ["the joint had not seated and the piece would not hold","the measure was a hair out and the whole fit with it","the finish had lifted where it had been rushed","the glue had gone off before the clamp came on"],
+  to:   ["took it apart and set it right without a word","showed the fault once, plainly, and let it be learned","put the spoiled piece by for stock and began again","re-clamped it true and let it cure overnight"],
+},
+  lifeTasks: {
+  keep:   ["turned a set of tool-hafts for the garrison","glued and clamped a repair and set it to cure","sharpened the bench-tools on the stone kept for it","sorted the day's materials by the trade that would want them","fitted a joint and tried it dry before the glue","carried finished work down to the quartermaster's store","swept the shavings and oiled the bench against the damp","drew a measure twice and cut once, as the master taught","struck and shaped for the senior artisan all morning","waxed a finished piece and set it in the light to check","mended a tool another hand had left dull","read a made piece against its pattern for true"],
+  tower:  ["turned a small fitting on the bench by the high window","glued a repair and clamped it against the tower's curve","sharpened the tools by the one steady light","sorted stock up the stair a careful armful at a time","fitted a joint to the round of the tower wall","carried finished work down the winding stair","swept the shavings down the stair and oiled the bench","drew a fine measure the tower's small work wanted","struck for the artisan in the close round room","waxed a finished piece and held it to the flue-glow","trimmed a tool-edge to the fine point the work needed","tried a made piece against the pattern in the high light"],
+  manor:  ["turned a fine fitting for the manor's furniture","glued and clamped a repair to the good pieces","sharpened the tools with a cabinet-maker's care","sorted the fine materials from the everyday","fitted a joint to match the old work exactly","carried finished pieces up for the household's use","swept the craft room and waxed the benches","drew a measure with a scribe's precision","struck for the master artisan, easy and sure","waxed and buffed a finished piece to the house's standard","mended a fine tool with a jeweller's patience","tried a made piece against the manor's own for match"],
+  cavern: ["turned a fitting on the stone-topped bench","glued a repair the dry rock would let cure true","sharpened the tools by the steady lamp the rock keeps windless","sorted the stock the deep had kept perfectly dry","fitted a joint by the light cut into the wall","carried finished work up through the carved dark","swept the shavings into the dark and oiled the bench","drew a measure by the lamp, the rock silent round","struck for the artisan in the glowing vaulted dark","waxed a finished piece where no damp could reach it","mended a tool with the deep's own patience","tried a made piece against the pattern in the lamplight"],
+  ruin:   ["turned a fitting in a workshop four hundred years silent","glued a repair with a pot the old guild left behind","sharpened tools on a stone a dead artisan wore smooth","sorted stock a store the ivy had hidden had kept sound","fitted a joint to match one a dead hand had cut","carried finished work up from a store long lost","swept the shavings where the old guild swept theirs","drew a measure to a pattern scratched on the wall","struck for the artisan where a guild once made its name","waxed a finished piece and felt the company of every maker before","mended a tool with the last good file the ruin had kept","tried a made piece and heard the old workshop in its ring"],
+  grove:  ["turned a fitting on a bench the grove grew to shape","glued a repair the green roof kept dry to cure","sharpened tools on a river-stone kept for it","sorted stock the grove had kept dry from the wet","fitted a joint by the light through the leaves","carried finished work in from the sheltered store","swept the shavings to the roots and oiled the bench","drew a measure in the green and dappled light","struck for the artisan in the sheltered glade","waxed a finished piece in the warm patch where sun came through","mended a tool with a blade kept keen on stone","tried a made piece against the pattern in the leaf-light"],
+  vessel: ["turned a fitting on the gimballed bench against the roll","glued a repair and clamped it fast against the sea","sharpened tools braced against the cabin's heave","sorted the stock the barred racks had kept dry","fitted a joint that had to hold in a working hull","carried finished work through the moving ship","swept the shavings and lashed the loose tools down","drew a measure twice against the deck's slow roll","struck for the carpenter between one watch and the next","waxed a finished piece pinned where the salt couldn't reach","mended a tool the sea's work had dulled","tried a made piece against the lamp, holding it to the roll"],
+  hamlet: ["turned a set of tool-hafts for a neighbour's price","glued a repair for a family that couldn't do it themselves","sharpened the shop's tools and a neighbour's besides","sorted the green's shared stock for the morning's work","fitted a joint for a piece the whole village would use","carried finished work out to the one who'd asked","swept the shop and oiled the bench for the morning","drew a measure a neighbour watched him take","struck for the craftsman while half the green looked on","waxed a finished piece and set it in the doorway light","mended a neighbour's tool as a favour owed","tried a made piece in the door-light and named a fair price"],
+},
+});
+
+
+registerFacility({
+  id: "smithy",
+  formNames: { "smithy@keep": "The Forge", "smithy@tower": "The Athanor", "smithy@manor": "The Estate Forge", "smithy@cavern": "The Deep Forge", "smithy@ruin": "The Old Forge", "smithy@grove": "The Green Forge", "smithy@vessel": "The Ship's Forge", "smithy@hamlet": "The Blacksmith's Shop" },
+  roles: ["Smith", "Striker"],
+  furnishings: [{ slot: "forge", name: "a forge and bellows" }, { slot: "anvil", name: "an anvil and the smith's tools", plural: true }],
+  furnishingWeight: { forge: 5, anvil: 3 },
+  furnishingLadder: {
+  forge:          ["a small charcoal forge and a hand-bellows","a good coal forge with a foot-bellows and a water-trough","a broad double-hearth forge with a great bellows on a chain","a fitted forge with a hooded chimney, a mechanical blower, and banked heat kept overnight","a master's forge, its draught and heat tuned to a smith's exact and secret order, that has never once gone cold"],
+  "forge@keep":   ["a campaign forge for shoeing and mending","a good garrison forge kept to arms and armour","a broad forge fit to keep a company's steel sound","a fitted armoury-forge with a blower and banked coals","the keep's own forge, that has beaten out swords and horseshoes and gate-hinges through every siege it has stood"],
+  "forge@tower":  ["a small athanor-forge wedged into the round wall","a good forge fitted to the tower's curve, flue up the wall","a broad forge with a flue drawing the whole tower's height","a fitted forge with a blower and a chimney climbing to the tower-top","a mage-smith's forge that keeps its own heat and draught, coals that never gutter the work"],
+  "forge@manor":  ["a small estate forge for the household's mending","a good forge kept trim behind the stables","a broad estate forge fit for a full farrier's trade","a fitted forge with a proper chimney and a mechanical bellows","the estate's own forge, that has shod every horse and mended every gate on the land for three generations"],
+  "forge@cavern": ["a small forge cut into the rock, flue bored to the surface","a good forge set in a carved hearth, the rock taking the heat","a broad forge in a vaulted chamber, the stone glowing at the edges","a fitted forge with a bored flue and banked coals the deep keeps warm","a forge cut whole into the living rock, that has held its heat in the deep dark for a hundred years"],
+  "forge@ruin":   ["a sound old forge salvaged and re-fired","a good forge mended from a grander one's wreck","a broad forge rebuilt in the old style, the hearth re-laid","a fitted forge restored from the ruin's own fallen smithy","the stronghold's own forge, brought back to a heat it last held four centuries gone"],
+  "forge@grove":  ["a small forge under a bough, screened from the rain","a good forge of stone and grown timber, roofed in leaf","a broad forge the grove roofs and shelters, smoke drawn up through the canopy","a fitted forge the wood grew a chimney of living branches over","a forge the grove tends and shelters, that the green roof keeps dry and the trees draw the smoke from"],
+  "forge@vessel": ["a small ship's forge boxed in stone against the deck","a good sea-forge, hearth-stoned and fiddled against the roll","a broad forge in a stone-lined deckhouse, flue through the deck","a fitted ship's forge, hearth gimballed level, sparks caught and drowned","the ship's own forge off a battle-fleet, that has mended a broken blade in the middle of a storm at sea"],
+  "forge@hamlet": ["a small village forge, coal and a hand-bellows","a good smith's forge, the green's own hearth","a broad forge fit to shoe the whole village's horses","a fitted forge with a proper flue and a foot-blower","the village's own forge, where every plough and hinge and horseshoe on the green has been beaten out for three generations"],
+  anvil:          ["a small anvil and a few hammers","a good anvil, tongs, and a rack of hammers","a great anvil with a full rack of tools and swages","a fitted anvil on a dressed-oak stump, every tool to hand on its hook","a master's anvil, ringing true, and a wall of tools a smith spent a life gathering"],
+  "anvil@keep":   ["a garrison anvil and the arms-tools","a good anvil kept to armourer's work","a great anvil with swages for plate and mail","a fitted anvil with a full armourer's kit ranked to hand","the keep's own anvil, that has rung out the making of every blade its garrison has carried"],
+  "anvil@tower":  ["a small anvil wedged by the forge","a good anvil fitted to the round room","a great anvil set true in the tower's curve","a fitted anvil with tools racked up the wall","a mage-smith's anvil that a wizard set and that the tower keeps ringing true"],
+  "anvil@manor":  ["a small anvil for the estate's mending","a good farrier's anvil, well kept","a great anvil with a full farrier's kit","a fitted anvil with every tool on its hook","the estate's own anvil, that three generations of smiths have kept ringing"],
+  "anvil@cavern": ["a small anvil on a stone base","a good anvil bedded in the rock","a great anvil set into a cut stone stump","a fitted anvil, tools in niches cut round it","an anvil bedded whole in the living rock, that the deep has kept true for a hundred years"],
+  "anvil@ruin":   ["a sound old anvil scrubbed of its rust","a good anvil mended and re-faced","a great anvil restored to its ring","a fitted anvil raised again from the ruin's own smithy","the stronghold's own anvil, dug from the fallen forge and rung true again after four centuries"],
+  "anvil@grove":  ["a small anvil on a great root","a good anvil bedded in a living stump","a great anvil the grove grew a stand for","a fitted anvil the wood holds true, tools on hooks of grown branch","an anvil the grove itself cradles in living roots, that the wood keeps steady and true"],
+  "anvil@vessel": ["a small anvil bolted to the deck","a good sea-anvil, cleated against the roll","a great anvil fitted level to the deckhouse","a fitted anvil gimballed to ring true in any sea","the ship's own anvil off a battle-fleet, that has held its ring through three oceans of weather"],
+  "anvil@hamlet": ["the village anvil, ringing across the green","a good smith's anvil, well used","a great anvil the whole green knows the sound of","a fitted anvil with the parish's whole kit to hand","the village's own anvil, whose ring has marked the working hours of the green for three generations"],
+},
+  sizeFlavor: {
+  keep:   ["A forge-corner off the yard \u2014 a hearth, an anvil, and heat enough for one smith to mend by.","A proper smithy now, forge and anvil and a rack of tools two smiths can work at once.","A great armoury-forge, hearths ranked down the middle and the ring of hammers never quite stopping."],
+  tower:  ["A forge wedged into the tower's base, the one hot room in a tower of stone.","A proper smithy coiled into the tower, forge at the wall and the flue drawing straight up.","A great forge climbing the tower's foot, heat and hammer-ring rising through the whole shaft."],
+  manor:  ["A small estate forge behind the stables, a hearth and an anvil and quiet.","A proper estate smithy, forge and anvil enough for a full farrier's trade.","A grand estate forge the length of the yard, hearths and anvils for a company of smiths."],
+  cavern: ["A forge cut into the rock, flue bored to the light, glowing in the dark.","A proper rock-cut smithy, forge and anvil the stone keeps warm and dry.","A great vaulted forge deep in the stone, hearths glowing down a hall the hammer-ring never leaves."],
+  ruin:   ["A corner of a great old smithy re-fired, a hearth and one true anvil.","A smithy reclaimed to use, the near forge re-laid and the near anvil rung true again.","The great stronghold forge entire, restored and re-fired, a hall built for an armoury of smiths."],
+  grove:  ["A forge under a bough, screened and roofed in leaf, warm in a green corner.","A proper grove-smithy, forge and anvil the wood shelters and keeps dry.","A great open forge under a living roof, hearths and anvils ranked among the trees."],
+  vessel: ["A stone-boxed forge on the deck, the one place fire is let burn at sea.","A proper ship's smithy, gimballed forge and cleated anvil in a stone deckhouse.","The whole after-deck given to the forge, hearths and anvils the beam of the ship, sparks drowned as they fall."],
+  hamlet: ["The village forge, a hearth and an anvil the whole green knows the ring of.","A proper smith's shop, forge and anvil and the parish's whole trade.","The great smithy of the green, hearths and anvils the whole district brings its iron to."],
+},
+  ruin: {
+  ruin:   "It was a stronghold forge once, and a working smithy again, and a ruin a second time \u2014 the re-laid hearth gone cold and fallen in, the anvil under moss, the tools it was re-hung with red with the rust they were scoured of.",
+},
+  reactions: {
+  why:  ["the weld had not taken and the piece rang false","the temper had gone wrong and the edge would not hold","the heat had been let die and the iron gone short","the harness-plate was hammered a hair out of true"],
+  to:   ["set it back in the fire without a word said","showed the fault once, plainly, and let it be learned","took the ruined piece to be cut down and forged again","re-laid the coals and brought the heat back up to true"],
+},
+  lifeTasks: {
+  keep:   ["beat out a blade-blank and set it by to cool","shod a garrison horse, all four, before the muster","drew a length of chain link by link at the anvil","tempered an edge in the trough and tried it on a nail","mended a gate-hinge the last siege had sprung","hammered a dented breastplate back to true","banked the forge and left the coals to hold overnight","ground and honed a rack of blades to a soldier's edge","drew iron rod down to spikes for the wall-tops","struck for the master smith, blow for blow, all morning","riveted a mail-shirt where a spear had parted it","cooled the anvil with a bucket and swept the scale from the floor"],
+  tower:  ["beat out a small blade in the forge wedged by the stair","drew fine wire for a mage's fitting at the anvil","tempered a delicate edge in the tower's steady heat","mended an instrument's iron frame with a jeweller's care","forged a bracket for a case fitted to the round wall","struck for the smith in the close hot round room","banked the athanor-forge and let it hold its heat","ground an edge fine by the light from the flue-glow","drew iron to the exact gauge a wizard's work wanted","riveted a fitting the tower's curve had called for","cooled the anvil and swept the scale down the stair","tried a finished piece against the light for true"],
+  manor:  ["shod the estate's carriage-team before the morning drive","mended the manor's iron gates and their fine scrollwork","drew a length of decorative chain for the gardens","tempered a set of tools for the estate's gardeners","forged a hinge to match the old ones on the great door","struck for the smith at the estate anvil, easy and sure","banked the forge and left the yard swept and quiet","ground the estate's blades and edge-tools to a keen finish","drew iron to mend a length of the park's railing","riveted a repair the master would never see and never need to","cooled the anvil and hung the tools each on its hook","tried the finished gate-iron in the light for true"],
+  cavern: ["beat out a blade in the forge cut into the rock","drew chain by the glow of coals the stone kept warm","tempered an edge in water cold from the deep","mended a tool the dark work below had broken","forged a bracket for a lamp set in the cavern wall","struck for the smith in the vaulted glowing dark","banked the forge and let the rock hold its heat","ground an edge by the forge-glow, the deep silent round","drew iron to spikes for the passages below","riveted a fitting the rock-cut halls had wanted","cooled the anvil and swept the scale into the dark","tried a finished piece against the forge-light for true"],
+  ruin:   ["beat out a blade in a forge four hundred years cold and re-fired","drew chain at an anvil dug from the fallen smithy","tempered an edge in a trough cut by the old smiths","mended a tool with a hammer the ruin itself had kept","forged a bracket to match one a dead hand had made","struck for the smith where a stronghold's armoury once rang","banked the re-laid forge and left it holding its first heat in centuries","ground an edge with a stone the old smiths left behind","drew iron to the pattern scratched on the wall by a dead smith","riveted a repair the way the ruin's own smiths would have","cooled the anvil and felt the company of every smith before","tried a finished blade against the light and heard the old forge ring in it"],
+  grove:  ["beat out a blade in the forge the grove roofs and shelters","drew chain at an anvil the living wood holds true","tempered an edge in water clean from the grove's own spring","mended a tool with the grove's smoke drawn up through the leaves","forged a bracket the wood had all but grown the shape of","struck for the smith in the green and dappled heat","banked the forge and let the sheltered coals hold","ground an edge by the light that came down through the boughs","drew iron the grove had no quarrel with the working of","riveted a fitting the grown timber had called for","cooled the anvil at the spring and swept the scale to the roots","tried a finished piece in the green light for true"],
+  vessel: ["beat out a blade in the stone-boxed forge on the rolling deck","drew chain at an anvil cleated fast against the sea","tempered an edge in a trough that would not spill with the roll","mended a broken cutlass between one watch and the next","forged a fitting the ship's own iron had wanted","struck for the smith braced against the cabin's heave","banked the forge and drowned the last sparks safe","ground an edge with the deck moving under the stone","drew iron to mend a length of the ship's own chain","riveted a repair the sea had made necessary that morning","cooled the anvil with a bucket of the sea itself","tried a finished blade against the lamp, holding it to the roll"],
+  hamlet: ["shod a neighbour's plough-horse for a fair price and a chat","mended the green's broken tools as they were brought in","drew a length of chain for the well's new bucket","tempered a scythe-edge for the coming harvest","forged a hinge for a door the whole green would use","struck for the smith while half the village watched from the door","banked the forge and left the green to its evening quiet","ground the parish's blades and edge-tools sharp","drew iron to mend the pound-gate on the green","riveted a repair a neighbour would thank him for by name","cooled the anvil and swept the shop for the morning","tried a finished piece in the doorway light for true"],
+},
+});
+
+
+registerFacility({
+  id: "scriptorium",
+  formNames: { "scriptorium@keep": "The Chancery", "scriptorium@tower": "The Scribing Room", "scriptorium@manor": "The Copy Room", "scriptorium@cavern": "The Deep Scriptorium", "scriptorium@ruin": "The Monks' Scriptorium", "scriptorium@grove": "The Leaf-Bindery", "scriptorium@vessel": "The Purser's Office", "scriptorium@hamlet": "The Copyist's Shop" },
+  roles: ["Scribe"],
+  furnishings: [{ slot: "scribedesk", name: "a scribe's slope with inkwells and pen-tray" }, { slot: "supplytiers", name: "racks of parchment, ink, and calligrapher's supplies", plural: true }],
+  furnishingWeight: { scribedesk: 4, supplytiers: 3 },
+  furnishingLadder: {
+  scribedesk:          ["a plain sloped board for writing","a good scribe's slope with a pen-tray and a sunk inkwell","a broad copying-desk with a book-rest and ranks of little drawers","a scribe's desk with an adjustable slope, sunk wells, and a lamp on a swing-arm","a master copyist's desk, every rest and well made to a scribe's exact and secret order"],
+  "scribedesk@keep":   ["a plank slope for the clerk's use","a solid writing-slope built to take hard use","a broad chancery desk with a locking despatch drawer","a fitted clerk's desk with racks for sealed writs and orders","the keep's own chancery desk, that has fair-copied terms of surrender and letters home in the same hour"],
+  "scribedesk@tower":  ["a board wedged into the tower's curve","a good writing-slope fitted to the round wall","a curved copying-desk following the wall, drawers all round","a scribe's desk with a rest for the great books and a lamp that follows the hand","a copyist's desk that keeps its own wells full and its candle from ever guttering the work"],
+  "scribedesk@manor":  ["a small writing-slope","a good mahogany copying-desk","a fine escritoire with pigeonholes and a tooled book-rest","a lady's writing desk of inlaid woods, wells scented with cedar","a masterwork copyist's desk a cabinetmaker signed, the pride of the copy room"],
+  "scribedesk@cavern": ["a slab of dressed stone with a slope cut in","a good copying-desk of close-grained wood the damp can't warp","a broad desk fitted to a niche, a lamp-shelf cut above it","a scribe's desk of petrified wood, cold and everlasting, wells lined against the damp","a copyist's desk cut whole from dark stone, that has held ink from drying through a hundred years of deep"],
+  "scribedesk@ruin":   ["a sound old writing-slope salvaged and scrubbed","a good copying-desk mended from a grander one","a broad scriptorium desk rebuilt in the old style","a scribe's desk restored from the ruin's own fine cabinetry","the abbey's own copying-desk, brought back to a shine it last held four centuries gone"],
+  "scribedesk@grove":  ["a plank slope across two stumps","a good copying-desk of grown wood, smoothed by weather and hand","a broad desk the grove half-grew to shape, wells kept from the wet","a scribe's desk of living heartwood that leafs a little at the corners each spring","a desk grown whole from a single great root, that the wood tends and will not let the ink freeze"],
+  "scribedesk@vessel": ["a fold-down slope against the bulkhead","a good sea-desk, fiddled and cleated for a roll","a fitted purser's desk beneath the stern-windows, wells that stopper","a scribe's desk gimballed to stay level in any sea, inkwell sunk and sealed","the purser's desk off a flagship long broken up, that has kept a fair hand and a true account through three oceans"],
+  "scribedesk@hamlet": ["a small deal slope by the window","a good writing-slope of scrubbed pine","a broad table with a drawer for the parish papers","a fine copyist's desk, the best stick of furniture in the shop","the village's own copying-desk, where every letter and will and notice on the green has been fair-copied for three generations"],
+  supplytiers:          ["a shelf of paper and a few inks","good racks of parchment, ink, and quills","tall tiers of parchment, inks, gold-leaf, and calligrapher's supplies","fitted supply-tiers, sorted and stocked, glazed against the dust","a supply-wall a stationer would envy, every ink and leaf and grade of paper ranked and full"],
+  "supplytiers@keep":   ["a rack of paper and campaign ink","good racks of chancery parchment and sealing-wax","tall tiers of writs-paper, seals, and standing supplies","fitted racks of orders-paper, wax, and the keep's own seals","the keep's own supply-wall, stocked to fair-copy a treaty or a muster at an hour's notice"],
+  "supplytiers@tower":  ["a shelf of paper up the stair","good curved racks fitted to the round wall","tall tiers spiralling with the tower stair, a ladder on a rail","fitted supply-tiers rising into the tower's dark, lamp-niches between","a supply-wall that climbs the whole tower, where the grade of paper you want has a way of being at hand"],
+  "supplytiers@manor":  ["a modest cabinet of papers","a good brass-railed stationery cabinet","tall glazed tiers of fine papers and inks, a rolling ladder","fitted stationery cases of figured wood, every grade sorted","a stationer's wall a master joiner signed, the finest supply in the house"],
+  "supplytiers@cavern": ["a shelf of paper cut into the rock","good racks of wood set into carved niches, dry against the damp","tall tiers fitted to the living rock, sealed against the wet","fitted rock-cut supply-shelving with lamp-niches, that the cave-damp never reaches","supply-tiers cut whole from the cavern wall, that have kept paper and ink dry in the deep for a hundred years"],
+  "supplytiers@ruin":   ["a salvaged rack or two, scrubbed sound","good racks mended from the old scriptorium's wreck","tall tiers rebuilt in the grand old style","fitted supply-shelving restored from the ruin's own stores","the abbey's own supply-wall, raised again where the ivy had it, and filling with paper and ink"],
+  "supplytiers@grove":  ["a sheltered shelf of leaves and inks","good racks of grown wood, roofed against the rain","tall tiers the grove grew a green roof over","fitted living supply-shelving the wood keeps dry, leaves for a canopy","a supply-wall grown from standing trees, that the grove roofs and will not let the damp reach"],
+  "supplytiers@vessel": ["a fiddled rack against the roll","good sea-racks with bars across the fronts","tall fitted tiers battened and barred for weather","fitted bulkhead supply-shelving, gasketed against the salt","the purser's supply-wall off a flagship, that has kept its paper and ink dry across three oceans"],
+  "supplytiers@hamlet": ["a shelf of the shop's few papers","a good dresser given over to paper and ink","tall racks of the parish's kept papers and stock","fitted supply-shelves, the green's whole stationery, well dusted","the village's own supply-wall, where every grade of paper the green has needed is ranked and findable"],
+},
+  sizeFlavor: {
+  keep:   ["A scribing nook off the chancery — a slope, a rack, and lamplight enough for one to copy by.","A proper scribing room now, slope and supply-tiers and a chair a scribe can lose a day in.","A great chancery hall, copying-slopes ranked down the middle and supply-tiers to the rafters at either end."],
+  tower:  ["A landing given a slope and a rack, the one still place in a tower of stairs.","A proper scribing room coiled into the tower, slope at the window and tiers up the wall.","A great scribing hall spiralling the tower's height, tier on tier of supplies climbing into the lamp-lit dark."],
+  manor:  ["A small copy-closet, a writing-slope and a stationery cabinet and quiet.","A proper copy room, a good slope and supplies enough for a household's whole correspondence.","A grand copying-room the length of the wing, supply-tiers floor to ceiling and a ladder on a rail."],
+  cavern: ["A niche in the rock with a stone slope and a rack, dry and lamp-warmed.","A proper rock-cut scribing room, slope and fitted tiers safe from the cave-damp.","A great vaulted scribing hall deep in the stone, supply-tiers cut into walls that climb past the lamplight."],
+  ruin:   ["A corner of a great old scriptorium made sound again, a slope and one stocked rack.","A scribing room reclaimed to use, the near tiers mended and the near slope scrubbed to a shine.","The great abbey scriptorium entire, restored and re-stocked, a room built for a college of scribes to copy in."],
+  grove:  ["A slope and a sheltered rack in a green nook, roofed against the rain.","A proper scribing-glade, slope and grown supply-tiers the wood keeps dry.","A great open scribing hall under a living roof, tiers of grown wood ranked among the trees."],
+  vessel: ["A purser's slope and a barred rack in a corner of the cabin, the one dry place to write.","A proper day-cabin scribing room, gimballed slope and battened tiers beneath the stern-windows.","The great cabin given over to scribing, slopes and barred supply-tiers the whole beam of the ship."],
+  hamlet: ["The shop's writing-slope and one rack of paper, the green's whole stationery.","A proper copyist's shop, a good slope and tiers of the parish's kept papers.","The great room of the biggest house given over to copying, supply-tiers the whole green comes to consult."],
+},
+  ruin: {
+  ruin:   "It was an abbey scriptorium once, and a working copy-room again, and a ruin a second time \u2014 the mended tiers fallen anew, the scrubbed slope under moss, the fair paper it was re-stocked with gone soft with the wet it was saved from.",
+},
+  reactions: {
+  why:  ["the ink had skipped and the line wanted doing again","a letter was malformed and the whole word with it","the gold-leaf had lifted where a thumb had rested","the page was set down to dry askew and cockled"],
+  to:   ["set it right without a word said","took the ruined leaf away to be scraped and re-used","showed the fault once, plainly, and let it be learned","re-ruled the lines and began the page afresh"],
+},
+  lifeTasks: {
+  keep:   ["fair-copied a set of standing orders in a clear chancery hand","scraped and re-sized a spoiled leaf for use again","ruled the day's lines with a lead and a straight-edge","ground fresh oak-gall ink and stoppered it against the light","copied a muster-roll clean, name for name","carried a fair sheaf of writs down to the gate for sealing","mended a pen-knife's edge on a stone kept for it","dried a finished page flat under a weighted board","sorted the good parchment from the flawed for the week's work","let the lamp down and left the last line to dry overnight","bound a day's broadsheets in a satchel for the road","read a copied page back against its original, word for word"],
+  tower:  ["fair-copied a page by the one high window's light","scraped a spoiled leaf clean over the long drop of the stair","ruled lines on a slope fitted to the tower's curve","carried ink and paper up the winding stair a careful armful at a time","copied a treatise clean, following the original up the shelf","stoppered the wells before the tower's draught could skin them","dried a page against the warm south wall of the tower","sorted supplies by the grade a mage's work would want","trimmed a quill to the fine point the small hand needed","let the candle down and left the page to the tower's quiet","bundled the finished sheets against the stair's dust","read the copy back aloud to the empty stair, catching a slip"],
+  manor:  ["fair-copied a letter in the fine hand the house is known for","scraped a spoiled leaf and set it by for lesser use","ruled the lines on the good mahogany slope","mixed a scented ink the mistress prefers for her cards","copied a receipt-book clean for the still-room","carried the day's correspondence down for the morning post","mended a lady's writing-pen with a jeweller's care","dried the finished cards flat under pressed felt","sorted the fine papers from the everyday","let the lamp down and left the copy room to the cedar-smell","tied the day's letters with a ribbon for sending","read a fair copy back against the draft, catching a name"],
+  cavern: ["fair-copied a page by lamplight in the dry rock-room","scraped a spoiled leaf clean, the damp never touching it here","ruled lines on the stone slope, cold and true","ground ink that the deep cold would not let skin over","copied an old text clean from a shelf cut in the wall","carried supplies up from the store through the carved dark","mended a pen by the steady lamp the rock keeps windless","dried a page where no cave-damp could cockle it","sorted the parchment the deep had kept perfectly dry","banked the lamp and left the page to the stone's silence","bundled the finished work against the passage-damp","read the copy back, the rock giving no echo to lose a word in"],
+  ruin:   ["fair-copied a page in a scriptorium four hundred years silent","scraped a leaf clean with a stone the old scribes left behind","ruled lines on a slope mended from the abbey's own wreck","ground ink to a recipe scratched on the wall by a dead hand","copied a text clean from a book the rot had nearly reached","carried sound paper up from a store the ivy had hidden","mended a pen with the last good knife the ruin had kept","dried a page in the one dry corner the roof still made","sorted the leaves the centuries had spared from those they hadn't","banked the lamp and left the great room to the owls at its far end","bundled the day's work where the old scribes once stacked theirs","read a copied page back and felt the company of every scribe before"],
+  grove:  ["fair-copied a page on a slope the grove grew to shape","scraped a leaf clean under the green roof, out of the rain","ruled lines by the light that came down through the leaves","ground ink from oak-galls the grove itself had dropped","copied a text clean, the wood keeping the paper dry","carried supplies in from the sheltered store an armful at a time","mended a pen with a blade kept sharp on a river-stone","dried a page in the warm patch where the sun came through","sorted the leaves the grove had kept dry from the few it hadn't","let the light fail and left the page to the wood's quiet","bundled the day's work against the next rain","read the copy back to the trees, catching a slip in the still air"],
+  vessel: ["fair-copied the ship's papers in the purser's fine hand","scraped a spoiled leaf clean over a bucket against the roll","ruled lines on the gimballed slope that held them true","stoppered the wells before the ship's motion could spill them","copied the manifest clean, item for item","carried paper and ink from the dry-store, barred against the weather","mended a pen braced against the cabin's slow heave","dried a page pinned flat where the salt air couldn't cockle it","sorted the paper the barred racks had kept dry","banked the lamp and left the page to the creak of the hull","bundled the finished papers oilskin-wrapped for port","read the copy back against the roll, holding every word"],
+  hamlet: ["fair-copied a neighbour's letter for a penny and a thank-you","scraped a spoiled leaf clean for the next who needed it","ruled the lines on the shop's one good slope","ground ink enough for the day's small commissions","copied a will clean for a family that couldn't write it","carried the day's notices out to nail up round the green","mended the shop's one good pen with the care it was owed","dried the finished letters flat under a scrubbed board","sorted the shop's few grades of paper for the morning","let the shop's lamp down and left the copying to dry","bundled the broadsheets for the boy to carry to the next village","read a copied letter back to the one who'd asked, to be sure of it"],
+},
+});
+
+
+registerFacility({
   id: "arcane_study",
+  formNames: { "arcane_study@keep": "The Sanctum Study", "arcane_study@tower": "The Mage's Ascent", "arcane_study@manor": "The Reading Room", "arcane_study@cavern": "The Rune Grotto", "arcane_study@ruin": "The Mage's Sanctum", "arcane_study@grove": "The Hedge-Wizard's Bower", "arcane_study@vessel": "The Spellwright's Cabin", "arcane_study@hamlet": "The Cunning Folk's Room" },
   roles: ["Scholar"],
   furnishings: [{ slot: "studydesk", name: "a writing desk" }, { slot: "bookshelves", name: "bookshelves", plural: true }, { slot: "tools_carve", name: "a woodcarver's set for shaping wands, rods, and staves", srd: "g_tool_woodcarver" }, { slot: "tools_jewel", name: "a jeweler's kit for rings, orbs, amulets, and crystal foci", srd: "g_tool_jeweler" }],
   furnishingWeight: { studydesk: 4, bookshelves: 3 },
@@ -488,6 +768,7 @@ registerFacility({
 // is in each house, who keeps it, and the week it has when nobody is looking.
 registerFacility({
   id: "observatory",
+  formNames: { "observatory@keep": "The Star Tower", "observatory@tower": "The Astronomer's Crown", "observatory@manor": "The Orrery Room", "observatory@cavern": "The Skyshaft", "observatory@ruin": "The Astrologer's Spire", "observatory@grove": "The Star Clearing", "observatory@vessel": "The Crow's Nest", "observatory@hamlet": "The Hilltop Glass" },
   roles: ["Stargazer"],
   furnishings: [{ slot: "telescope", name: "the telescope" }, { slot: "starcharts", name: "star-charts and tables of motion", plural: true }],
   furnishingWeight: { telescope: 5, starcharts: 3 },
@@ -565,6 +846,7 @@ registerFacility({
 // not a study but a VAULT OF MEMORY, and its second slot is the door itself.
 registerFacility({
   id: "archive",
+  formNames: { "archive@keep": "The Muniment Room", "archive@tower": "The Codex Vault", "archive@manor": "The Library Study", "archive@cavern": "The Deep Stacks", "archive@ruin": "The Athenaeum", "archive@grove": "The Bindery Bower", "archive@vessel": "The Chart Room", "archive@hamlet": "The Parish Records" },
   roles: ["Archivist"],
   furnishings: [{ slot: "stacks", name: "the record-stacks", plural: true }, { slot: "archivedoor", name: "the locked door" }],
   furnishingWeight: { stacks: 4, archivedoor: 3 },
@@ -708,6 +990,7 @@ registerFacility({
 
 registerFacility({
   id: "storage",
+  formNames: { "storage@keep": "The Stores", "storage@tower": "The Under-Stair", "storage@manor": "The Pantry \u0026 Cellar", "storage@cavern": "The Deep Store", "storage@ruin": "The Old Cellar", "storage@grove": "The Root-Store", "storage@vessel": "The Hold", "storage@hamlet": "The Larder" },
   furnishings: [{ slot: "racking", name: "shelving" }, { slot: "crates", name: "crates and barrels", plural: true }],
   roles: ["Cellarer", "Porter"],
   staffBySize: { cramped: 0, roomy: 1, vast: 1 },
@@ -778,6 +1061,7 @@ registerFacility({
 
 registerFacility({
   id: "kitchen",
+  formNames: { "kitchen@keep": "The Keep Kitchen", "kitchen@tower": "The Cook-Room", "kitchen@manor": "The Great Kitchen", "kitchen@cavern": "The Hearth-Cave", "kitchen@ruin": "The Old Kitchen", "kitchen@grove": "The Cook-Fire", "kitchen@vessel": "The Galley", "kitchen@hamlet": "The Farmhouse Kitchen" },
   furnishings: [{ slot: "cookfire", name: "a cooking hearth" }, { slot: "worktable", name: "a work table" }, { slot: "pots", name: "pots and pans", plural: true, srd: "g_tool_cook" }],
   roles: ["Cook", "Scullion", "Potboy"],
   staffBySize: { cramped: 1, roomy: 2, vast: 3 },
@@ -849,6 +1133,7 @@ registerFacility({
 
 registerFacility({
   id: "courtyard",
+  formNames: { "courtyard@keep": "The Bailey", "courtyard@tower": "The Tower Yard", "courtyard@manor": "The Forecourt", "courtyard@cavern": "The Great Cavern", "courtyard@ruin": "The Broken Court", "courtyard@grove": "The Clearing", "courtyard@vessel": "The Main Deck", "courtyard@hamlet": "The Town Green" },
   furnishings: [{ slot: "benches", name: "benches", plural: true }, { slot: "well", name: "a well" }],
   furnishingWeight: { benches: 6, well: 7 },
   furnishingLadder: {
@@ -917,6 +1202,7 @@ registerFacility({
 
 registerFacility({
   id: "parlor",
+  formNames: { "parlor@keep": "The Solar", "parlor@tower": "The Sitting Floor", "parlor@manor": "The Drawing Room", "parlor@cavern": "The Warm Hollow", "parlor@ruin": "The Mended Parlor", "parlor@grove": "The Green Nook", "parlor@vessel": "The Day-Cabin", "parlor@hamlet": "The Sitting Room" },
   furnishings: [{ slot: "seats", name: "chairs by the hearth", plural: true }, { slot: "hearth", name: "a hearth" }],
   furnishingWeight: { seats: 2, hearth: 8 },
   furnishingLadder: {
@@ -985,6 +1271,7 @@ registerFacility({
 
 registerFacility({
   id: "dining",
+  formNames: { "dining@keep": "The Great Hall", "dining@tower": "The Dining Floor", "dining@manor": "The Dining Room", "dining@cavern": "The Feasting Cavern", "dining@ruin": "The Old Hall", "dining@grove": "The Feasting Glade", "dining@vessel": "The Mess", "dining@hamlet": "The Common Room" },
   furnishings: [{ slot: "table", name: "a dining table" }, { slot: "chairs", name: "chairs enough for company", plural: true }],
   furnishingWeight: { table: 4, chairs: 2 },
   furnishingLadder: {
@@ -1053,6 +1340,7 @@ registerFacility({
 
 registerFacility({
   id: "bedroom",
+  formNames: { "bedroom@keep": "The Lord's Chamber", "bedroom@tower": "The Tower Room", "bedroom@manor": "The Bedchamber", "bedroom@cavern": "The Sleeping Hollow", "bedroom@ruin": "The Kept Room", "bedroom@grove": "The Bower", "bedroom@vessel": "The Cabin", "bedroom@hamlet": "The Cottage Room" },
   furnishings: [{ slot: "bed", name: "a bed" }, { slot: "chest", name: "a clothes chest" }],
   furnishingWeight: { bed: 4, chest: 3 },
   furnishingLadder: {

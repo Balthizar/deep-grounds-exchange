@@ -1,4 +1,5 @@
 import { todayLocal, rawEntries } from "../lib/util";
+import { CATALOG } from "../data/catalog";
 import { bForm } from "../lib/rules";
 import { bastionEligible, isAdmin } from "../lib/rules";
 
@@ -17,7 +18,7 @@ export const BASTION_ACTION_NAMES: readonly string[] = [
   "BUILD_BASTION_WALLS", "ENLARGE_BASTION_FACILITY", "LOG_BASTION_NEGLECT", "PROPOSE_BASTION_COMBINE",
   "RAZE_BASTION", "REBUILD_FACILITY", "REFURNISH", "REMOVE_FACILITY_FURNISHING",
   "RENAME_FACILITY_HENCHMAN", "RESOLVE_BASTION_TURNS", "RESPOND_BASTION_COMBINE", "SELL_FURNISHING",
-  "SET_ARCHIVE_BOOK",
+  "SET_ARCHIVE_BOOK", "SET_SCRIPTORIUM_SCRIBE", "SET_WORKSHOP_TOOLS",
   "SET_BASTION_FORM", "SET_BASTION_MAP", "SET_BASTION_PENDING_EVENT", "SET_BASTION_REGION",
   "SET_FACILITY_DESCRIPTION", "SET_FACILITY_IMAGE", "SET_FURNISHING_NOTE", "TAKE_BASTION_TURN",
   "UNCOMBINE_BASTIONS", "UPGRADE_FURNISHING",
@@ -260,6 +261,50 @@ export function bastionActions(s: any, action: any, dropNotice: (p: any) => void
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: todayLocal(), dtSpent: 0, gpSpent: 0,
         spentOn: "Archive \u2014 reference book shelved: " + title,
         flavor: "One rare copy, chosen once (" + (ARCHIVE_BOOK_SUBJECT_LABEL[action.subject] || action.subject) + "). Its study benefit is the DM's to grant while you and the book are home." });
+      return s;
+    }
+    case "SET_WORKSHOP_TOOLS": {
+      // The Workshop's six-tool choice (DMG: "chosen when you added the Workshop"). The player picks
+      // exactly 6 artisan's tools from the list of 11; the gear craft then derives across those six.
+      // Stored on the facility as chosenTools. AL-faithful: exactly 6, all from the DMG's list, no
+      // duplicates — the reducer rejects any other selection structurally.
+      const ch = s.characters[action.charId];
+      if (!ch || !ch.bastion || ch.ownerId !== action.by) return s;
+      const fac = ch.bastion.facilities.find((f) => f.id === action.facId);
+      if (!fac || fac.defId !== "workshop") return s;
+      const def = BASTION_FACILITIES.workshop;
+      const allowed = ((def as any).toolChoice && (def as any).toolChoice.from) || [];
+      const want = ((def as any).toolChoice && (def as any).toolChoice.count) || 6;
+      const picked: string[] = Array.isArray(action.tools) ? [...new Set(action.tools as string[])] : [];
+      if (picked.length !== want) return s;                          // exactly six
+      if (!picked.every((t: string) => allowed.includes(t))) return s;  // all from the DMG list
+      (fac as any).chosenTools = picked;
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: todayLocal(), dtSpent: 0, gpSpent: 0,
+        spentOn: "Workshop — fitted out with " + picked.map((t: string) => (CATALOG[t] || {}).name || t).join(", "),
+        flavor: "The six tools you chose set what the workshop can make: its hirelings craft anything these tools can make, per the Player's Handbook." });
+      return s;
+    }
+    case "SET_SCRIPTORIUM_SCRIBE": {
+      // The scribe choice (Frank, 28 Jul). When the Scriptorium is built, the player picks between
+      // two candidate scribes (generated named people); the chosen one takes the desk, and their
+      // CLASS gates the scroll pool (Novice Mage → Wizard, Acolyte → Cleric). The choice is a real
+      // hire — it renames and re-roles the posted hireling and stamps scribeClass on them, which the
+      // scroll craft reads. AL ships two classes (both subsets of the DMG's "Cleric or Wizard").
+      const ch = s.characters[action.charId];
+      if (!ch || !ch.bastion || ch.ownerId !== action.by) return s;
+      const fac = ch.bastion.facilities.find((f) => f.id === action.facId);
+      if (!fac || fac.defId !== "scriptorium") return s;
+      const def = BASTION_FACILITIES.scriptorium;
+      const pick = ((def as any).scribeClasses || []).find((c: any) => c.id === action.scribeId);
+      if (!pick) return s;                                              // must be a declared scribe class
+      const scribe = (fac.henchmen || [])[0];
+      if (!scribe) return s;
+      scribe.name = (action.name && String(action.name).trim()) || scribe.name;
+      scribe.role = pick.role;
+      (scribe as any).scribeClass = pick.cls;                           // the pool-gating fact
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: todayLocal(), dtSpent: 0, gpSpent: 0,
+        spentOn: "Scriptorium — took on " + scribe.name + ", " + pick.label,
+        flavor: "The scribe you hired sets the hand the room writes in: a " + pick.label + " scribes " + pick.cls + " spell scrolls (3rd level or lower)." });
       return s;
     }
     case "SET_BASTION_REGION": {

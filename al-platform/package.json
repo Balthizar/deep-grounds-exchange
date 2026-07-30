@@ -15,7 +15,7 @@
     "test:behaviour": "node harness/behaviour.cjs",
     "test:minified": "node harness/behaviour.cjs --minified",
     "generate": "node scripts/gen-srd.mjs",
-    "check": "tsc -b && npm run lint && npm run check:actions && npm run check:generated && npm run check:conformance && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:reachability && npm run test:antiliteral && npm run test:transitions && npm run test:sampler && npm run test:render && vite build && npm run check:coverage",
+    "check": "tsc -b && npm run test:self && npm run lint && npm run check:actions && npm run check:generated && npm run check:conformance && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:reachability && npm run test:antiliteral && npm run test:transitions && npm run test:sampler && npm run test:render && npm run test:facilities && vite build && npm run check:coverage",
     "test:immutable": "node harness/immutability.cjs",
     "check:generated": "node harness/check_generated.cjs",
     "test:transitions": "node harness/transitions.cjs",
@@ -27,7 +27,12 @@
     "antiliteral": "node harness/anti_literal.cjs",
     "test:antiliteral": "node harness/anti_literal.cjs",
     "test:sampler": "node harness/sampler.cjs",
-    "test:reachability": "node harness/reachability.cjs"
+    "test:reachability": "node harness/reachability.cjs",
+    "test:facilities": "node harness/facility_mint.cjs --minted",
+    "facilities": "node harness/facility_mint.cjs --status",
+    "test:self": "node harness/self_check.cjs",
+    "report": "node harness/report.cjs",
+    "next": "node harness/next.cjs"
   },
   "dependencies": {
     "react": "^19.2.7",

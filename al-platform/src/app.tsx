@@ -25,7 +25,7 @@ import { CommunityView, LicenseModal, ModuleEditModal, ModuleModal, OrgEditModal
 import { CompleteSessionModal, DMDeskView, DMLogModal, EscalationModal, EventBuildModal, EventManageModal, LogEntryModal, LogModal, LogSheetModal, MentorOfferCard, MessageModal, MonitorReportModal, ObserverLogModal, ObserverPrompt, ProvTablePrompt, ProvTableProposalCard, ProvTableProposeModal, SessionModal, SessionsView, happeningDue } from "./sessions/ui";
 import { DisposalModal, InspectModal, MarketModal, MarketView, ProposeModal, ReqAuthModal, WishModal, WorkbenchModal, findInterest, findMatches, findSoftMatches } from "./market/ui";
 import { AccountView, CharEditModal, CharModal, HeroHallModal, PregenModal, PregenTransferModal, ProfileView, RetireDiaryModal, RetirementView } from "./player/ui";
-import { BastionAlerts, BastionBuildModal, BastionView, FacilityDetailModal, FurnishingModal, RuinModal, useNow } from "./bastion/ui";
+import { BastionAlerts, BastionBuildModal, BastionView, FacilityDetailModal, FurnishingModal, HirelingModal, RuinModal, useNow } from "./bastion/ui";
 import { itemActions } from "./reducer/items";
 import { playActions } from "./reducer/play";
 import { characterActions } from "./reducer/characters";
@@ -35,7 +35,6 @@ import { isModuleAuthor } from "./lib/play";
 import { consumableUnitCount, isDMRole, orgsOfAccount, provOf, isDeactivated, isSuspended, invalidateItemIndex, retargetItemIndex, isAdmin, orgTabsFor, orgsManagedBy } from "./lib/rules";
 import { FACILITY_BEHAVIOR } from "./bastion/registry";
 import SPELLS from "./data/srd/spells.json";
-import MUNDANE_GEAR from "./data/srd/mundane_gear.json";
 import { CATALOG } from "./data/catalog";
 import { IMPLEMENTS, ARMAMENTS, ARCANA, RELICS } from "./data/magic_tables";
 
@@ -53,79 +52,8 @@ declare module "react" {
    in-memory only. Every flow from the build spec is clickable.
    ============================================================ */
 
-// ================================================================================================
-//  THE MERGE. Future me: this was `Object.assign(CATALOG, MUNDANE_GEAR)` and it REPLACED rows wholesale.
-//
-//  In my pointer architecture there is exactly one way to corrupt everything at once: an unguarded
-//  write to the pointee. My items store a catalogId and nothing else — no name, no rarity, no
-//  weight — so a row that changes here doesn't drift, it mutates RETROACTIVELY. Every item that
-//  ever pointed at it, and every log entry that ever minted one, silently means something new.
-//
-//  I let that happen. `arrows20` is defined twice: hand-written above as ammunition, and again in
-//  my generated SRD 5.2 block. Object.assign let the generated row win, and the id survived while
-//  the MEANING died:
-//        itemType "ammunition" -> "gear"   ·   props ["ammunition"] -> gone   ·   desc, weight gone
-//  which made `consumableUnitCount`'s ALPG rule — magic ammunition counts one per 5 shots, rounded
-//  up — UNREACHABLE, because it keys on itemType === "ammunition" and no row had it any more. A
-//  live carry-limit rule from my compliance stack, dead, under 1,860 green assertions. I had
-//  nothing comparing a row's meaning before the merge against its meaning after. Now I do.
-//
-//  make_srd_gear.py's own contract says it corrects "names/costs/weights to 5.2" and PRESERVES
-//  ids. Object.assign can't express that — it can only replace. So this implements the contract
-//  my generator already promised: it owns exactly the fields it claims, and nothing else.
-//
-//  WHITELIST, NOT BLACKLIST. An UNDECLARED collision throws at load. A declared one merges. A new
-//  clash can't sneak in the way this one did on me — and my SRD 5.1 backfill is about to pull
-//  another ~50 rows through this exact seam. That's why you're reading this warning, future me.
-const GENERATOR_OWNS = ["name", "gp"];   // exactly what the generator claims to correct
-// "lb" left this list with Frank's Q22 ruling (26 Jul): the generator no longer emits weight at
-// all. Nothing read it. The 14 hand-written CATALOG rows keep their own `weight` STRING, which the
-// market inspector does render — that field is untouched here and is not the generator's to own.
-const CATALOG_COLLISIONS = {
-  arrows20: "Hand-written as ammunition. itemType/props/desc drive consumableUnitCount's ALPG " +
-            "one-per-5-shots rule and the isAmmo item card; SRD 5.2 owns only its name, cost and " +
-            "weight. The generator renames 'Arrows (20)' -> 'Arrows' (5.2's wording, read out of " +
-            "the SRD, not recalled) and prices it at 1 GP.",
-};
-for (const [gid, row] of Object.entries(MUNDANE_GEAR)) {
-  if (!CATALOG[gid]) { CATALOG[gid] = row; continue; }
-  if (!CATALOG_COLLISIONS[gid]) {
-    throw new Error(
-      'CATALOG collision: the generated MUNDANE_GEAR block would overwrite the hand-written "' +
-      gid + '". IDS ARE FOREVER (see make_srd_gear.py), so the id is not the problem — the silent ' +
-      'replacement is. Declare it in CATALOG_COLLISIONS with a reason, or give one of them a new id.'
-    );
-  }
-  const kept = CATALOG[gid];
-  const merged = { ...kept };
-  for (const f of GENERATOR_OWNS) if (row[f] !== undefined) merged[f] = row[f];
-  merged.srd = true;
-  merged.mundane = true;
-  CATALOG[gid] = merged;
-}
-// ================================================================================================
-// GENERIC SPELL-SCROLL CATALOGUE — one row per level (scroll_L0..L9), out of make_srd_lists.py.
-// The spell a scroll bears is INSTANCE data ({ spellId, spellName } on the item via mkItem's
-// extra), not a catalogue row — so ten rows serve all 339 spells and my p10_ledger "one label per
-// catalogId" invariant never strains. All ids are new; a collision here is a real bug, so I throw
-// like the merge above instead of assigning silently.
-const SCROLL_CATALOG = {
-  scroll_L0: { id: "scroll_L0", name: "Spell Scroll (Cantrip)", srd: true, rarity: "common", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 0, desc: "A spell scroll bearing a cantrip spell, named by its scribe." },
-  scroll_L1: { id: "scroll_L1", name: "Spell Scroll (Level 1)", srd: true, rarity: "common", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 1, desc: "A spell scroll bearing a level 1 spell, named by its scribe." },
-  scroll_L2: { id: "scroll_L2", name: "Spell Scroll (Level 2)", srd: true, rarity: "uncommon", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 2, desc: "A spell scroll bearing a level 2 spell, named by its scribe." },
-  scroll_L3: { id: "scroll_L3", name: "Spell Scroll (Level 3)", srd: true, rarity: "uncommon", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 3, desc: "A spell scroll bearing a level 3 spell, named by its scribe." },
-  scroll_L4: { id: "scroll_L4", name: "Spell Scroll (Level 4)", srd: true, rarity: "rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 4, desc: "A spell scroll bearing a level 4 spell, named by its scribe." },
-  scroll_L5: { id: "scroll_L5", name: "Spell Scroll (Level 5)", srd: true, rarity: "rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 5, desc: "A spell scroll bearing a level 5 spell, named by its scribe." },
-  scroll_L6: { id: "scroll_L6", name: "Spell Scroll (Level 6)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 6, desc: "A spell scroll bearing a level 6 spell, named by its scribe." },
-  scroll_L7: { id: "scroll_L7", name: "Spell Scroll (Level 7)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 7, desc: "A spell scroll bearing a level 7 spell, named by its scribe." },
-  scroll_L8: { id: "scroll_L8", name: "Spell Scroll (Level 8)", srd: true, rarity: "very rare", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 8, desc: "A spell scroll bearing a level 8 spell, named by its scribe." },
-  scroll_L9: { id: "scroll_L9", name: "Spell Scroll (Level 9)", srd: true, rarity: "legendary", itemType: "scroll", category: "Scroll", consumable: true, weight: "\u2014", props: ["scroll"], spellLevel: 9, desc: "A spell scroll bearing a level 9 spell, named by its scribe." },
-};
-for (const [sid, row] of Object.entries(SCROLL_CATALOG)) {
-  if (CATALOG[sid]) throw new Error('CATALOG collision on generic scroll "' + sid + '" — scroll_L* ids are reserved for the generated scroll catalogue.');
-  CATALOG[sid] = row;
-}
-// ================================================================================================
+// CATALOG merge (mundane gear + generic scrolls) now lives in data/catalog.ts, so CATALOG is
+// complete on import for every consumer (moved 29 Jul — it was a load-order side effect here).
 
 // DMG, Archive > Reference Book: "Your Archive contains one copy of a rare and valuable reference
 // book, which gives you a benefit while YOU AND THE BOOK ARE IN YOUR BASTION. You can choose one of
@@ -600,6 +528,7 @@ function Modal({ modal, state, dispatch, close, accountId, setTab, setModal }: {
         {modal.kind === "confirm" && <ConfirmModal modal={modal} dispatch={dispatch} close={close} />}
         {modal.kind === "retirediary" && <RetireDiaryModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} />}
         {modal.kind === "ruin" && <RuinModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} close={close} />}
+        {modal.kind === "hireling" && <HirelingModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} close={close} />}
         {modal.kind === "license" && <LicenseModal modal={modal} state={state} accountId={accountId} dispatch={dispatch} close={close} />}
       </div>
       <footer className="dg-fcp">{"The Deep Grounds Exchange is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. \u00a9Wizards of the Coast LLC."}{" "}SRD 5.1/5.2.1 content is used under CC-BY-4.0.</footer>

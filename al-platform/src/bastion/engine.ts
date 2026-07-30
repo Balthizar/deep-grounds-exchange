@@ -238,7 +238,7 @@ import { pick } from "../lib/util";
 import { catName, itemCat, itemClassOf, mkItem, verified, d6, d6x100, evHostility, evIsHostile, BATTLE_BEAT_SEC, BATTLE_JITTER } from "../lib/core";
 import { CATALOG } from "../data/catalog";
 import type { AppState, Facility, Bastion } from "../types";
-import { ARCHIVE_BOOK_SUBJECT_LABEL, composeArchiveTitle, rollLoreTopic, BASTION_ALL_IS_WELL, BASTION_ATTACK_DICE, BASTION_ATTACK_DICE_RAID, BASTION_ATTACK_DICE_WALLED, BASTION_BARRACKS_CAP, BASTION_BEDS_BY_SIZE, BASTION_CRAFT_ITEM, BASTION_EVENTS, BASTION_FACILITIES, BASTION_FACILITY_DAYS, BASTION_FOUND_COIN, BASTION_ORDERS, BASTION_ORDER_FLAVOR, BASTION_PREREQS, BASTION_QUIET_FLAVOR, BASTION_SIZES, BASTION_SIZE_MULT, BASTION_SLICE_OF_LIFE, BASTION_TRADE_INCOME, BASTION_TURN_DT, DEFENDER_ROLES, ARMORY_KIT_BY_FORM, FAC_MAGIC_GROUP, FURNISHING_TIERS } from "../data/bastion";
+import { ARCHIVE_BOOK_SUBJECT_LABEL, composeArchiveTitle, composeLibraryTitle, composeLibraryParagraph, librarySubjectFor, anyLibrarySubject, rollLoreTopic, BASTION_ALL_IS_WELL, BASTION_ATTACK_DICE, BASTION_ATTACK_DICE_RAID, BASTION_ATTACK_DICE_WALLED, BASTION_BARRACKS_CAP, BASTION_BEDS_BY_SIZE, BASTION_CRAFT_ITEM, BASTION_EVENTS, BASTION_FACILITIES, BASTION_FACILITY_DAYS, BASTION_FOUND_COIN, BASTION_ORDERS, BASTION_ORDER_FLAVOR, BASTION_PREREQS, BASTION_QUIET_FLAVOR, BASTION_SIZES, BASTION_SIZE_MULT, BASTION_SLICE_OF_LIFE, BASTION_TRADE_INCOME, BASTION_TURN_DT, DEFENDER_ROLES, ARMORY_KIT_BY_FORM, FAC_MAGIC_GROUP, FURNISHING_TIERS } from "../data/bastion";
 import { BASTION_LIFE_TASKS, FACILITY_REACTIONS, HENCH_FIRST, HENCH_LAST, facEstablishment, furnTierIndex, furnishFacility, furnishingName, furnishingValue, hirelingLossReason, restockFacilitySlots, staffFacility } from "../bastion/registry";
 import type { BastionOrder, BastionTurn, CharacterRecord } from "../types";
 import { EVENT_CAST } from "../data/events";
@@ -896,10 +896,28 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
       // FRANK (25 Jul): a player who thinks a book is cool can take it home. The mintable is an
       // OBJECT beside the prose — the UI offers the click, MINT_BOOK_ITEM does the shelving. The
       // wiki link rides the TOPIC (canon, our reference of record), never the title (fiction).
-      t.mintables = (t.mintables || []).concat([{ title: vol, topic: topic, wiki: "https://forgottenrealms.fandom.com/wiki/Special:Search?query=" + encodeURIComponent(topic) }]);
+      t.mintables = (t.mintables || []).concat([{ title: vol, topic: topic, defId: "archive", size: fac ? fac.size : "roomy", wiki: "https://forgottenrealms.fandom.com/wiki/Special:Search?query=" + encodeURIComponent(topic) }]);
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
         spentOn: ((ch.bastion && ch.bastion.name) || "The keep") + " \u2014 Archive: Research" + (topic ? " (" + topic + ")" : ""),
         flavor: "Knowledge as if Legend Lore had been cast \u2014 the pointer is the record; the telling is the table's." });
+    } else if (fac && fac.defId === "library") {
+      // DMG, Library > Research: Topical Lore — 7 days; the hireling researches a topic (a legend,
+      // event, location, person, creature, or famous object) and "obtains up to three accurate pieces
+      // of information about the topic that were previously unknown to you," shared next time you
+      // speak. The DM determines what is learned. The mintable Library book CONTAINS those three
+      // facts as a stitched, sourced paragraph (Frank, 29 Jul) — that's the whole difference from an
+      // Archive book, which carries only a wiki pointer. If a deep subject matches the topic, the
+      // book is written from its sourced d-table; otherwise the book is titled but its facts are the
+      // DM's to speak (graceful fallback, faithful to "the DM determines what you learn").
+      const subj = librarySubjectFor(topic) || (!topic ? anyLibrarySubject(mkRng(((ch.bastion && ch.bastion.id) || "b") + ":" + fac.id + ":libsub:" + t.n)) : null);
+      const trng = mkRng(((ch.bastion && ch.bastion.id) || "b") + ":" + fac.id + ":libtitle:" + t.n);
+      const tt = composeLibraryTitle(trng, subj ? subj.label : (topic || "the collection"), (bForm(ch.bastion) || {}).id || "keep");
+      const para = subj ? composeLibraryParagraph(trng, subj, tt.genre) : "";
+      t.benefits.push("\ud83d\udcda Research \u2014 Topical Lore: seven days at the reading-desks" + (topic ? " on the matter of " + topic : "") + ", and " + nm + " has three accurate things you did not know, to tell you when next you speak (DMG; the DM decides what is learned). The volume most thumbed: \u00ab" + tt.title + "\u00bb." + (para ? " Its three findings are set down inside it." : ""));
+      t.mintables = (t.mintables || []).concat([{ title: tt.title, topic: topic || (subj ? subj.label : "the library's collection"), paragraph: para || null, defId: "library", size: fac ? fac.size : "roomy" }]);
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
+        spentOn: ((ch.bastion && ch.bastion.name) || "The keep") + " \u2014 Library: Research" + (topic ? " (" + topic + ")" : ""),
+        flavor: "Topical Lore: up to three accurate, previously-unknown facts \u2014 the pointer is the record; the DM determines and tells the lore." });
     } else {
       t.benefits.push("\ud83d\udcdc Research \u2014 " + nm + " spent the week in study" + (topic ? " on " + topic : "") + "; what was learned is theirs to share when you next speak.");
     }
@@ -948,6 +966,100 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
   if (ord.producesItem) {
     const def = BASTION_FACILITIES[fac ? fac.defId : ""];
     const chosen = bOutputs(def, o.orderId).find((c) => c.id === o.outId);
+    // SCRIPTORIUM — Spell Scroll. DMG-faithful: the facility's SCRIBE supplies the Calligrapher's
+    // Supplies and meets the prerequisites, so the PC needn't carry tools or be a caster. The scribe's
+    // CLASS gates the pool (chosen at hire: Novice Mage → Wizard, Acolyte → Cleric). ALPG line 135:
+    // scribed at the spell's BASE level only, 3rd or lower here. Minted as an UNFILLED scroll slot —
+    // the goat names the spell (from the scribe's class list, ≤maxLevel), a DM verifies — same door as
+    // every other "the text isn't mine" output. The scribe's class is read from the staffed hireling.
+    // TOOLKIT-DERIVED MUNDANE CRAFT (Smithy's "anything smith's tools can make", etc.). The DMG:
+    // "the facility's hirelings craft anything that can be made with Smith's Tools." So the output is
+    // not a fixed item — it's whatever the TOOL can make (g_tool_smith carries the concrete items and
+    // the category rules). Minted as an unfilled slot: the goat names the specific thing from the
+    // tool's list, a DM verifies it against that list. Same door as every "the list is data, the
+    // choice is the player's" output. No GP here — mundane smithing cost is the base gear's own price,
+    // settled at verification.
+    // WORKSHOP — gear from its SIX CHOSEN tools. Same slot-mint as a single-tool facility, but the
+    // makeable set is the UNION across the facility's chosenTools (set at build via SET_WORKSHOP_TOOLS).
+    // If the six haven't been chosen yet, there's nothing to derive from — prompt the choice.
+    if (chosen && chosen.toolChoice) {
+      const chosenTools = (fac && (fac as any).chosenTools) || [];
+      if (!chosenTools.length) {
+        t.benefits.push(ord.name + ": the workshop hasn't been fitted with its tools yet \u2014 choose its six artisan's tools first.");
+        t.prompt = "The " + (def && def.name ? def.name.toLowerCase() : "workshop") + " has benches but no tools chosen. Which six artisan's tools does it hold?";
+        return;
+      }
+      const maker = bastionMaker(fac, ch);
+      if (!s.itemSlots) s.itemSlots = {};
+      const sid = "slot" + s.nextId++;
+      s.itemSlots[sid] = { id: sid, charId: ch.id, ownerId: ch.ownerId, table: "toolset", rarity: "mundane",
+        status: "UNFILLED", rolledAt: t.date, entered: null, itemId: null, cat: "Gear", sub: "workshop",
+        label: (chosen.label || "Adventuring gear") + " (name the item; a DM verifies it against the workshop's chosen tools)",
+        roll: null, via: "toolset", tools: chosenTools, facId: fac ? fac.id : null,
+        facName: (def && def.name) || "the workshop", maker };
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
+        spentOn: ch.bastion!.name + " \u2014 Workshop: adventuring gear (to be named)",
+        flavor: "DMG Workshop (Craft: Adventuring Gear): the hirelings craft anything the workshop's six chosen tools can make, per the PHB. Name the item and a DM verifies it against those tools; the base gear's own price is settled at verification." });
+      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker + ". Name what you had made (anything the workshop's chosen tools can make) and a DM verifies it.");
+      return;
+    }
+    if (chosen && chosen.tool) {
+      const maker = bastionMaker(fac, ch);
+      if (!s.itemSlots) s.itemSlots = {};
+      const sid = "slot" + s.nextId++;
+      s.itemSlots[sid] = { id: sid, charId: ch.id, ownerId: ch.ownerId, table: "tool:" + chosen.tool, rarity: "mundane",
+        status: "UNFILLED", rolledAt: t.date, entered: null, itemId: null, cat: "Gear", sub: chosen.tool,
+        label: (chosen.label || "Tool-made gear") + " (name the item; a DM verifies it against the tool's list)",
+        roll: null, via: "tool", tool: chosen.tool, facId: fac ? fac.id : null,
+        facName: (def && def.name) || "the workshop", maker };
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
+        spentOn: ch.bastion!.name + " \u2014 " + ((def && def.name) || "Craft") + ": tool-made gear (to be named)",
+        flavor: "DMG: the facility's hirelings craft anything that can be made with these tools. Name the item you had made and a DM verifies it against the tool's list; the base gear's own price is settled at verification." });
+      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker + ". Name what you had made (anything these tools can make) and a DM verifies it against the tool's list.");
+      return;
+    }
+    if (chosen && chosen.scroll) {
+      const scribe = (fac && (fac.henchmen || [])[0]) || null;
+      const scls = (scribe && (scribe as any).scribeClass) || null;   // set at hire (SET_SCRIPTORIUM_SCRIBE)
+      if (!scls) {
+        t.benefits.push(ord.name + ": no scribe is posted to say whose hand and class would scribe the scroll — hire a scribe first.");
+        t.prompt = "The " + (def && def.name ? def.name.toLowerCase() : "room") + " has the supplies but no scribe posted. Who takes the desk?";
+      } else {
+        const maker = bastionMaker(fac, ch);
+        if (!s.itemSlots) s.itemSlots = {};
+        const sid = "slot" + s.nextId++;
+        const maxL = chosen.maxLevel || 3;
+        s.itemSlots[sid] = { id: sid, charId: ch.id, ownerId: ch.ownerId, table: "scroll", rarity: "common",
+          status: "UNFILLED", rolledAt: t.date, entered: null, itemId: null, cat: "Scroll", sub: scls,
+          label: "A " + scls + " Spell Scroll, level " + maxL + " or lower (name the spell; a DM verifies)",
+          roll: null, via: "scribe", scribeClass: scls, maxLevel: maxL, facId: fac ? fac.id : null,
+          facName: (def && def.name) || "the Scriptorium", maker };
+        s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
+          spentOn: ch.bastion!.name + " — Scriptorium: a " + scls + " Spell Scroll (\u2264 level " + maxL + "; to be named)",
+          flavor: "DMG Scriptorium: the scribe supplies the Calligrapher's Supplies and meets the prerequisites. ALPG: scribed at the spell's base level. Name the spell from the scribe's class list and a DM verifies it; you pay the scroll's cost per the PHB at verification." });
+        t.benefits.push(ord.name + ": a " + scls + " Spell Scroll is on the desk \u2014 by " + maker + ". Name the spell (level " + maxL + " or lower, from the " + scls + " list) and a DM verifies it. You pay the scroll's cost at verification.");
+      }
+      return;
+    }
+    // SCRIPTORIUM — Paperwork. Up to 50 loose-leaf copies, 1 GP each, delivered within 50 miles. A
+    // pure flavor/service output — it produces no keepable item, so it resolves as a narrated benefit
+    // and a charge. The count rides o.count (defaulted); cost = perCopy * count from the PC's purse.
+    if (chosen && chosen.paperwork) {
+      const count = Math.max(1, Math.min(50, o.count || 50));
+      const cost = (chosen.perCopy || 1) * count;
+      if ((ch.gp || 0) < cost) {
+        t.benefits.push(ord.name + ": " + count + " copies would cost " + cost + " gp, not in the purse — nothing was run off.");
+        t.prompt = "The press was ready for " + count + " copies at " + cost + " gp, but the coin was short. How many can you pay for?";
+      } else {
+        ch.gp = (ch.gp || 0) - cost;
+        const maker = bastionMaker(fac, ch);
+        s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: cost,
+          spentOn: ch.bastion!.name + " — Scriptorium: " + count + " broadsheets/pamphlets",
+          flavor: "DMG Scriptorium (Craft: Paperwork): " + count + " loose-leaf copies at 1 GP each, paid from " + ch.name + "'s purse. The scribe can distribute them within 50 miles of the Bastion at no extra cost." });
+        t.benefits.push(ord.name + ": " + count + " broadsheets ran off the desk \u2014 by " + maker + " (" + cost + " gp). The scribe will carry them anywhere within fifty miles of the keep.");
+      }
+      return;
+    }
     if (chosen && chosen.magic) {
       // MY Q17 RULING (24 Jul), superseding the SRD-selector I built first. The book says "a Common
       // or an Uncommon magic item CHOSEN BY YOU from the <Group> tables in chapter 7" — the TABLES,
@@ -2151,12 +2263,26 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
     const chores: any[] = [];
     rooms.forEach((f) => {
       const pool = lifeTasksFor(f.defId, b.form); if (!pool.length) return;
-      const doer = rpick(rng, staff); const task = rpick(rng, pool);
-      chores.push(doer.name + " " + task + ".");
+      // Two-tier household (Frank, 28 Jul): a STAFFED facility (facEstablishment > 0 — the archive,
+      // smithy, workshop, or a basic with a fixed post like the kitchen's cook) is worked by ITS OWN
+      // hirelings, the same people every day. A COMMUNAL room (facEstablishment === 0 — dining hall,
+      // courtyard) has no fixed post; it's where the household mingles, so its beat is drawn from the
+      // whole household. That mingling is where cross-facility bonds form.
+      const staffed = facEstablishment(f) > 0;
       const room = (bDef(f).name || "the room").toLowerCase();
+      const doerPool = staffed ? (f.henchmen || []) : staff;
+      if (staffed && !doerPool.length) {                          // its people are gone — the room's own work goes undone
+        chores.push("The " + room + " stood unworked — nobody is posted there now.");
+        return;
+      }
+      const doer = rpick(rng, doerPool); const task = rpick(rng, pool);
+      chores.push(doer.name + " " + task + ".");
       const key = f.id + "|" + task;
+      // Reactions/warmth draw from OTHERS — for a staffed room, its own crew; for a communal room, the
+      // whole household, which is where people from different posts actually cross paths.
+      const reactPool = staffed ? (f.henchmen || []) : staff;
       if (seen[key] && conn < cap) {                             // REPEAT → reaction, signed by the reactor
-        const others = staff.filter((h) => h.id !== doer.id);
+        const others = reactPool.filter((h) => h.id !== doer.id);
         if (others.length) {
           const rt = reactionsFor(f.defId);                     // this room's reaction voice (facility table if it has one, else general)
           const r = rpick(rng, others); const rx = firstReact(r, rt); const why = whyOf(doer, rt);
@@ -2165,7 +2291,7 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
           conn++;
         }
       } else if (!seen[key] && conn < cap && rng() < 0.18) {     // CO-OCCURRENCE → warmth (occasional)
-        const others = staff.filter((h) => h.id !== doer.id);
+        const others = reactPool.filter((h) => h.id !== doer.id);
         if (others.length) {
           const mate = rpick(rng, others);
           chores.push(doer.name + " and " + mate.name + " fell to it together, " + rpick(rng, WARMTH_SAY) + ".");

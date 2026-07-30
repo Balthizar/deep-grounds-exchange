@@ -280,6 +280,8 @@ export type ActionType =
   | "SEND_TRADE_PROPOSAL"
   | "SET_AVATAR"
   | "SET_ARCHIVE_BOOK"
+  | "SET_SCRIPTORIUM_SCRIBE"
+  | "SET_WORKSHOP_TOOLS"
   | "SET_BASTION_FORM"
   | "SET_BASTION_MAP"
   | "SET_BASTION_PENDING_EVENT"
@@ -403,6 +405,7 @@ export interface FacilitySpec {
   roles?: string[];
   staffBySize?: Record<string, any>;
   furnishings?: any[];
+  formNames?: Record<string, string>;
   furnishingWeight?: Record<string, number>;
   furnishingLadder?: Record<string, any>;
   sizeFlavor?: Record<string, any>;

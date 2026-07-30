@@ -1,12 +1,12 @@
 
-import { StatRow, rarityOf } from "../lib/ui";
+import { StatRow, rarityOf, ITEM_RARITIES } from "../lib/ui";
 import { isTradeableClass, itemsInOpenTrades } from "../lib/rules";
 import { itemCat } from "../lib/core";
 
 import { CATALOG } from "../data/catalog";
 import { GIFT_KINDS, TREASURE_ALLOWANCE, dmOrgList, storesOf } from "../lib/rules";
 import { StorePicker, getBlob, itemMetaLine } from "../lib/ui";
-import { TABLE_COUNT, orgPrescheduleById, tablesOn } from "../lib/play";
+import { TABLE_COUNT, orgPrescheduleById, tablesOn, hasPlayedUnder } from "../lib/play";
 import { isMundaneCat, orgRec, putBlob } from "../lib/core";
 import { ACCOUNTS, accName, catName } from "../lib/core";
 import { ADVENTURES, ADV_BY_ID } from "../data/adventures";
@@ -154,6 +154,134 @@ export function pendingVerifications(state: AppState, acct) {
     }
   });
   return out;
+}
+
+// DM AWARD-ITEM screen (28 Jul). The reachability worklist's SUBMIT_DM_ITEM: a DM records an item
+// they awarded to a character at their own table. The character list is DERIVED — only characters
+// who have actually played under this DM are eligible, so a DM can't mint an item onto a stranger.
+// A certified DM's entry self-certifies (APPROVED); a provisional DM's routes to their mentor.
+export function DMAwardItem({ state, dispatch, accountId }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const [charId, setCharId] = useState("");
+  const [name, setName] = useState("");
+  const [rarity, setRarity] = useState("");
+  const [adventure, setAdventure] = useState("");
+  const [base, setBase] = useState("");
+  const [notes, setNotes] = useState("");
+  const [date, setDate] = useState("");
+  const [done, setDone] = useState(false);
+  // Rolled-slot state — declared here with the rest so every hook runs before any early return
+  // (rules of hooks: hooks must be called in the same order on every render).
+  const [slotChar, setSlotChar] = useState("");
+  const [slotTable, setSlotTable] = useState("armaments");
+  const [slotRarity, setSlotRarity] = useState("uncommon");
+  const [rolled, setRolled] = useState(false);
+
+  // Only characters who have sat at one of this DM's tables. Owner-of-record is the character's
+  // player; the DM awards to the character, not the account.
+  const eligible = Object.values(state.characters).filter(
+    (c: any) => (!c.status || c.status === "active") && hasPlayedUnder(state, c.ownerId, accountId)
+  );
+  const isProv = provOf(state, accountId) === "provisional-dm";
+  const hasMentor = !!(state.mentors && state.mentors[accountId]);
+
+  if (!(state.roles[accountId] || []).includes("dm")) return null;
+
+  const submit = () => {
+    if (!charId || !name.trim()) return;
+    dispatch({ type: "SUBMIT_DM_ITEM", by: accountId, charId, name: name.trim(), rarity: rarity.trim(),
+               adventure: adventure.trim(), base: base.trim(), notes: notes.trim(), date });
+    setName(""); setRarity(""); setAdventure(""); setBase(""); setNotes(""); setDate(""); setCharId("");
+    setDone(true); setTimeout(() => setDone(false), 2500);
+  };
+
+  // A rolled TYPED slot: instead of a named item, the DM grants "an <rarity> item from <table>",
+  // and the player fills it from their own books later (a DM then verifies the fill). This is the
+  // ROLL_ITEM_SLOT path — the reward is a slot, not a finished item.
+  const grantSlot = () => {
+    if (!slotChar) return;
+    dispatch({ type: "ROLL_ITEM_SLOT", charId: slotChar, by: accountId, table: slotTable, rarity: slotRarity,
+               label: slotRarity + " · " + slotTable });
+    setSlotChar(""); setRolled(true); setTimeout(() => setRolled(false), 2500);
+  };
+
+  return (
+    <div className="dg-panel">
+      <div className="dg-panel-h">Award an item to a character</div>
+      <div className="dg-muted sm" style={{ marginBottom: 8 }}>
+        For an item you handed out at your table. {isProv
+          ? (hasMentor ? "As a provisional DM, this goes to your mentor to verify before it becomes real."
+                       : "You're provisional with no mentor assigned yet — the entry will wait until you have one.")
+          : "As a certified DM, your entry is self-certified and takes effect immediately."}
+      </div>
+
+      {!eligible.length ? (
+        <div className="dg-muted sm">No characters have played at your tables yet. Once someone sits down with you, they'll appear here.</div>
+      ) : (<>
+        <label className="dg-field"><span>Character (played at your table)</span>
+          <select value={charId} onChange={(e) => setCharId(e.target.value)}>
+            <option value="">Choose a character…</option>
+            {eligible.map((c: any) => <option key={c.id} value={c.id}>{c.name} — {accName(c.ownerId)}</option>)}
+          </select>
+        </label>
+        <label className="dg-field"><span>Item name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunblade of the Vale" /></label>
+        <div className="dg-grid">
+          <label className="dg-field"><span>Rarity</span>
+            <select value={rarity} onChange={(e) => setRarity(e.target.value)}>
+              <option value="">—</option>
+              {ITEM_RARITIES.map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
+          </label>
+          <label className="dg-field"><span>Adventure</span>
+            <input value={adventure} onChange={(e) => setAdventure(e.target.value)} placeholder="e.g. DDAL09-01" /></label>
+        </div>
+        <label className="dg-field"><span>Based on (optional SRD base item)</span>
+          <input value={base} onChange={(e) => setBase(e.target.value)} placeholder="e.g. Longsword" /></label>
+        <label className="dg-field"><span>Date awarded</span>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+        <label className="dg-field"><span>Notes</span>
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything the reviewer should know" /></label>
+        <div className="dg-row-actions" style={{ marginTop: 6 }}>
+          <button className="dg-btn" disabled={!charId || !name.trim()} onClick={submit}>Submit award</button>
+          {done && <span className="dg-muted sm">✓ Recorded.</span>}
+        </div>
+      </>)}
+
+      {eligible.length > 0 && (
+        <div style={{ marginTop: 12, borderTop: "1px solid var(--rule)", paddingTop: 10 }}>
+          <div className="dg-panel-h" style={{ marginBottom: 4 }}>Grant a rolled item slot</div>
+          <div className="dg-muted sm" style={{ marginBottom: 8 }}>
+            For a rolled reward — the player fills it from their own books, and a DM verifies the fill.
+          </div>
+          <label className="dg-field"><span>Character</span>
+            <select value={slotChar} onChange={(e) => setSlotChar(e.target.value)}>
+              <option value="">Choose a character…</option>
+              {eligible.map((c: any) => <option key={c.id} value={c.id}>{c.name} — {accName(c.ownerId)}</option>)}
+            </select>
+          </label>
+          <div className="dg-grid">
+            <label className="dg-field"><span>Table</span>
+              <select value={slotTable} onChange={(e) => setSlotTable(e.target.value)}>
+                <option value="armaments">Armaments</option>
+                <option value="implements">Implements</option>
+                <option value="relics">Relics</option>
+                <option value="arcana">Arcana</option>
+              </select>
+            </label>
+            <label className="dg-field"><span>Rarity</span>
+              <select value={slotRarity} onChange={(e) => setSlotRarity(e.target.value)}>
+                {["common", "uncommon", "rare", "very rare", "legendary"].map((x) => <option key={x} value={x}>{x}</option>)}
+              </select>
+            </label>
+          </div>
+          <div className="dg-row-actions" style={{ marginTop: 6 }}>
+            <button className="dg-btn" disabled={!slotChar} onClick={grantSlot}>Grant slot</button>
+            {rolled && <span className="dg-muted sm">✓ Slot granted.</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function VerifyCard({ row, dispatch, accountId }: { dispatch: React.Dispatch<Action>; [k: string]: any }) {
@@ -331,6 +459,7 @@ export function DMDeskView({ state, dispatch, accountId, setModal, setTab, goSch
           </div>
         );
       })()}
+      <DMAwardItem state={state} dispatch={dispatch} accountId={accountId} />
       <VerificationQueue state={state} dispatch={dispatch} accountId={accountId} />
 
       {(() => {

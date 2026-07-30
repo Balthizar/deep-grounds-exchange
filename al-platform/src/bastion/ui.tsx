@@ -3,8 +3,9 @@ import { mkRng, bastionHousing } from "./engine";
 import { CreditTrail, labelSource } from "../lib/ui";
 
 import type { Action, AppState, CharacterRecord } from "../types";
+import { CATALOG } from "../data/catalog";
 import { ARCHIVE_BOOK_SUBJECTS, ARCHIVE_BOOK_SUBJECT_LABEL, ARCHIVE_LORE_BY_REGION, composeArchiveTitle, BASTION_BEDS_BY_SIZE, BASTION_ENLARGE, BASTION_EVENTS, BASTION_FACILITIES, BASTION_FORMS, BASTION_ORDERS, BASTION_PREREQS, BASTION_REGIONS, BASTION_SIZES, BASTION_SIZE_INFO, BASTION_TURN_DT, BASTION_WALLS_COST, BASTION_WALLS_DAYS, FURNISHING_TIERS, bastionSizeCost } from "../data/bastion";
-import { BASTION_SIZE_FLAVOR, FURNISHING_TIER_BY_ID, HIRELING_LOSS, facEstablishment, furnishingValue, ruinFacilityFlavor } from "./registry";
+import { BASTION_SIZE_FLAVOR, FURNISHING_TIER_BY_ID, HIRELING_LOSS, facEstablishment, facilityFormName, furnishingValue, ruinFacilityFlavor, scribeFlavorFor } from "./registry";
 import { EVENT_CAST, FESTIVAL_FEATURES } from "../data/events";
 import { Empty, RARITY, SectionHead, getBlob, defaultEpitaph } from "../lib/ui";
 import { REAL_MIN_PER_GAME_DAY, REGION_WEIGHTS, armoryCost, bDef, bOutputs, bastionDefenderCap, bastionFrozenBy, bastionHas, bastionLeisure, bastionSizeDays, bastionSpecialSlots, bastionTradeIncome, bastionTurnPending, buildBudgetLeft, buildBudgetOpen, buildBudgetTotal, facDisabled, facEnlargeBenefit, facPrereq, facPrereqMet, facPrintedSpace, facQualifies, facResting, facStockedThisTurn, facilityDormant, furnNextTier, furnPrevTier, furnishingSaleValue, regionalEvents } from "./engine";
@@ -236,6 +237,42 @@ export function useLockExpiry(b) {
   return Date.now();
 }
 
+// HIRELING NAMING (28 Jul). RENAME_FACILITY_HENCHMAN — the DMG gives the PLAYER the job of naming
+// and giving personality to the hirelings that come with a facility (the room hires and pays them;
+// the player gives them a life). The "✎ Name" button on a facility's people opens this. Owner-only,
+// enforced in the reducer.
+export function HirelingModal({ modal, state, accountId, dispatch, close }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
+  const ch = state.characters[modal.charId];
+  const fac = ch && ch.bastion ? (ch.bastion.facilities || []).find((f: any) => f.id === modal.facId) : null;
+  const h = fac ? (fac.henchmen || []).find((x: any) => x.id === modal.henchId) : null;
+  const [name, setName] = useState(h ? (h.name || "") : "");
+  const [role, setRole] = useState(h ? (h.role || "") : "");
+  const [note, setNote] = useState(h ? (h.note || "") : "");
+  if (!ch || !fac || !h) return (<><h3 className="dg-modal-h">Hireling not found</h3><div className="dg-row-actions"><button className="dg-btn ghost" onClick={close}>Close</button></div></>);
+  const facId = String(fac.id), henchId = String(h.id), charId = String(ch.id);
+  const save = () => {
+    dispatch({ type: "RENAME_FACILITY_HENCHMAN", charId, by: accountId, facId, henchId,
+               name: name.trim(), role: role.trim(), note: note.trim() });
+    close();
+  };
+  return (
+    <>
+      <h3 className="dg-modal-h">Name a hireling</h3>
+      <p className="dg-muted sm">They came with the room and the room pays them — but the DMG says giving them a name and a life is yours to do.</p>
+      <label className="dg-field"><span>Name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Old Perrin" autoFocus /></label>
+      <label className="dg-field"><span>Role (optional)</span>
+        <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. the night gardener" /></label>
+      <label className="dg-field"><span>A detail (optional)</span>
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. hums while they work; afraid of the cellar" /></label>
+      <div className="dg-row-actions" style={{ marginTop: 8 }}>
+        <button className="dg-btn" disabled={!name.trim()} onClick={save}>Save</button>
+        <button className="dg-btn ghost" onClick={close}>Cancel</button>
+      </div>
+    </>
+  );
+}
+
 export function RuinModal({ modal, state, accountId, dispatch, close }: { dispatch: React.Dispatch<Action>; state: AppState; [k: string]: any }) {
   const ch = state.characters[modal.charId];
   if (!ch || !ch.bastion) return null;
@@ -268,7 +305,7 @@ export function RuinModal({ modal, state, accountId, dispatch, close }: { dispat
         const furn = f.furnishings || [];
         return (
           <div key={f.id} className="dg-ruinfac">
-            <div><b>{def.name || f.defId}</b> <span className="dg-muted sm">· {f.size}{form ? " · " + form.word : ""}</span></div>
+            <div><b>{facilityFormName(f.defId, form && form.id, def.name || f.defId)}</b> <span className="dg-muted sm">{facilityFormName(f.defId, form && form.id) !== (def.name || f.defId) ? " · " + (def.name || f.defId) : ""} · {f.size}{form ? " · " + form.word : ""}</span></div>
             <div className="dg-muted sm" style={{ fontStyle: "italic", marginTop: 2 }}>{ruinFacilityFlavor(def, form)}</div>
             {f.description && <div className="dg-muted sm" style={{ marginTop: 3 }}>{f.description}</div>}
             {furn.length > 0 && <div className="dg-muted sm" style={{ marginTop: 3 }}><b>What still lies here:</b> {furn.map((x) => x.note).join("; ")}.</div>}
@@ -290,7 +327,7 @@ export function RuinModal({ modal, state, accountId, dispatch, close }: { dispat
             {t.resolved && (t.benefits || []).map((bn, i) => <div key={i} className="dg-muted sm">• {bn}</div>)}
             {t.resolved && (t.mintables || []).map((m: any, i: number) => {
               const owned = Object.values(state.items).some((x: any) => x.bookItem && x.name === m.title && x.holder && x.holder.type === "CHARACTER" && x.holder.id === ch.id);
-              return <div key={"m" + i} className="dg-muted sm">📖 {owned ? <>«{m.title}» is on {ch.name}'s shelf</> : <button className="dg-linklike" onClick={() => dispatch({ type: "MINT_BOOK_ITEM", charId: ch.id, by: accountId, title: m.title, topic: m.topic, wiki: m.wiki })}>Add «{m.title}» to the pack</button>}</div>;
+              return <div key={"m" + i} className="dg-muted sm">📖 {owned ? <>«{m.title}» is on {ch.name}'s shelf</> : <button className="dg-linklike" onClick={() => dispatch({ type: "MINT_BOOK_ITEM", charId: ch.id, by: accountId, title: m.title, topic: m.topic, wiki: m.wiki, paragraph: m.paragraph, defId: m.defId, size: m.size })}>Add «{m.title}» to the pack</button>}</div>;
             })}
           </div>
         ))}
@@ -443,7 +480,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
             <div className="dg-panel-h">The halls that were{fw ? " · " + fw.name : ""}</div>
             {b.facilities.length === 0 ? <div className="dg-muted sm">Nothing was ever raised here.</div> : b.facilities.map((f) => { const def = bDef(f); return (
               <div key={f.id} className="dg-ruinfac">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name || f.defId}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}{f.building ? " · unfinished" : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name || f.defId)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== (def.name || f.defId) ? " · " + (def.name || f.defId) : ""} · {f.size}{fw ? " · " + fw.word : ""}{f.building ? " · unfinished" : ""}</span></div>
                 <div className="dg-muted sm" style={{ fontStyle: "italic", marginTop: 2 }}>{f.building
                   ? (f.building.what === "enlarge"
                       ? "Half-widened and abandoned — scaffolding still braced against the wall, the work stopped mid-swing and never taken up again."
@@ -470,7 +507,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
                 {t.resolved
                   ? (t.benefits.length === 0 ? <div className="dg-muted sm">• (maintained)</div> : <>{t.benefits.map((bn, i) => <div key={i} className="dg-muted sm">• {bn}</div>)}{(t.mintables || []).map((m: any, i: number) => {
                       const owned = Object.values(state.items).some((x: any) => x.bookItem && x.name === m.title && x.holder && x.holder.type === "CHARACTER" && x.holder.id === ch.id);
-                      return <div key={"m" + i} className="dg-muted sm">📖 {owned ? <>«{m.title}» is on {ch.name}'s shelf</> : <button className="dg-linklike" onClick={() => dispatch({ type: "MINT_BOOK_ITEM", charId: ch.id, by: accountId, title: m.title, topic: m.topic, wiki: m.wiki })}>Add «{m.title}» to the pack</button>}</div>;
+                      return <div key={"m" + i} className="dg-muted sm">📖 {owned ? <>«{m.title}» is on {ch.name}'s shelf</> : <button className="dg-linklike" onClick={() => dispatch({ type: "MINT_BOOK_ITEM", charId: ch.id, by: accountId, title: m.title, topic: m.topic, wiki: m.wiki, paragraph: m.paragraph, defId: m.defId, size: m.size })}>Add «{m.title}» to the pack</button>}</div>;
                     })}</>)
                   : t.orders.map((o, i) => <div key={i} className="dg-muted sm">• {BASTION_ORDERS[o.orderId] ? BASTION_ORDERS[o.orderId].name : o.orderId}{o.detail ? ": " + o.detail : ""} (left unfinished)</div>)}
               </div>
@@ -691,7 +728,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
           if (bld) {
             return (
               <div key={f.id} className="dg-bastfac disabled">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {bld.what === "enlarge" ? f.size + " → " + bld.toSize : f.size}{fw ? " · " + fw.word : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {bld.what === "enlarge" ? f.size + " → " + bld.toSize : f.size}{fw ? " · " + fw.word : ""}</span></div>
                 <div className="dg-bastworking">🧱 {bld.what === "enlarge" ? "Being enlarged" : "Going up"} — {bld.days} days&rsquo; work, ready in <b><Countdown to={bld.readyAt} /></b>. No orders until it&rsquo;s finished.</div>
               </div>
             );
@@ -699,7 +736,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
           if (facResting(f, nextN) && !wt) {
             return (
               <div key={f.id} className="dg-bastfac disabled">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {f.size}{fw ? " · " + fw.word : ""}</span></div>
                 <div className="dg-bastworking">🌙 Resting this turn — it produces on alternating turns. No orders this turn.</div>
               </div>
             );
@@ -707,7 +744,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
           if (facDisabled(f, nextN) && !wt) {
             return (
               <div key={f.id} className="dg-bastfac disabled">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {f.size}{fw ? " · " + fw.word : ""}</span></div>
                 <div className="dg-bastworking">⚠ Shut down after an attack — back in service next turn. No orders this turn.</div>
               </div>
             );
@@ -715,7 +752,7 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
           if (wt) {
             if (wt.frozen) return (
               <div key={f.id} className="dg-bastfac disabled">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {f.size}{fw ? " · " + fw.word : ""}</span></div>
                 <div className="dg-bastworking">⚔ Whatever they were told to do, they are not doing it — the keep is under attack. The week resumes when the fighting stops.</div>
               </div>
             );
@@ -726,14 +763,14 @@ export function BastionWorkspace({ ch, state, dispatch, accountId, setModal, bac
             const wlabel = wo ? ((BASTION_ORDERS[wo.orderId] || {}).name || wo.orderId) : BASTION_ORDERS.maintain.name;
             return (
               <div key={f.id} className="dg-bastfac working">
-                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}</span></div>
+                <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {f.size}{fw ? " · " + fw.word : ""}</span></div>
                 <div className="dg-bastworking">⏳ {wlabel} in progress — ready in <b><Countdown to={wt.readyAt} /></b></div>
               </div>
             );
           }
           return (
             <div key={f.id} className="dg-bastfac">
-              <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{def.name}</button> <span className="dg-muted sm">· {f.size}{fw ? " · " + fw.word : ""}{def.kind === "basic" ? " · basic" : ""}{f.lastOrder ? " · last: " + BASTION_ORDERS[f.lastOrder].name : ""}</span></div>
+              <div><button className="dg-facname" onClick={() => setModal({ kind: "facilitydetail", charId: ch.id, facId: f.id })}>{facilityFormName(f.defId, fw && fw.id, def.name)}</button> <span className="dg-muted sm">{facilityFormName(f.defId, fw && fw.id) !== def.name ? " · " + def.name : ""} · {f.size}{fw ? " · " + fw.word : ""}{def.kind === "basic" ? " · basic" : ""}{f.lastOrder ? " · last: " + BASTION_ORDERS[f.lastOrder].name : ""}</span></div>
               <div className="dg-muted sm">{def.note}</div>
               {def.kind === "basic" && <div className="dg-muted sm">🕯 The household lives here — their week writes itself into the turn log when the turn resolves.</div>}
               <div className="dg-bastorderrow">
@@ -990,6 +1027,7 @@ export function FacilityDetailModal({ modal, state, dispatch, accountId, close, 
   const [hname, setHname] = useState("");
   const [hrole, setHrole] = useState("");
   const [hnote, setHnote] = useState("");
+  const [wsTools, setWsTools] = useState<string[]>([]);
   if (!fac) return (<><h3 className="dg-modal-h">Facility not found</h3><div className="dg-row-actions"><button className="dg-btn ghost" onClick={close}>Close</button></div></>);
   const def = bDef(fac);
   const frozen = !!(ch && (ch.status === "dead" || (ch.bastion && ch.bastion.abandoned)));
@@ -1001,7 +1039,7 @@ export function FacilityDetailModal({ modal, state, dispatch, accountId, close, 
   const addFurnish = () => { dispatch({ type: "ADD_FACILITY_FURNISHING", charId: ch.id, by: accountId, facId: fac.id, note: fnote, gp: fgpN }); setFnote(""); setFgp(""); };
   return (
     <>
-      <h3 className="dg-modal-h">{def.name} <span className="dg-muted sm">· {fac.size}{def.kind === "basic" ? " · basic" : " ✦"}{frozen ? " · a ruin" : ""}</span></h3>
+      <h3 className="dg-modal-h">{facilityFormName(fac.defId, rform && rform.id, def.name)} <span className="dg-muted sm">{facilityFormName(fac.defId, rform && rform.id) !== def.name ? "· " + def.name + " " : ""}· {fac.size}{def.kind === "basic" ? " · basic" : " ✦"}{frozen ? " · a ruin" : ""}</span></h3>
       {fac.defId === "archive" && archiveTitle && !frozen && (
         <div className="dg-lane">
           <div className="dg-lane-h">Reference book <span className="dg-free">chosen once</span></div>
@@ -1012,12 +1050,119 @@ export function FacilityDetailModal({ modal, state, dispatch, accountId, close, 
               ))}</div>}
         </div>
       )}
-      <p className="dg-muted sm">{def.note}</p>
+      {(fac.defId === "archive" || (BASTION_FACILITIES[fac.defId] || {}).shelvesBooks) && (() => {
+        // THE BOOK SHELF (28 Jul). Books-only, living in the facility. A minted book rests on the
+        // shelf (inPack === false) so it doesn't clutter the pack; the player packs it to carry it to
+        // the table, and can set it back down here. The book is always the character's; inPack decides
+        // shelf-vs-pack. A shelved book is an in-bastion item — when the destruction/loss model lands
+        // it will be caught here unless Vaulted. Renders for the Archive and any facility that
+        // declares shelvesBooks (the Library, DMG: "contains a collection of books").
+        const books = Object.values(state.items).filter((it: any) => it.bookItem && it.holder && it.holder.type === "CHARACTER" && it.holder.id === ch.id);
+        if (!books.length) return null;
+        const shelved = books.filter((b: any) => b.inPack === false);
+        const packed = books.filter((b: any) => b.inPack !== false);
+        const owner = ch.ownerId === accountId;
+        return (
+          <div className="dg-lane">
+            <div className="dg-lane-h">The shelf <span className="dg-free">{books.length} volume{books.length === 1 ? "" : "s"}</span></div>
+            {shelved.map((b: any) => (
+              <div key={b.id} className="dg-admin-row">
+                <span className="dg-muted sm">📚 «{b.name}»{b.topic ? <> · on {b.topic}</> : null}{b.wikiUrl ? <> <a className="dg-linklike" href={b.wikiUrl} target="_blank" rel="noreferrer">🔗 wiki</a></> : null}{b.paragraph ? <div className="dg-bastflavor sm" style={{ marginTop: 4, fontStyle: "italic", opacity: 0.9 }}>{b.paragraph}</div> : null}</span>
+                {owner && !frozen && <button className="dg-btn ghost sm" title="Take it into your pack — carry it to the table" onClick={() => dispatch({ type: "TOGGLE_CARRIED", itemId: b.id, by: accountId })}>Pack this</button>}
+              </div>
+            ))}
+            {packed.length > 0 && (<>
+              <div className="dg-muted sm" style={{ marginTop: 4, opacity: 0.8 }}>In your pack — carried, not on the shelf:</div>
+              {packed.map((b: any) => (
+                <div key={b.id} className="dg-admin-row">
+                  <span className="dg-muted sm">🎒 «{b.name}»</span>
+                  {owner && !frozen && <button className="dg-btn ghost sm" title="Set it back on the shelf" onClick={() => dispatch({ type: "TOGGLE_CARRIED", itemId: b.id, by: accountId })}>Return to shelf</button>}
+                </div>
+              ))}
+            </>)}
+            {frozen && <div className="dg-muted sm" style={{ marginTop: 4 }}>The shelf can't be reached while the room is dormant.</div>}
+          </div>
+        );
+      })()}
+      {fac.defId === "workshop" && !frozen && (() => {
+        // THE WORKSHOP TOOL CHOICE (28 Jul, Frank). When built, the Workshop is fitted with SIX
+        // artisan's tools the player picks from the DMG's list of eleven. The gear craft then derives
+        // across those six. Until chosen, this panel presents the picker; once set, it shows the kit.
+        const def = BASTION_FACILITIES.workshop;
+        const tc = (def as any).toolChoice || { count: 6, from: [] };
+        const chosenTools = (fac as any).chosenTools || [];
+        if (chosenTools.length) {
+          return (
+            <div className="dg-lane">
+              <div className="dg-lane-h">The workshop's tools</div>
+              <div className="dg-muted sm">{chosenTools.map((t: string) => (CATALOG[t] || {}).name || t).join(" · ")}</div>
+            </div>
+          );
+        }
+        if (ch.ownerId !== accountId) return <div className="dg-muted sm">The workshop's six tools haven't been chosen yet.</div>;
+        const toggle = (tid: string) => setWsTools((prev: string[]) => prev.includes(tid) ? prev.filter((x) => x !== tid) : prev.length < tc.count ? [...prev, tid] : prev);
+        return (
+          <div className="dg-lane">
+            <div className="dg-lane-h">Fit out the workshop</div>
+            <div className="dg-muted sm" style={{ marginBottom: 8 }}>Choose {tc.count} artisan's tools ({wsTools.length}/{tc.count}). The workshop's hirelings will craft anything these tools can make.</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+              {tc.from.map((tid: string) => {
+                const on = wsTools.includes(tid);
+                return <button key={tid} className={on ? "dg-btn sm" : "dg-btn ghost sm"} onClick={() => toggle(tid)}>{on ? "\u2713 " : ""}{(CATALOG[tid] || {}).name || tid}</button>;
+              })}
+            </div>
+            <button className="dg-btn" disabled={wsTools.length !== tc.count} onClick={() => dispatch({ type: "SET_WORKSHOP_TOOLS", charId: ch.id, by: accountId, facId: fac.id, tools: wsTools })}>Fit out with these {tc.count}</button>
+          </div>
+        );
+      })()}
+      {fac.defId === "scriptorium" && !frozen && (() => {
+        // THE SCRIBE HIRE (28 Jul, Frank). When the Scriptorium is built its scribe is unassigned;
+        // the player chooses between two named candidates, and the chosen scribe's CLASS gates the
+        // scroll pool. Candidates are generated deterministically (seeded by this facility) so they
+        // stay stable across renders — you're choosing between two specific people who came for the
+        // post, not re-rolling. Once hired, the class is set and this panel gives way to the desk.
+        const def = BASTION_FACILITIES.scriptorium;
+        const classes = ((def as any).scribeClasses || []);
+        const scribe = (fac.henchmen || [])[0];
+        const chosenCls = scribe && (scribe as any).scribeClass;
+        if (chosenCls) {
+          return (
+            <div className="dg-lane">
+              <div className="dg-lane-h">The scribe</div>
+              <div className="dg-muted sm">{scribe.name}{scribe.role ? " · " + scribe.role : ""} — scribes {chosenCls} spell scrolls (3rd level or lower).</div>
+            </div>
+          );
+        }
+        // two candidates: one per declared class, each a stable generated person
+        const rng = mkRng(((ch.bastion && ch.bastion.id) || "b") + ":" + fac.id + ":scribe");
+        const first = ["Rathburn", "Adrienne", "Corwin", "Maribel", "Aldous", "Sable", "Perrin", "Wynne"];
+        const faiths = ["Lathander", "Selûne", "Oghma", "Tymora", "Chauntea", "Kelemvor"];
+        const towns = ["Everlund", "Daggerford", "Secomber", "Elturel", "Triboar", "Yartar"];
+        const cands = classes.map((c: any) => {
+          const nm = first[Math.floor(rng() * first.length)];
+          const tail = c.cls === "Cleric" ? "Acolyte of " + faiths[Math.floor(rng() * faiths.length)]
+                                            : "Novice Mage of " + towns[Math.floor(rng() * towns.length)];
+          return { id: c.id, name: nm, blurb: nm + ", " + tail, cls: c.cls, label: c.label };
+        });
+        return (
+          <div className="dg-lane">
+            <div className="dg-lane-h">Hire a scribe</div>
+            <div className="dg-muted sm" style={{ marginBottom: 8 }}>Two scribes have come for the desk. Whoever you take on sets the hand the room writes in — their class decides which spell scrolls they can scribe.</div>
+            {cands.map((cand: any) => (
+              <div key={cand.id} className="dg-admin-row">
+                <span className="dg-muted sm">✍ {cand.blurb} <span style={{ opacity: 0.7 }}>— {cand.cls} scrolls, 3rd level or lower</span></span>
+                {ch.ownerId === accountId && <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "SET_SCRIPTORIUM_SCRIBE", charId: ch.id, by: accountId, facId: fac.id, scribeId: cand.id, name: cand.name })}>Take {cand.name} on</button>}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       {frozen && <div className="dg-epitaph" style={{ marginTop: 6 }}>{ruinFacilityFlavor(def, rform)}</div>}
 
       <div className="dg-insp-sec">The space</div>
       <div className="dg-muted sm">{BASTION_SIZE_INFO[fac.size] || fac.size}{!frozen && fac.size !== "vast" ? " Enlarge it from the facility row to gain room." : ""}</div>
       {sizeFlavorFor(fac.defId, rform && rform.id, fac.size) && <div className="dg-bastflavor" style={{ marginTop: 4 }}>{sizeFlavorFor(fac.defId, rform && rform.id, fac.size)}</div>}
+      {fac.defId === "scriptorium" && !frozen && scribeFlavorFor((fac.henchmen || [])[0]) && <div className="dg-bastflavor" style={{ marginTop: 4, fontStyle: "italic" }}>{scribeFlavorFor((fac.henchmen || [])[0])}</div>}
       {bForm(ch.bastion) && <div className="dg-muted sm" style={{ marginTop: 4 }}>Part of a <b>{bForm(ch.bastion)?.name}</b> — this is one of its {bForm(ch.bastion)?.word}s, amid {bForm(ch.bastion)?.flavor}.</div>}
 
       <div className="dg-insp-sec">Description</div>
@@ -1130,7 +1275,7 @@ export function FacilityDetailModal({ modal, state, dispatch, accountId, close, 
         ? <div className="dg-muted sm">{frozen ? "Nobody works here now." : "Nobody is left. Take an active turn and word will get round that there's a post going."}</div>
         : (fac.henchmen || []).map((h) => (
           <div key={h.id} className="dg-admin-row">
-            <span><b>{h.name}</b>{h.role ? <span className="dg-muted sm"> · {h.role}</span> : null}{h.note ? <span className="dg-muted sm"> — {h.note}</span> : null}</span>
+            <span><b>{h.name}</b>{h.role ? <span className="dg-muted sm"> · {h.role}</span> : null}{h.age ? <span className="dg-muted sm"> · {h.age}</span> : null}{h.note ? <span className="dg-muted sm"> — {h.note}</span> : null}</span>
             {!frozen && <button className="dg-btn ghost sm" title="Give them a name and a life — the DMG says that part's yours" onClick={() => setModal({ kind: "hireling", charId: ch.id, facId: fac.id, henchId: h.id })}>✎ Name</button>}
           </div>
         ))}
