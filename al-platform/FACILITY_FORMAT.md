@@ -727,12 +727,19 @@ player with gold. **At least one slot must offer two or more tiers.**
 
 ### 10.5 · The strict bar, and what it does NOT yet check
 
-`harness/facility_mint.cjs` enforces §10.2–§10.4 and the §2 stat block. **As of 31 Jul it does not
-check `tools`, `options`/`outputs`, `tables`, `features`, `enlarge`, `capacity` or `open`** — seven
-of the ten fields §3 defines. A room can therefore read `✅ MINTED` while, for example, the Armory's
-§8 feature (*stocked → defenders roll 1d8*) is entirely unimplemented, which is the actual state
-today. **Extending the checker to the full §3 schema is the prerequisite for minting the remaining
-20 rooms**, or the divergence gets propagated twenty times.
+`harness/facility_mint.cjs` enforces §10.2–§10.4 and the §2 stat block. **EXTENDED 31 Jul.** It now also checks, for the rooms each applies to:
+
+| check | what it catches |
+|---|---|
+| §3 `outputs` on any craft room | a craft order with nothing to make |
+| §3 `tools` — or `noTool`, a **cited** absence | an unstated missing tool, while allowing the Arcane Study's genuine one |
+| §8 `features` complete: `id`, `text`, `impl`, `cite` | a mechanic described but not attributed |
+| §8 `features` — **every `impl` names a real function** | a claim with no code behind it |
+| §7 `tables` — **every pointer resolves to a real export** | a pointer that reads as coverage while covering nothing |
+| §14 shelf — non-zero capacity, and an `enlargeBenefit` | a shelf that cannot hold or cannot grow |
+
+All six are negative-tested: breaking an `impl` name or a table pointer demotes the room to
+❌ NOT YET MINTED with the offending name printed. **Still unchecked: `capacity` and `open`.**
 
 ---
 
@@ -832,8 +839,8 @@ this is a reconciliation to be scheduled, not a bug to be panicked over.**
 | `tools: [...]` / `{ choose, from }` | `tool: "g_tool_smith"` · `toolChoice: { count, from }` | model is implemented, names differ |
 | `options: { craft: [...] }` | `outputs: { craft: [...] }` | same shape, different key |
 | `enlarge: { to, benefit }` | `enlargeBenefit: "…"` (flat string) | costs already derive from `BASTION_ENLARGE`, so only the benefit needed a home |
-| `tables: {}` on the def | `ARCHIVE_BOOKS`, `PUB_TAPS`, … as separate exports | the "two sources of truth" §3 warns against |
-| `features: []` on the def | **does not exist** | the Armory's 1d8 defenders feature is unimplemented |
+| `tables: {}` on the def | **RESOLVED 31 Jul** — declared as POINTERS on archive/library/armory, and the checker verifies each resolves | pointing beats inlining: the tables are shared with the composers |
+| `features: []` on the def | **RESOLVED 31 Jul** — declared on the Armory with `impl` naming the live function | the feature was always BUILT; it was never DECLARED |
 | `open: null` | **does not exist** | §3's own argument — *a TODO the gate reads is a deadline* — is currently unenforced |
 
 **`BASTION_FACILITIES` holds 14 rooms: 8 specials and 6 basics.** The other **21** DMG specials have

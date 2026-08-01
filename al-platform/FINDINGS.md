@@ -499,6 +499,45 @@ spread. No wiki changes that. What Mistipedia DOES make possible is the *traditi
 imbue a deck, how it must be kept, what a reading is for. That is lore and is fair game; the card list
 is not.
 
+## B-70 — THE ARMORY FEATURE WAS BUILT ALL ALONG; I REPORTED IT MISSING (31 Jul)
+
+Frank asked, before authorising the fix, *what was the Armory not doing?* Checking the DMG text
+against the code answered it: **nothing. Every clause was implemented.**
+
+| DMG, Armory | code |
+|---|---|
+| Trade order stocks the room | `stockArmory()` |
+| 100 gp + 100 per defender, halved with a Smithy | `armoryCost()` |
+| defenders harder to kill — 1d8 in place of each d6 | `rollAttackOnes()` — `sides = armed ? 8 : 6` |
+| expended when the event ends, whatever the losses | `bastion.armed = false` |
+
+**What was missing was the DECLARATION.** No `features` array on the definition said the room did
+this, so no gate could verify it and a new facility author had no worked example. **I read the
+absence of a field as the absence of a feature** — the same error shape as four earlier ones today,
+and the reason to answer "what exactly is broken?" before authorising a fix.
+
+## B-71 — §3 SCHEMA CHECKS ADDED, AND THEY IMMEDIATELY FOUND TWO REAL DEFECTS (31 Jul)
+
+Declared what was already built (`features` on the Armory with `impl` naming the live function;
+`tables` pointers on armory/archive/library), then extended `facility_mint.cjs` past the stat block
+into six §3 checks. **The new checks demoted two rooms on their first run — both defects mine:**
+
+1. **`library` pointed at `LIBRARY_SUBJECTS`, which does not resolve from `data/bastion`.** I wrote
+   that pointer an hour earlier from memory. **A pointer that reads as coverage while covering
+   nothing is worse than no pointer**, which is exactly why the resolution check exists.
+2. **`arcane_study` had no tool declared** — but the DMG genuinely names none for it (Craft options
+   are Arcane Focus and Book, neither tool-gated, Bastions.md:366). My check was too strict, not the
+   data wrong. Resolved with `noTool`, a **cited** absence, matching the shape of the existing
+   NONCRAFT list: an unstated absence is a defect, a stated one with a citation is a fact.
+
+Also corrected in FACILITY_FORMAT: I had written `ARCHIVE_BOOKS` as the archive's table. **That
+export does not exist** — the real ones are `ARCHIVE_BOOK_SUBJECTS`, `ARCHIVE_LORE_BY_REGION` and
+`ARCHIVE_LORE_GLOBAL`. Another name asserted from memory into a standards document.
+
+All six checks negative-tested: breaking an `impl` or a pointer prints the offending name and demotes
+the room. **8 of 29 hold the extended bar. Still unchecked: `capacity` and `open`.**
+
+
 ## B-69 — MY CONTAINER HELD A STALE `facility_mint.cjs`, AND IT HAD LOST SACRISTY (31 Jul)
 
 Frank asked me to pull the pushed state and compare it against my working copy. **GitHub had the

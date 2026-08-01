@@ -61,7 +61,10 @@ const MIN_LIFE_TASKS = 6;   // strict: a real life-week, not a token beat or two
 function loadLive() {
   const shim = path.join(root, "src", "__mint.tsx");
   fs.writeFileSync(shim,
-    'export { BASTION_FACILITIES } from "./data/bastion";\n' +
+    'export * as LIVE_BASTION from "./data/bastion";\n' +
+    'export * as LIVE_LIBRARY from "./data/library_subjects";\n' +
+    'export * as LIVE_ENGINE from "./bastion/engine";\n' +
+    'export { BASTION_FACILITIES, bookShelfCap } from "./data/bastion";\n' +
     'export { FACILITY_FURNISHINGS, FACILITY_ROLES, FACILITY_REACTIONS, BASTION_SIZE_FLAVOR, FACILITY_RUIN, ' +
     'FACILITY_FORM_NAMES, FURNISHING_LADDER, facEstablishment, facilityFormName, furnishFacility, staffFacility } from "./bastion/registry";\n' +
     'export { lifeTasksFor, reactionsFor } from "./bastion/engine";\n' +
@@ -151,6 +154,55 @@ function checkFacility(m, id) {
   ok("form-names: all 8 forms, flavored and distinct", all8 && distinct,
      all8 ? (distinct ? "" : "some forms share a name") : "some forms fall back to canonical");
 
+  // ---- §3 SCHEMA (added 31 Jul) --------------------------------------------------------------
+  // The strict bar previously checked the stat block and the narrative tables and stopped there —
+  // seven of the ten fields §3 defines went unverified, so a room could read ✅ MINTED while a
+  // published mechanic sat undeclared on it. That is how the Armory's d8 feature stayed invisible:
+  // fully built in the engine, never named on the definition, nothing able to notice.
+  //
+  // These checks verify the DECLARATION, not the behaviour — the engine owns the behaviour, and
+  // `impl` is the thread between them. A feature naming a function that does not exist is the one
+  // failure mode this cannot tolerate, because that is a claim with nothing behind it.
+
+  // A craft-order room must say what it crafts and (where the DMG gives it one) what it uses.
+  const craftsHere = (def.orders || []).includes("craft");
+  if (craftsHere) {
+    ok("§3 outputs: a craft room declares what it makes", !!def.outputs && !!def.outputs.craft,
+       def.outputs ? "" : "no outputs on the definition");
+    // `noTool` is the explicit, cited "not applicable" — the Arcane Study genuinely has none in the
+    // DMG (its Craft options are Arcane Focus and Book, neither tool-gated). An UNSTATED absence is
+    // the defect; a stated one with a citation is a fact. Same shape as the NONCRAFT list above.
+    ok("§3 tools: declared, or an explicit cited reason it has none",
+       !!(def.tool || def.toolChoice || def.scribeClasses || def.noTool),
+       "no tool, toolChoice, scribeClasses or noTool — see §4");
+  }
+
+  // Features: bespoke mechanics must be declared AND point at real code.
+  if (Array.isArray(def.features) && def.features.length) {
+    const bad = def.features.filter((f) => !f || !f.id || !f.text || !f.impl || !f.cite);
+    ok("§8 features: each names id, text, impl and cite", bad.length === 0,
+       bad.length ? `${bad.length} incomplete` : "");
+    const missing = def.features.filter((f) => f && f.impl && typeof m[f.impl] !== "function" && !liveHas(f.impl));
+    ok("§8 features: every impl names a real function", missing.length === 0,
+       missing.length ? `not found: ${missing.map((f) => f.impl).join(", ")}` : "");
+  }
+
+  // Tables: pointers must resolve. A pointer at a table that does not exist is worse than no
+  // pointer, because it reads as coverage.
+  if (def.tables) {
+    const unresolved = Object.entries(def.tables).filter(([, name]) => !liveHas(name));
+    ok("§7 tables: every pointer resolves to a real export", unresolved.length === 0,
+       unresolved.length ? `missing: ${unresolved.map(([k, v]) => `${k}->${v}`).join(", ")}` : "");
+  }
+
+  // Shelving rooms must have a capacity and a reason to grow.
+  if (def.shelvesBooks) {
+    ok("§14 shelf: capacity is non-zero at the printed size",
+       typeof m.bookShelfCap === "function" ? m.bookShelfCap(id, def.space) > 0 : true, "");
+    ok("§14 shelf: declares an enlarge benefit", !!def.enlargeBenefit,
+       def.enlargeBenefit ? "" : "the shelf cannot grow, so enlarging buys nothing");
+  }
+
   const minted = rows.every((r) => r.pass);
   return { rows, minted, exists: true };
 }
@@ -165,10 +217,23 @@ function printFacility(id, res) {
   return res.minted;
 }
 
+
+// Resolve a name against the live modules — used to verify that a `tables` pointer or a feature's
+// `impl` names something that actually exists. A pointer at a missing export reads as coverage while
+// covering nothing, which is worse than declaring nothing at all.
+let LIVE = null;
+function liveHas(name) {
+  if (!LIVE) return false;
+  return (LIVE.LIVE_BASTION && LIVE.LIVE_BASTION[name] !== undefined)
+      || (LIVE.LIVE_ENGINE && LIVE.LIVE_ENGINE[name] !== undefined)
+      || (LIVE.LIVE_LIBRARY && LIVE.LIVE_LIBRARY[name] !== undefined)
+      || LIVE[name] !== undefined;
+}
+
 // ---- main ----------------------------------------------------------------------------------
 const arg = process.argv[2];
 let m;
-try { m = loadLive(); } catch (e) { console.log("FACILITY-MINT: bundle failed\n" + (e.stderr ? e.stderr.toString() : e.message)); process.exit(1); }
+try { m = loadLive(); LIVE = m; } catch (e) { console.log("FACILITY-MINT: bundle failed\n" + (e.stderr ? e.stderr.toString() : e.message)); process.exit(1); }
 
 // ---- roster integrity: the denominator cannot audit itself, so check it explicitly (B-38) -----
 // Cross-checks the flat roster against its independent per-level partition, so a name dropped from
