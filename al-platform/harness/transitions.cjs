@@ -27,7 +27,7 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { resolveBastionOrder as __rbo, MAGIC_CRAFT_COST as __mcc, expireCharmItemsFor as __ecf, mkRng as __mk } from "./bastion/engine";' +
   '\nimport { normalizeCarriedGifts as __ncg, liveCharmItemsHeld as __lch } from "./lib/rules";' +
   '\nimport { CHARM_FORMS as __cf, CHARM_MATERIALS as __cm, CHARM_MARKS as __ck, CHARM_QUIRKS as __cq, composeCharmAppearance as __cca } from "./data/charms";' +
-  '\nimport { BASTION_LIFE_TASKS as __lt, FACILITY_RUIN as __fr, FACILITY_REACTIONS as __rx, BASTION_SIZE_FLAVOR as __sf } from "./bastion/registry";' +
+  '\nimport { BASTION_LIFE_TASKS as __lt, FACILITY_RUIN as __fr, FACILITY_REACTIONS as __rx, BASTION_SIZE_FLAVOR as __sf } from "./bastion/registry"\nimport { FACILITY_ROLES as __fro, staffFacility as __stf } from "./bastion/registry";\nimport { craftDaysWithHelp as __cdh, craftMaterialsGp as __cmg, craftDays as __cdy, craftItemsFor as __cifr, carriedCraftTools as __cct } from "./lib/rules";\nimport { bastionMaker as __bmk, resolveBastionTurn as __rbt, bastionOrderAllowed as __boa } from "./bastion/engine";' +
   '\nimport { ARCHIVE_BOOK_SUBJECTS as __abs, ARCHIVE_TITLE_SUBJECTS as __t1, ARCHIVE_TITLE_VERBS as __t2, ARCHIVE_TITLE_OBJECTS as __t3, ARCHIVE_TITLE_MANNERS as __t4, ARCHIVE_TITLE_HOUSE as __t5, ARCHIVE_TITLE_FLOURISH as __t6, composeArchiveTitle as __cat, ARCHIVE_TITLE_FRAMES as __tf, ARCHIVE_LORE_GLOBAL as __lg, ARCHIVE_LORE_BY_REGION as __lr, rollLoreTopic as __rlt, BASTION_REGIONS as __brs, bookShelfCap as __bsc } from "./data/bastion";\n' +
   '\nimport { BASTION_FACILITIES as __bf } from "./data/bastion";\n' +
   '\nimport { CATALOG as __cg } from "./data/catalog";\n' +
@@ -38,9 +38,9 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { nightCommitment as __nc, proposalDatesRanked as __pdr, proposalDatesForMentor as __pdm, hasPlayedUnder as __hpu } from "./lib/play";\n' +
   '\nimport { isTradeableClass as __itc, ronaldoWillBuy as __rwb, sellValueOf as __svo, eventDMs as __edm, mayReviewLog as __mrl, tradeLegal as __tl, verifyingDMs as __vd, storesOf as __so } from "./lib/rules";\n' +
 '\n' +
-  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, BASTION_FACILITIES: __bf, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, bookShelfCap: __bsc, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu };\n');
+  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, BASTION_FACILITIES: __bf, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, bookShelfCap: __bsc, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu, FACILITY_ROLES: __fro, staffFacility: __stf, bastionMaker: __bmk, resolveBastionTurn: __rbt, bastionOrderAllowed: __boa, craftMaterialsGp: __cmg, craftDays: __cdy, craftDaysWithHelp: __cdh, craftItemsForRules: __cifr, carriedCraftToolsProbe: __cct };\n');
 execSync('npx --no-install esbuild src/__t.tsx --bundle --format=cjs --outfile=./t.cjs --external:react --external:react-dom --loader:.tsx=tsx --loader:.json=json --jsx=automatic', { stdio: "ignore" });
-const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, bookShelfCap, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe } = require(path.resolve("t.cjs")).__t;
+const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, bookShelfCap, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe, FACILITY_ROLES, staffFacility, bastionMaker, resolveBastionTurn, bastionOrderAllowed, craftMaterialsGp, craftDays, craftDaysWithHelp, carriedCraftToolsProbe } = require(path.resolve("t.cjs")).__t;
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => { checks++; if (!cond) { fails++; console.log("  FAIL  " + msg); } };
@@ -1872,6 +1872,170 @@ for (const [name, fn] of T) {
     ok(madeScroll === hasTool, "SCRIBE_SCROLL only mints a scroll when the scribe carries Calligrapher's Supplies");
   }
 
+  // CRAFT_ITEM — the workbench's third door (31 Jul). Owner only, real catalogue row only, gated on
+  // carrying a tool that makes THAT item, and priced by the PH rule rather than by a typed figure.
+  //
+  // The interesting clause is the PRICING, so it is checked against the PH's own worked examples —
+  // numbers the code does not control. Plate Armor at 1,500 gp costs 750 in materials; a Heavy
+  // Crossbow at 50 gp takes 5 days. If either derivation drifts, those two fail.
+  {
+    const ch = need(R.activeChar(s0), "an active character to craft with");
+    ok(craftMaterialsGp(1500) === 750, "CRAFT_ITEM materials follow the PH: half the price, rounded down (Plate Armor 1500 -> 750)");
+    ok(craftDays(50) === 5, "CRAFT_ITEM time follows the PH: price/10 days, rounded up (Heavy Crossbow 50 -> 5 days)");
+    ok(craftMaterialsGp(5) === 2 && craftDays(5) === 1,
+       "CRAFT_ITEM rounds materials DOWN and days UP — a 5 gp Chain is 2 gp of stock and still a full day");
+
+    const sBad = reducer(s0, { type: "CRAFT_ITEM", charId: ch.id, by: stranger(ch.ownerId), catalogId: "g_chain" });
+    ok(sBad.logEntries.length === s0.logEntries.length, "CRAFT_ITEM refuses a non-owner");
+    const sJunk = reducer(s0, { type: "CRAFT_ITEM", charId: ch.id, by: ch.ownerId, catalogId: "no_such_row" });
+    ok(Object.values(sJunk.items).length === Object.values(s0.items).length, "CRAFT_ITEM refuses a catalogue row that does not exist");
+
+    // The tool gate: whatever this character happens to carry, an item may only appear if a carried
+    // tool actually makes it. Asserted as an implication rather than assuming the seed's inventory.
+    const sTry = reducer(s0, { type: "CRAFT_ITEM", charId: ch.id, by: ch.ownerId, catalogId: "g_chain" });
+    const made = Object.values(sTry.items).length > Object.values(s0.items).length;
+    const canMake = carriedCraftToolsProbe(s0, ch.id).some((tid) => craftItemsFor(tid).includes("g_chain"));
+    ok(made === (canMake && craftMaterialsGp((CATALOG.g_chain || {}).gp || 0) <= (ch.gp || 0) && craftDays((CATALOG.g_chain || {}).gp || 0) <= (ch.dt || 0)),
+       "CRAFT_ITEM mints only when a carried, proficient tool makes that item and the gp and days are affordable");
+    if (made) {
+      const it = Object.values(sTry.items).find((x) => !s0.items[x.id]);
+      ok(it.provenance && it.provenance.source === "CRAFTED", "a crafted item is stamped CRAFTED");
+      ok(!isTradeableClass(it.itemClass), "a crafted item is character-created and untradeable");
+    }
+  }
+
+  // MUNDANE TOOL-CRAFT MINTS FROM THE PICKER (Frank's ruling, 31 Jul). The bastion used to open an
+  // UNFILLED SLOT for the player to type a name into and a DM to verify. That model is for MAGIC
+  // items, and its stated reason is licensing — the platform ships no text it has no licence for.
+  // Mundane gear is different: the catalogue holds it, so there is nothing to type and nothing to
+  // check. The slot survives ONLY as the escape for a row the catalogue does not hold.
+  {
+    const sP = seed();
+    const chP = Object.values(sP.characters).find((c) => c.bastion && c.bastion.facilities);
+    if (chP) {
+      const fac = { id: "fpick", defId: "smithy", size: "roomy", henchmen: [], furnishings: [] };
+      chP.bastion.facilities.push(fac);
+      try { staffFacility(sP, fac); } catch (e) { /* shape varies */ }
+      chP.gp = 5000;
+      const items0 = Object.keys(sP.items).length, slots0 = Object.keys(sP.itemSlots || {}).length;
+      const tP = { n: 1, date: "2026-07-31", benefits: [], mintables: [], resolved: true };
+      resolveBastionOrder(sP, chP, tP, { facId: "fpick", orderId: "craft", outId: "smith_mundane", pickId: "g_chain" }, null);
+      ok(Object.keys(sP.items).length === items0 + 1 && Object.keys(sP.itemSlots || {}).length === slots0,
+         "a PICKED mundane item mints straight away — no slot, nothing for a DM to verify");
+      ok(chP.gp === 5000 - craftMaterialsGp((CATALOG.g_chain || {}).gp || 0),
+         "a picked mundane craft charges the PH materials figure and nothing else");
+      // an illegal pick must not mint: the tool has to actually make that row
+      const sB = seed();
+      const chB = Object.values(sB.characters).find((c) => c.bastion && c.bastion.facilities);
+      const facB = { id: "fbad", defId: "smithy", size: "roomy", henchmen: [], furnishings: [] };
+      chB.bastion.facilities.push(facB);
+      try { staffFacility(sB, facB); } catch (e) { /* shape varies */ }
+      const bi = Object.keys(sB.items).length;
+      const tB = { n: 1, date: "2026-07-31", benefits: [], mintables: [], resolved: true };
+      resolveBastionOrder(sB, chB, tB, { facId: "fbad", orderId: "craft", outId: "smith_mundane", pickId: "g_tool_smith" }, null);
+      ok(Object.keys(sB.items).length === bi, "a pick the tool cannot make mints nothing — it falls back to the slot");
+    }
+  }
+
+  // LONG FACILITY WORK SPANS TURNS (Frank, 31 Jul). Work needing more than a 7-day turn used to be
+  // REFUSED with the day count. Now it stays on the bench: the room takes no other order, advances
+  // 7 days each turn WITHOUT needing one, and mints when the days are met. The DMG is explicit —
+  // "During the time required to craft an item, the facility can't be used to craft anything else."
+  {
+    const sF = seed();
+    const chF = Object.values(sF.characters).find((c) => c.bastion && c.bastion.facilities);
+    if (chF) {
+      const fac = { id: "flong", defId: "smithy", size: "roomy", henchmen: [], furnishings: [] };
+      chF.bastion.facilities.push(fac);
+      try { staffFacility(sF, fac); } catch (e) { /* shape varies */ }
+      chF.gp = 9000; chF.level = 17;
+      const hands = Math.max(1, (fac.henchmen || []).length);
+      const pick = craftItemsFor("g_tool_smith").filter((id) => (CATALOG[id] || {}).gp >= 400)
+        .sort((a, b) => (CATALOG[b].gp - CATALOG[a].gp))[0];
+      if (pick) {
+        const need = craftDaysWithHelp((CATALOG[pick] || {}).gp || 0, hands);
+        const turnsNeeded = Math.ceil(need / 7);
+        const items0 = Object.keys(sF.items).length;
+        const t1 = { n: 1, date: "2026-07-31", benefits: [], mintables: [], orders: [{ facId: "flong", orderId: "craft", outId: "smith_mundane", pickId: pick }], resolved: true };
+        resolveBastionTurn(sF, chF, t1, false);
+        ok(!!fac.wip && fac.wip.daysNeeded === need && fac.wip.daysDone === 7,
+           "work longer than a turn stays ON THE BENCH instead of being refused");
+        ok(bastionOrderAllowed(chF, { facId: "flong", orderId: "maintain" }, 2, false) === false,
+           "an occupied room takes no other order (DMG: it can't be used to craft anything else)");
+        let turns = 1, early = false;
+        while (fac.wip && turns < turnsNeeded + 3) {
+          turns++;
+          const tn = { n: turns, date: "2026-07-31", benefits: [], mintables: [], orders: [], resolved: true };
+          resolveBastionTurn(sF, chF, tn, false);
+          if (fac.wip && Object.keys(sF.items).length > items0) early = true;
+        }
+        ok(!early, "nothing mints while the work is unfinished");
+        ok(!fac.wip && turns === turnsNeeded, `the item mints on the turn the days are met (${turnsNeeded} turns for ${need} days) and the bench clears`);
+        ok(Object.values(sF.items).some((i) => i.catalogId === pick), "the finished item is on the character's sheet");
+        ok(bastionOrderAllowed(chF, { facId: "flong", orderId: "maintain" }, turns + 1, false) === true,
+           "the room takes orders again once the bench is clear");
+      }
+    }
+  }
+
+  // ASSISTANTS (31 Jul). PH ch.6: "Divide the time needed to create an item by the number of
+  // characters working on it." A facility's hirelings are those characters — the DMG fixes each
+  // room's establishment and says they hold the tool proficiencies, which is the PH's requirement
+  // for a helper. Checked against the DMG's own staff counts, which this code does not control.
+  {
+    ok(craftDaysWithHelp(400, 1) === 40 && craftDaysWithHelp(400, 2) === 20 && craftDaysWithHelp(400, 4) === 10,
+       "assistants divide the crafting time by the number working (400 gp: 40 days alone, 20 with one helper)");
+    ok(craftDaysWithHelp(5, 3) === 1, "extra hands never take a job below a single day");
+    const hire = (id) => { const h = (BASTION_FACILITIES[id] || {}).hirelings; return typeof h === "object" ? h.min : h; };
+    ok(hire("scriptorium") === 1 && hire("smithy") === 2 && hire("workshop") === 3,
+       "the DMG establishments the divisor rests on: Scriptorium 1, Smithy 2, Workshop 3");
+  }
+
+  // ADVANCE_WIP / ABANDON_WIP — long work spans downtime turns (31 Jul). The PH prices Plate Armor at
+  // 150 days and a 9th-level scroll at 120; no character holds that in one pool, so before this the
+  // reducer simply refused and the top of both tables was unreachable.
+  {
+    const chW = need(R.activeChar(s0), "an active character to work at a bench");
+    const tid = "it_wiptool";
+    const withTool = { ...s0, items: { ...s0.items,
+      [tid]: { id: tid, catalogId: "g_tool_smith", itemClass: "GEAR", inPack: true,
+               holder: { type: "CHARACTER", id: chW.id }, provenance: { state: "VERIFIED", source: "PURCHASED" } } },
+      characters: { ...s0.characters, [chW.id]: { ...chW, gp: 5000, dt: 3, wip: null } } };
+    const long = craftItemsFor("g_tool_smith").filter((id) => (CATALOG[id] || {}).gp >= 100)[0];
+    if (long) {
+      const need1 = craftDays((CATALOG[long] || {}).gp || 0);
+      let sW = reducer(withTool, { type: "CRAFT_ITEM", charId: chW.id, by: chW.ownerId, catalogId: long });
+      const w0 = sW.characters[chW.id].wip;
+      ok(!!w0 && w0.daysNeeded === need1 && w0.daysDone === 3 && sW.characters[chW.id].dt === 0,
+         "work longer than the downtime on hand OPENS a job and spends every day available");
+      ok(w0 && w0.gpPaid > 0 && sW.characters[chW.id].gp < 5000, "raw materials are paid up front, not on completion");
+      // the bench takes nothing else while a job is open
+      const sBusy = reducer(sW, { type: "CRAFT_ITEM", charId: chW.id, by: chW.ownerId, catalogId: "g_shield" });
+      ok(sBusy.characters[chW.id].wip.catalogId === long, "the bench refuses new work while a job is unfinished");
+      // grind it out; the item mints on the turn the days are met, and never before
+      let turns = 0, mintedEarly = false;
+      const before = Object.keys(sW.items).length;
+      while (sW.characters[chW.id].wip && turns < 60) {
+        turns++;
+        sW = { ...sW, characters: { ...sW.characters, [chW.id]: { ...sW.characters[chW.id], dt: sW.characters[chW.id].dt + 7 } } };
+        sW = reducer(sW, { type: "ADVANCE_WIP", charId: chW.id, by: chW.ownerId });
+        if (sW.characters[chW.id].wip && Object.keys(sW.items).length > before) mintedEarly = true;
+      }
+      ok(!mintedEarly, "nothing is minted while the job is still unfinished");
+      ok(!sW.characters[chW.id].wip && Object.keys(sW.items).length === before + 1,
+         "the item mints on the turn the days are finally met, and the bench clears");
+      // abandoning frees the bench and does not refund
+      let sA = reducer(withTool, { type: "CRAFT_ITEM", charId: chW.id, by: chW.ownerId, catalogId: long });
+      const paid = sA.characters[chW.id].gp;
+      sA = reducer(sA, { type: "ABANDON_WIP", charId: chW.id, by: chW.ownerId });
+      ok(!sA.characters[chW.id].wip && sA.characters[chW.id].gp === paid,
+         "abandoning clears the bench and does NOT refund the materials");
+      ok(reducer(sW, { type: "ADVANCE_WIP", charId: chW.id, by: stranger(chW.ownerId) }) === sW ||
+         !reducer(sW, { type: "ADVANCE_WIP", charId: chW.id, by: stranger(chW.ownerId) }).characters[chW.id].wip,
+         "ADVANCE_WIP refuses a non-owner");
+    }
+  }
+
   // AUTHENTICATE_TICKET — resolves an open authentication ticket on a thread and stamps the item.
   {
     const it = Object.values(s0.items).find((i) => i.provenance);
@@ -3317,6 +3481,33 @@ for (const [name, fn] of T) {
       "shelf caps: Archive 10 and Library 20 at their PRINTED size, doubling when enlarged to vast");
     ok(bookShelfCap("smithy", "roomy") === 0 && bookShelfCap("library", undefined) === 20,
       "shelf caps: non-shelving rooms hold nothing; an unspecified size falls back to the printed one");
+
+    // WHO IS NAMED FOR THE WORK (31 Jul). `bastionMaker` used to pick at random from a room's staff,
+    // so a Smithy credited its Striker for the smithing about half the time, and a Workshop credited
+    // the Apprentice over the Artisan. The role tables are filled in order and written master-first,
+    // so the fix was to honour an ordering that already existed rather than add new data.
+    //
+    // Checked as a DISTRIBUTION, not a single call: a random picker satisfies a one-shot assertion
+    // roughly half the time and looks green. 60 draws makes that vanishingly unlikely.
+    {
+      const sM = seed();
+      const chM = Object.values(sM.characters).find((c) => c.bastion);
+      for (const defId of ["smithy", "workshop", "kitchen"]) {
+        const roles = FACILITY_ROLES[defId] || [];
+        const fac = { id: "fmk", defId, size: (BASTION_FACILITIES[defId] || {}).space || "roomy", henchmen: [], furnishings: [] };
+        try { staffFacility(sM, fac); } catch (e) { /* staffing shape varies by room */ }
+        if ((fac.henchmen || []).length < 2 || roles.length < 2) continue;
+        const master = fac.henchmen.find((h) => h.role === roles[0]);
+        let named = 0;
+        for (let i = 0; i < 60; i++) if (bastionMaker(fac, chM).split(" at ")[0] === (master && master.name)) named++;
+        ok(named === 60, `${defId}: the master of the trade (${roles[0]}) is always named for the work — ${named}/60`);
+        const noMaster = { ...fac, henchmen: fac.henchmen.filter((h) => h.role !== roles[0]) };
+        const stand = bastionMaker(noMaster, chM).split(" at ")[0];
+        ok(noMaster.henchmen.some((h) => h.name === stand), `${defId}: with no ${roles[0]} posted, an assistant is named instead`);
+      }
+      const bare = { id: "fmk", defId: "smithy", size: "roomy", henchmen: [], furnishings: [] };
+      ok(bastionMaker(bare, chM).startsWith(chM.name), "an unstaffed room names the hero, not a ghost");
+    }
   }
 }
 

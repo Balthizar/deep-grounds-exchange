@@ -49,17 +49,28 @@ Current fronts, in the order they'd close fastest:
 
 ## B · BUILT, NOT WIRED — should be empty
 
-- [ ] **Treasure roller.** `rollMagicItem()` and the whole slot chain are green. **Nothing calls
-      it.** Needs one ruling (which order/event rolls treasure) then a one-line wire.
-- [ ] **Player registration.** No account-creation flow. Import is reachable via "Add a character
-      → A character I already play"; a new player has no front door.
+**EMPTY as of 31 Jul.** Both entries were checked against the code and neither was what it claimed.
+
+- ~~Treasure roller~~ — **not pending, and not waiting on a facility either.** The DMG's Treasure
+  outcome is a **Bastion EVENT** (Bastions.md:1690), not a facility order; the Trophy Room's orders
+  are Research: Lore and Research: Trinket Trophy. `resolveTreasure` is wired and live — dispatched
+  from the events table (`engine.ts:1780`) and again by the fair (`:2746`). What is genuinely
+  uncalled is `rollMagicItem()` in `app.tsx`, a **d100 table roller against MAGIC_TABLES**, which is
+  a different thing from the treasure event: it returns a SLOT for the player to fill from their own
+  book. It is the door a future **facility** magic-item roll would use, and the facilities that would
+  use it are not built. **Moved to section D as a dependency of the mint run**, not a loose end.
+- ~~Player registration~~ — **deferred to deployment by ruling (Frank, 31 Jul).** Not a now item;
+  it belongs with the online work, not before it.
 
 ---
 
 ## C · ENGINE GAPS (external review)
 
-- [ ] Generated-data drift unenforced — `npm run generate` exists, nothing verifies it was run.
-      **Highest risk here: stale bundles are a logged project meta-risk.**
+- [x] ~~Generated-data drift unenforced~~ — **CLOSED, and the entry was stale.** `check:generated`
+      (`harness/check_generated.cjs`) is step 5 of the gate and has been passing all session:
+      *"GENERATED DATA: in sync with srd-source."* Verified 31 Jul against `package.json`. The entry
+      survived its own fix, which is the same defect as the stale facility count — **a backlog line
+      is a claim, and claims go stale.**
 - [ ] Lazy Proxy draft — one confirmed issue open from the immutability sweep.
 - [ ] Reducer purity deliberately compromised — `Date.now()` / `new Date()` in reducer paths.
 - [ ] No error boundary — `src/main.tsx` mounts directly; one render exception blanks the app.
@@ -89,6 +100,11 @@ block and the seven registry tables. It does NOT check `tools`, `options`, `tabl
 `enlarge`, `capacity` or `open` — seven of the ten fields §3 defines. The Armory reads ✅ MINTED with
 its own §8 feature (*stocked → defenders roll 1d8*) unimplemented. **Extend `facility_mint.cjs` to
 the full §3 schema first**, or the divergence is propagated across the remaining 20 rooms.
+
+**Carries a dependency:** `rollMagicItem()` in `app.tsx` is built, tested and uncalled — the d100
+MAGIC_TABLES roller that returns a slot for the player to fill from their own book. It is waiting on
+the facilities that would roll on those tables. Wire it when the first such room is minted; do not
+treat it as a loose end before then.
 
 Not yet started (21): barrack · demiplane · gaming_hall · garden · greenhouse · guildhall ·
 laboratory · meditation_chamber · menagerie · pub · reliquary · **sacristy** · sanctuary · sanctum ·

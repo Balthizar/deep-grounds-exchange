@@ -230,6 +230,72 @@ let _itemIdx: any = null;              // charId -> item[]
 
 // Which lanes are legal for this item (compliance by construction)
 
+export function craftRuleMatches(rule) {
+  const cat = (rule.category || "").toLowerCase();
+  const except = (rule.except || []).map((x) => x.toLowerCase());
+  // The `except` entries are KEYWORDS, not full names: smith's "medium armor except hide" must drop
+  // "Hide Armor", and "melee weapon except club" must drop "Club". Match the keyword as a whole WORD
+  // in the item's name (word-boundary), so "hide" catches "Hide Armor" but not "Rawhide Shield", and
+  // "club" catches "Club"/"Greatclub" as intended. Full-name equality (the old test) only worked by
+  // luck where a name happened to equal its keyword (Whip), and silently let "Hide Armor" through.
+  const isExcepted = (name) => {
+    const n = (name || "").toLowerCase();
+    return except.some((kw) => new RegExp("(^|\\W)" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|\\W)").test(n));
+  };
+  return Object.values(CATALOG).filter((it) =>
+    it.mundane &&
+    !(it as any).awardOnly &&   // Q16: award-only rows (firearms, poisons) are never craftable
+    (it.category || "").toLowerCase().includes(cat) &&
+    !isExcepted(it.name)
+  ).map((it) => it.id);
+}
+
+
+
+// Whether an item class may be released.
+// Whether an item may leave a roster via a logged, DM-approved disposal. Default yes; the catalogue marks bound/cursed items (whose own text forbids it) as disposable:false.
+export function catDisposable(cat) { return !cat || cat.disposable !== false; }
+
+
+
+// What a workbench can craft.
+// Everything a tool can make, as catalogue ids: its explicit items plus every id its rules resolve
+// to, de-duplicated. Does NOT include `special` outputs (scroll/potion) — those mint through their
+// own frame, not the gear catalogue, and are surfaced separately by toolSpecials().
+//
+// Q16 (Frank, 26 Jul): the award-only filter sits HERE, at the one place both halves converge,
+// rather than only inside craftRuleMatches. That placement is deliberate and was earned — the
+// harness caught `g_musket` sitting in Tinker's Tools' hand-written `items` list, which a
+// rules-only guard sailed straight past. A structural gate has to cover the hand-written half too,
+// or it only guards the door somebody already remembered to lock.
+export function craftItemsFor(toolId) {
+  const t = TOOL_CRAFTS[toolId];
+  if (!t) return [];
+  const ids = new Set<string>(t.items || []);
+  (t.rules || []).forEach((r) => craftRuleMatches(r).forEach((id) => ids.add(id)));
+  return [...ids].filter((id) => !(CATALOG[id] || {}).awardOnly);
+}
+
+// ---- CRAFTING NONMAGICAL ITEMS -----------------------------------------------------------------
+// PH 2024, ch. 6 "Equipment" > "Crafting Equipment" > "Crafting Nonmagical Items". The DMG's Bastion
+// Craft order (Bastions.md:1143) and ALPG:130/134 both defer to this section rather than restating
+// it, so this is the one place the rule lives.
+//
+//   RAW MATERIALS  worth HALF the item's purchase cost, ROUNDED DOWN.
+//   TIME           purchase cost in GP divided by 10, a fraction ROUNDED UP to a whole day.
+//                  Days need not be consecutive.
+//   TOOLS          you must use the required tool AND be proficient with it. So must any helper.
+//   ASSISTANTS     divide the time by the number of characters working. Normally only ONE other may
+//                  assist; the DM may allow more.
+//
+// The rounding directions are opposite (materials down, days up) and that is the rule, not a
+// mistake: a 5 GP Chain costs 2 GP of materials and still takes a full day.
+export const craftMaterialsGp = (purchaseGp: number) => Math.floor((purchaseGp || 0) / 2);
+export const craftDays = (purchaseGp: number) => Math.max(1, Math.ceil((purchaseGp || 0) / 10));
+// Helpers divide the time. `hands` is the TOTAL number working, the crafter included.
+export const craftDaysWithHelp = (purchaseGp: number, hands: number) =>
+  Math.max(1, Math.ceil(craftDays(purchaseGp) / Math.max(1, hands || 1)));
+
 export const SCROLL_COST = {
   0: { gp: 15, days: 1 },
   1: { gp: 25, days: 1 },

@@ -499,6 +499,256 @@ spread. No wiki changes that. What Mistipedia DOES make possible is the *traditi
 imbue a deck, how it must be kept, what a reading is for. That is lore and is fair game; the card list
 is not.
 
+## B-78 — BACKLOG SWEEP BEFORE THE MINT RUN: three entries wrong, none of them blocking (31 Jul)
+
+Frank asked whether any infrastructure was still pending before minting facilities. Checked each
+open item against the code rather than reading the list. **Nothing blocks the mint run. Three
+entries were inaccurate.**
+
+**1. `check:generated` was listed as unenforced and flagged "highest risk here".** It is step 5 of
+the gate and has passed all session. The entry survived its own fix — the same defect as the stale
+facility count this morning. **A backlog line is a claim, and claims go stale.** The list needs
+verifying against the code the same way the facility ledger does, and for the same reason.
+
+**2. The treasure roller is not waiting on a facility, and not the Trophy Room.** Frank guessed
+Trophy Room; I checked. The DMG's Treasure outcome is a **Bastion EVENT** (Bastions.md:1690), and the
+Trophy Room's orders are Research: Lore and Research: Trinket Trophy. `resolveTreasure` is already
+wired and live — dispatched from the events table and again by the fair. What is genuinely uncalled
+is `rollMagicItem()` in `app.tsx`, a **different function**: a d100 roll against MAGIC_TABLES
+returning a SLOT for the player to fill from their own book. Frank's instinct was right in shape —
+it waits on an unbuilt facility — but the specific room and the specific function were both off.
+**Moved to section D as a dependency of the mint run.**
+
+**3. Player registration deferred to deployment by ruling.** Not a now item.
+
+Section B, titled *"BUILT, NOT WIRED — should be empty"*, is now empty and says why.
+
+**Also fixed: `next.cjs` printed a hardcoded 28.** Its top step read *"21 of 28 still to start"*
+directly beneath a work-state line reading *"29 total"* — a typed number beside a derived one, in the
+tool whose whole job is reporting state. B-38's defect class, one more time. Now parsed from the
+ledger line: *"21 of 29 still to start."*
+
+
+## B-77 — LONG FACILITY WORK STAYS ON THE BENCH (Frank's ruling, 31 Jul)
+
+I had refused work exceeding a 7-day turn and written it up as "the obvious next question" rather
+than doing it. Frank: *I would rather it would not be refused... I would rather the work is allowed
+to continue in chunks like we discussed.* Built.
+
+**The job lives on the FACILITY, not the character**, and that placement is the whole design. The
+DMG says *"During the time required to craft an item, the facility can't be used to craft anything
+else, even if a special ability allows the facility to carry out two orders at once."* It is the ROOM
+that is occupied — so `fac.wip` sits beside `fac.building`, and `bastionOrderAllowed` refuses on it
+exactly as it refuses a hall still going up.
+
+**It needs no order to continue.** `advanceFacilityCraft` runs at the TOP of `resolveBastionTurn`,
+before any order is read. An occupied room takes no order and needs none: the hirelings were at the
+bench all week either way. That is both the DMG's rule and the honest reading of a 7-day turn.
+
+Verified end to end — **Plate Armor, 1,500 gp, in a Smithy with 2 hirelings:**
+
+```
+75 days at 2 pairs of hands -> 11 turns
+turn  1  begun, 750 gp of materials paid, 7 of 75 days
+turn  2  14 of 75 ... the room takes no other order until it is finished
+turn 11  finished by Mabon Coalfield, 75 days in all. The bench is clear.
+minted: Plate Armor    other orders now allowed: true
+```
+
+Materials are paid at the start, nothing mints early, the room locks for the duration and frees
+itself on completion. Gated on all five: opens rather than refuses, locks, mints nothing early, mints
+on the exact predicted turn, and takes orders again after.
+
+**Note the shape this settles.** There are now two progress records with the same behaviour and
+different owners — `ch.wip` for a character at a workbench, `fac.wip` for a room. That is not
+duplication: the workbench is a pair of hands and the bastion is a room, and the DMG locks the room
+while the PH's day-of-8-hours locks the hands. Same rule, two subjects.
+
+Transitions 689 -> 695.
+
+
+## B-76 — MUNDANE TOOL-CRAFT NOW MINTS FROM THE PICKER (Frank's ruling, 31 Jul)
+
+Frank asked whether players should be typing item names in at all, half-remembering a ruling. The
+ruling exists and is narrower than either of us recalled: **a magic-item craft mints an UNFILLED
+SLOT**, the player enters the item from their own book, and a DM verifies it. The reason is stated in
+the reducer and it is licensing — *"I ship no item text it doesn't hold a licence for."*
+
+**That reason does not extend to mundane gear, and the bastion was applying it anyway.** Measured:
+smith's tools alone map to **42 catalogue rows the platform already holds**. So the Smithy asked a
+player to type a name we could have offered, and asked a DM to check it against a list we own —
+while the WORKBENCH, built the same evening, simply picked from that list. Two doors to the same
+mundane gear behaving differently, and the older one was the worse one.
+
+**Now both mundane branches route through the picker.** Pick a row, it mints, no slot and no
+verification burden. Prices and times come from the same PH derivations the workbench uses, and the
+facility's establishment is the divisor: a Chain in the Smithy is 2 gp and 1 day *with 1 assisting*;
+a Barrel in the Workshop is 1 gp and 1 day *with 2 assisting*.
+
+**The slot survives as the escape**, and deliberately: the SRD's "anything these tools can make" is
+open-ended and 42 rows are not the whole world. Nothing picked, or a pick the tool cannot make, falls
+back to the old path. Both cases gated.
+
+**One bug caught in test rather than shipped:** I first passed `chosenTools.length` as the number of
+hands, so a Workshop reported "1 day with 5 assisting" — six tools read as six workers. **The
+establishment is the divisor, not the toolkit.** Corrected to the hireling count.
+
+**Not extended to the facility:** work that exceeds a 7-day turn is refused with the day count rather
+than opening a facility-side progress record. The workbench spans turns via `ch.wip`; a bastion turn
+is atomic, and inventing a second progress model tonight would be building past the ruling. Recorded
+here as the obvious next question rather than answered.
+
+Transitions 686 -> 689.
+
+
+## B-75 — ASSISTANTS, AND A JUSTIFICATION I GOT WRONG IN BOTH DIRECTIONS (Frank, 31 Jul)
+
+I reviewed my own crafting work and told Frank the one-job rule was a house rule I had smuggled in by
+citing the DMG's facility clause. **Frank said it was not a house rule. He was right, and the reason
+is better than the citation I originally used.**
+
+**The lock falls out of the PH's own unit.** A day is *8 hours of work* and 1 DT is 1 day. A day
+spent on this job is not available to spend on another, so a second job could only ever be worked
+with days the first has already consumed. It is arithmetic on the day, not an analogy to a room. I
+first justified it by borrowing a rule about a FACILITY and applying it to a pair of hands — then,
+reviewing, doubted the conclusion instead of the citation. **Both moves were wrong in the same place:
+I never checked the rule against its own unit.**
+
+**ASSISTANTS, now implemented.** PH ch.6: *"Characters can combine their efforts to shorten the
+crafting time. Divide the time needed to create an item by the number of characters working on it."*
+A facility's hirelings ARE those characters — the DMG fixes each room's establishment and states they
+hold the tool proficiencies, which is the PH's other requirement for a helper.
+
+**Measured before building, and it changed the target.** Every bastion craft output with a KNOWN
+price already fits inside one 7-day turn — the priciest is a 25 gp Book at 3 days. So assistants
+cannot change any current named outcome. Where they matter is the **open-ended** crafts
+(`smith_mundane`, the Workshop's `gear_chosen`), where the player names the item and a DM verifies,
+and there is no ceiling. Both branches now state the divisor and what a turn buys:
+
+| room | hirelings | a 7-day turn finishes |
+|---|---|---|
+| Scriptorium | 1 | 70 gp of work |
+| Smithy | 2 | 140 gp |
+| Workshop | 3 | 210 gp |
+
+That is the number a player needs BEFORE naming the item, and the DM needs at verification.
+
+Gated against the DMG's own establishment counts — numbers the code does not control. Transitions
+683 -> 686.
+
+**Still not implemented, deliberately:** a second PLAYER assisting at a workbench. The PH allows it,
+but it is an agreement between two people at a table and the platform cannot attest it. Hirelings are
+different: they are known, counted, and already on the facility record.
+
+
+## B-74 — LONG WORK NOW SPANS DOWNTIME TURNS (Frank, 31 Jul)
+
+Frank: *if a player chooses something that takes longer than one DT turn they still can, but it
+should show a progress bar, and it should be stuck in the same activity for however many DT turns
+need to take place until the object is finished.*
+
+**This was a live defect, not just a missing feature, and it was OLDER than the crafting I shipped an
+hour earlier.** `SCRIBE_SCROLL` already deducted its days all at once and returned unchanged if the
+pool was short — so **the top of the PH's own scroll table was unreachable**. A 9th-level scroll is
+120 days; no character holds that in one downtime pool, so the row existed and could never be used.
+Plate Armor at 150 days had exactly the same problem the moment CRAFT_ITEM shipped.
+
+**One work-in-progress record, shared by both doors.** `ch.wip` carries kind, label, daysNeeded,
+daysDone, gpPaid and startedAt. Two new actions: `ADVANCE_WIP` puts more downtime in, `ABANDON_WIP`
+clears the bench.
+
+- **Materials are paid up front**, days accrue after — the PH has you buy the stock to start.
+- **One job at a time.** The DMG's Bastion analogue says the facility "can't be used to craft anything
+  else" while work is on the bench; the same holds for a pair of hands.
+- **Nothing mints early.** The item appears on the turn the days are finally met, and not before.
+- **Abandoning does not refund.** The materials went into the work; the days are gone. It exists so a
+  bench can never be permanently blocked by something the player no longer wants.
+- Progress bar in the workbench modal, with the exact day count and what remains.
+
+Verified across turns: a 400 gp Breastplate (200 gp materials, 40 days) opened at 3/40 with the
+character's whole pool, advanced 7 days per turn, and minted on turn 6.
+
+**My probe was wrong before the code was, twice.** It looked for `provenance.how` when the field is
+`provenance.source`, and reported "minted: NOTHING" against working code — and the same wrong key had
+gone into the B-73 assertion an hour earlier, where it passed only because it sat behind an `if`.
+Corrected. Second: a failed probe left `src/__wp.tsx` behind and `tsc` failed on it in the next gate
+run. **Scratch files written into `src/` are inside the build.** Cleaned, and worth remembering.
+
+Transitions 675 -> 683.
+
+
+## B-73 — WORKBENCH ITEM CRAFTING SHIPPED; the promise in the UI is discharged (31 Jul)
+
+`src/market/ui.tsx` had told players *"Item crafting from the workbench is coming next — scrolls
+first."* `npm run next` had been demoting facility work on the strength of it under Frank's own
+finish-to-depth rule (d13). It is now built, and the sentence is gone.
+
+**THE RULE, AND WHERE IT CAME FROM.** The DMG's Bastion Craft order (Bastions.md:1143) and ALPG:130
+and :134 both defer to the PH rather than restating it. **The PH text is not SRD and I do not hold
+it** — I searched `rules.json`, `glossary.json` and `equipment.json` and only the tool->item lists are
+there. Rather than write a rate from memory, which had already been wrong five times today, I said so
+and Frank read out **PH 2024, ch. 6 "Equipment" > "Crafting Equipment"**:
+
+| clause | value |
+|---|---|
+| raw materials | **half** the purchase cost, **rounded DOWN** |
+| time | purchase cost / 10, in days, **rounded UP** |
+| tools | required tool, and **proficiency** with it — helpers too |
+| assistants | divide the time by the number working; normally one other, DM may allow more |
+
+**The two roundings go opposite ways and that is the rule, not a slip**: a 5 gp Chain is 2 gp of
+stock and still costs a whole day. Both derivations reproduce the PH's own worked examples exactly —
+Plate Armor 1,500 -> 750 gp of materials, Heavy Crossbow 50 -> 5 days — and those are the assertions
+in the gate, because they are **numbers the code does not control**.
+
+**Frank's 7-day bucket was right, one label off.** He proposed 5 gp per DT, so 7 DT ~ 35 gp. Under
+the real rule a 7-day turn produces a **70 gp item** whose **materials are 35 gp** — his figure was
+the materials, not the item. The bastion turn is a genuine yardstick.
+
+**Verified while I was in there:** `SCROLL_COST` matches the PH's Spell Scroll Costs table on all ten
+rows, cantrip through 9th.
+
+**No assistants at the workbench, deliberately.** The PH allows one helper to halve the time, but
+that is a negotiation between two players at a table and the platform cannot attest it. Multiple
+hands are modelled in the BASTION, where the hirelings are known and counted — which is exactly the
+`craftDaysWithHelp` seam, ready for the facility side.
+
+**Two structural notes.** `craftRuleMatches` and `craftItemsFor` moved from `market/ui.tsx` into
+`lib/rules.ts`, because **a reducer must not import from a UI module**; the UI re-exports them so
+every existing import site still works. And the coverage gate caught the new action immediately with
+*"1 action(s) have no assertion. Write one, or change the ruling — do not add an exemption."* It was
+right to, and the message did its job.
+
+Transitions 668 -> 675. Negative-tested by flipping both roundings: the Chain assertion fails alone.
+
+
+## B-72 — THE MASTER OF THE TRADE IS NOW NAMED FOR THE WORK (Frank, 31 Jul)
+
+Walking the facilities one at a time surfaced this: `bastionMaker` picked at RANDOM from a room's
+staff, so a Smithy credited its **Striker** for the smithing about half the time and a Workshop
+credited the **Apprentice** over the Artisan. Measured before the fix: 24/60, 22/60, 33/60.
+
+**The fix required no new data.** `FACILITY_ROLES` is filled in order by `staffFacility` and every
+table is already written master-first:
+
+```
+smithy   Smith > Striker            workshop  Artisan > Journeyman > Apprentice
+kitchen  Cook > Scullion > Potboy   storage   Cellarer > Porter
+```
+
+So `bastionMaker` now walks the roster in its declared order and takes **the most senior post that is
+actually filled**. The hierarchy was there all along; nothing honoured it. Assistants are still named
+when the master's post is empty — a Striker alone in a smithy IS the one at the anvil and should read
+that way — and an unstaffed room names the hero.
+
+**Gated, and the gate design matters here.** The check runs 60 draws per room, not one. A random
+picker satisfies a single-call assertion roughly half the time and reads green; only a distribution
+can tell "always the master" from "often the master". Negative-tested by reverting the walk: the
+suite fails with the exact old ratios printed. 661 -> 668 checks.
+
+The engine now imports `FACILITY_ROLES` from the registry. No cycle: registry does not import engine.
+
+
 ## B-70 — THE ARMORY FEATURE WAS BUILT ALL ALONG; I REPORTED IT MISSING (31 Jul)
 
 Frank asked, before authorising the fix, *what was the Armory not doing?* Checking the DMG text

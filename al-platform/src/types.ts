@@ -41,6 +41,13 @@ export interface CharacterRecord {
   id: string; name: string; ownerId: string; race: string; cls: string;
   level: number; tier: number; faction: string; campaign: string; ddb: string;
   dt: number; wishlist: any[];
+  // WORK IN PROGRESS at the workbench (31 Jul). PH ch.6 "Crafting Equipment" prices a Heavy Crossbow
+  // at 5 days and Plate Armor at 150; a character rarely holds that many downtime days at once, so
+  // long work has to SPAN turns rather than be refused. One at a time: the PH's own Bastion analogue
+  // says the facility "can't be used to craft anything else" while work is on the bench, and the same
+  // logic holds for a pair of hands. `kind` distinguishes the two doors that share this record.
+  wip?: { kind: "item" | "scroll"; catalogId?: string; spellId?: string; spellName?: string;
+          label: string; daysNeeded: number; daysDone: number; gpPaid: number; startedAt: string } | null;
   gp?: number; status?: string; licensed?: boolean; shared?: boolean;
   lifestyle?: string; credits?: any[]; epitaph?: string; favors?: any[]; friends?: any[];
   gifts?: any[]; retireTale?: any[]; pregen?: boolean; pregenOwner?: string;
@@ -74,6 +81,7 @@ export type ConstructionJob =
 export interface BastionOrder {
   facId: string; orderId: string; detail: string; gp: number;
   outId: string | null; craftItem: any | null;
+  pickId?: string | null;   // the catalogue row chosen for a mundane tool-craft (31 Jul)
   [k: string]: any;
 }
 // A single Bastion week. `resolved` is the field two-unresolved-turns invariants hang off; `orders`
@@ -183,6 +191,9 @@ export type ActionType =
   | "CANCEL_SIGNUP"
   | "CANCEL_TRADE"
   | "CHECKOUT_MARKET"
+  | "CRAFT_ITEM"
+  | "ADVANCE_WIP"
+  | "ABANDON_WIP"
   | "SCRIBE_SCROLL"
   | "SELL_TO_RONALDO"
   | "PROPOSE_PROV_TABLE"
@@ -330,7 +341,7 @@ export type ActionType =
   | "WITHDRAW_LICENSE"
   ;
 // One raw order line as the UI submits it for a Bastion week (before openBastionWeek normalizes it).
-export interface BastionOrderInput { facId: string; orderId: string; detail?: string; gp?: number; outId?: string | null; craftItem?: any; }
+export interface BastionOrderInput { facId: string; orderId: string; detail?: string; gp?: number; outId?: string | null; craftItem?: any; pickId?: string | null; }
 
 // The Bastion slice of the action space, as a discriminated union on `type`. Members are strict (no
 // index signature) so a misspelled or mistyped field on a dispatch is a compile error, and `by`/
@@ -367,6 +378,9 @@ export type BastionAction =
   | { type: "ADD_FACILITY_FURNISHING"; by: string; charId: string; facId: string; note?: string; gp?: number }
   | { type: "REMOVE_FACILITY_FURNISHING"; by: string; charId: string; facId: string; furnId: string }
   | { type: "RENAME_FACILITY_HENCHMAN"; by: string; charId: string; facId: string; henchId: string; name?: string; note?: string; role?: string }
+  | { type: "CRAFT_ITEM"; by: string; charId: string; catalogId: string }
+  | { type: "ADVANCE_WIP"; by: string; charId: string; days?: number }
+  | { type: "ABANDON_WIP"; by: string; charId: string }
   | { type: "SCRIBE_SCROLL"; by: string; charId: string; spellId: string };
 
 // Everything the discriminated union does not name stays on the loose contract, keyed so a bastion

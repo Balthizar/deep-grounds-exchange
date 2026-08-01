@@ -235,6 +235,8 @@ export function bleedAbandonedStaff(s: AppState, ch, dateStr) {
 // ============================================================================
 
 import { pick } from "../lib/util";
+import { FACILITY_ROLES } from "./registry";
+import { craftItemsFor, craftMaterialsGp, craftDaysWithHelp } from "../lib/rules";   // PH "Crafting Equipment" — one source, shared with the workbench      // master-first job titles; bastionMaker walks them in order
 import { catName, itemCat, itemClassOf, mkItem, verified, d6, d6x100, evHostility, evIsHostile, BATTLE_BEAT_SEC, BATTLE_JITTER } from "../lib/core";
 import { CATALOG } from "../data/catalog";
 import type { AppState, Facility, Bastion } from "../types";
@@ -694,6 +696,10 @@ export function bastionOrderAllowed(ch, o, n, leisure) {
   if (!fac) return false;
   if (fac.working != null) return false;                        // already mid-order
   if (fac.building) return false;                               // a hall still going up takes no orders
+  if (fac.wip) return false;                                    // DMG: "During the time required to craft an
+  // item, the facility can't be used to craft anything else, even if a special ability allows the
+  // facility to carry out two orders at once." The room is OCCUPIED, not idle — it needs no order to
+  // keep going, and takes none. Work advances in `advanceFacilityCraft`, called as the turn opens.
   if (facStockedThisTurn(fac, n)) return false;                 // ...and neither does one that spent the week changing over
   if (facDisabled(fac, n)) return false;                        // shut down by an Attack
   if (facilityDormant(fac)) return false;                      // stripped bare — a smithy with no forge is a shed
@@ -990,6 +996,21 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
         return;
       }
       const maker = bastionMaker(fac, ch);
+      // MUNDANE TOOL-CRAFT NOW USES THE PICKER (Frank's ruling, 31 Jul).
+      //
+      // These two branches used to mint an UNFILLED SLOT and ask the player to type the item's name
+      // for a DM to verify. That model exists for MAGIC items and the reason is licensing — the
+      // platform ships no item text it has no licence for, so the player reads it out of their own
+      // book. **That reason does not hold for mundane gear**, which the catalogue already carries:
+      // smith's tools alone map to 42 rows we hold. So the bastion asked a player to type a name we
+      // could have offered, and asked a DM to check a list we own — while the WORKBENCH, built the
+      // same evening, simply picked from that list. Two doors to the same gear, behaving differently.
+      //
+      // Now: pick a row, mint it, no slot and no verification burden. The slot path remains ONLY as
+      // the escape for something the catalogue does not hold — the SRD's "anything these tools can
+      // make" is open-ended and our 42 rows are not the whole world.
+      const wPick = o.pickId && chosenTools.some((tid) => craftItemsFor(tid).includes(o.pickId!)) ? o.pickId! : null;
+      if (wPick) { craftPickedItem(s, ch, t, fac, def, ord, wPick, (fac && (fac.henchmen || []).length) || 1); return; }   // HANDS, not tools — the establishment is the divisor
       if (!s.itemSlots) s.itemSlots = {};
       const sid = "slot" + s.nextId++;
       s.itemSlots[sid] = { id: sid, charId: ch.id, ownerId: ch.ownerId, table: "toolset", rarity: "mundane",
@@ -1000,11 +1021,20 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
         spentOn: ch.bastion!.name + " \u2014 Workshop: adventuring gear (to be named)",
         flavor: "DMG Workshop (Craft: Adventuring Gear): the hirelings craft anything the workshop's six chosen tools can make, per the PHB. Name the item and a DM verifies it against those tools; the base gear's own price is settled at verification." });
-      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker + ". Name what you had made (anything the workshop's chosen tools can make) and a DM verifies it.");
+      // Same assistant rule as the tool-derived branch below: the room's establishment is the divisor.
+      // The Workshop's three hirelings are the most hands the DMG gives any craft room, which is why
+      // it finishes 210 gp of work in a turn where a lone Scriptorium scribe finishes 70.
+      const wHands = Math.max(1, (fac && (fac.henchmen || []).length) || 0);
+      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker
+        + (wHands > 1 ? " with " + (wHands - 1) + " assisting, so the work goes " + wHands + " times as fast (PH: divide the time by the number working)" : "")
+        + ". Name what you had made (anything the workshop's chosen tools can make) and a DM verifies it."
+        + " Seven days at " + wHands + (wHands === 1 ? " pair of hands finishes" : " pairs of hands finish") + " up to " + (wHands * 70) + " gp of work.");
       return;
     }
     if (chosen && chosen.tool) {
       const maker = bastionMaker(fac, ch);
+      const tPick = o.pickId && craftItemsFor(chosen.tool).includes(o.pickId) ? o.pickId : null;
+      if (tPick) { craftPickedItem(s, ch, t, fac, def, ord, tPick, (fac && (fac.henchmen || []).length) || 1); return; }
       if (!s.itemSlots) s.itemSlots = {};
       const sid = "slot" + s.nextId++;
       s.itemSlots[sid] = { id: sid, charId: ch.id, ownerId: ch.ownerId, table: "tool:" + chosen.tool, rarity: "mundane",
@@ -1015,7 +1045,19 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: 0,
         spentOn: ch.bastion!.name + " \u2014 " + ((def && def.name) || "Craft") + ": tool-made gear (to be named)",
         flavor: "DMG: the facility's hirelings craft anything that can be made with these tools. Name the item you had made and a DM verifies it against the tool's list; the base gear's own price is settled at verification." });
-      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker + ". Name what you had made (anything these tools can make) and a DM verifies it against the tool's list.");
+      // ASSISTANTS (Frank, 31 Jul). PH ch.6: "Characters can combine their efforts to shorten the
+      // crafting time. Divide the time needed to create an item by the number of characters working
+      // on it." A facility's hirelings ARE those characters — the DMG gives each room a fixed staff
+      // and says they hold the tool proficiencies, which is the PH's other requirement for a helper.
+      // So the room's own establishment is the divisor, and the player should be told what it buys
+      // them BEFORE they name the item, because the ceiling on what fits in a 7-day turn depends on
+      // it: one pair of hands finishes 70 gp of work in a turn, two finish 140, three 210.
+      const hands = Math.max(1, (fac && (fac.henchmen || []).length) || 0);
+      const ceiling = hands * 7 * 10;   // days available this turn x the PH's 10 gp per day
+      t.benefits.push(ord.name + ": the work is on the bench \u2014 by " + maker
+        + (hands > 1 ? " with " + (hands - 1) + " assisting, so the work goes " + hands + " times as fast (PH: divide the time by the number working)" : "")
+        + ". Name what you had made (anything these tools can make) and a DM verifies it against the tool's list."
+        + " Seven days at " + hands + (hands === 1 ? " pair of hands finishes" : " pairs of hands finish") + " up to " + ceiling + " gp of work.");
       return;
     }
     if (chosen && chosen.scroll) {
@@ -2042,11 +2084,79 @@ export function relocateStaff(s: AppState, ch, fac) {
 // Whose hands made it. A facility comes with its people (DMG); one of them was at the bench. If the
 // room has somehow been emptied, the credit falls back to the lord who commissioned it — which is
 // what I used to record for everything, and it was never quite true.
+// Who gets named as having done the work.
+//
+// CHANGED 31 Jul (Frank). This used to `pick(staff)` at random, so a Smithy with a Smith and a
+// Striker would name the Striker for the smithing about half the time, and a Workshop would credit
+// the Apprentice over the Artisan. The room's own roster already encodes the hierarchy — the tables
+// are filled IN ORDER by `staffFacility`, and every one of them is written master-first:
+//
+//     smithy   Smith > Striker          workshop  Artisan > Journeyman > Apprentice
+//     kitchen  Cook > Scullion > Potboy storage   Cellarer > Porter
+//
+// So the fix is not new data, it is honouring the order that was already there: **the master of the
+// trade is named unless nobody holds that post**, and only then does the work fall to whoever is
+// standing in the room. Assistants still get named when the master's post is unfilled — a Striker
+// alone in a smithy is the one at the anvil, and should read that way.
+// Mint a mundane item the player PICKED from the catalogue, rather than opening a slot for them to
+// type into (Frank's ruling, 31 Jul). Prices and times come from the PH via `craftMaterialsGp` /
+// `craftDaysWithHelp` — never retyped — and the facility's establishment is the divisor, so a Smithy
+// with two hands finishes in half the days a lone crafter would need.
+//
+// The turn is 7 days. Work that fits is done; work that does not is refused with the number the
+// player needs to plan, because a bastion turn is atomic and there is no partial-turn state here.
+// (The WORKBENCH spans turns via `ch.wip`; a facility does not, and inventing a second progress
+// model for it tonight would be building past the ruling.)
+export function craftPickedItem(s: AppState, ch, t, fac, def, ord, catalogId: string, hands: number) {
+  const cat = CATALOG[catalogId] || {};
+  const gp = craftMaterialsGp(cat.gp || 0);
+  const days = craftDaysWithHelp(cat.gp || 0, Math.max(1, hands));
+  const maker = bastionMaker(fac, ch);
+  const room = (def && def.name) || "the room";
+  if (gp > (ch.gp || 0)) {
+    t.benefits.push(ord.name + ": " + cat.name + " needs " + gp + " gp of raw materials, and the purse was short. Nothing was made.");
+    return;
+  }
+  ch.gp = (ch.gp || 0) - gp;
+  // LONG WORK STAYS ON THE BENCH (Frank, 31 Jul). Materials are paid now; the days accrue a turn at
+  // a time. The room takes no other order until it is done, which is the DMG's own rule rather than
+  // a convenience — and it is why the job lives on the FACILITY and not on the character: it is the
+  // room that is occupied.
+  if (days > BASTION_TURN_DT) {
+    fac.wip = { catalogId, label: cat.name, daysNeeded: days, daysDone: BASTION_TURN_DT, gpPaid: gp, hands, maker, startedOn: t.n };
+    s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+      date: t.date, dtSpent: 0, gpSpent: gp,
+      spentOn: ch.bastion!.name + " \u2014 " + room + ": began " + cat.name + " (" + gp + " gp of raw materials; " + BASTION_TURN_DT + " of " + days + " days done)" });
+    t.benefits.push(ord.name + ": " + cat.name + " is on the bench \u2014 by " + maker
+      + " (" + gp + " gp in materials). " + days + " days of work at " + hands
+      + (hands === 1 ? " pair of hands" : " pairs of hands") + ", so it will take "
+      + Math.ceil(days / BASTION_TURN_DT) + " turns. " + BASTION_TURN_DT + " done, " + (days - BASTION_TURN_DT) + " to go.");
+    return;
+  }
+  const iid = "it" + s.nextId++;
+  s.items[iid] = mkItem(iid, catalogId, itemClassOf(catalogId, "UNTRADEABLE"), ch.campaign,
+    verified("CRAFTED", maker), { type: "CHARACTER", id: ch.id });
+  s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+    date: t.date, dtSpent: 0, gpSpent: gp,
+    spentOn: ch.bastion!.name + " \u2014 " + room + ": " + cat.name + " (" + gp + " gp of raw materials, " + days + (days === 1 ? " day" : " days") + ")",
+    flavor: "PH \u201cCrafting Equipment\u201d: materials at half the price, time at the price over ten, divided by the hands working. The time folds into the Bastion turn; the coin does not." });
+  t.benefits.push(ord.name + ": " + cat.name + " \u2014 by " + maker
+    + " (" + gp + " gp in materials, " + days + (days === 1 ? " day" : " days")
+    + (hands > 1 ? " with " + (hands - 1) + " assisting" : "") + "; character-created, not tradeable).");
+}
+
 export function bastionMaker(fac, ch) {
   const staff = (fac && fac.henchmen) || [];
-  const who = staff.length ? pick(staff).name : null;
   const keep = ch.bastion ? ch.bastion.name : "the keep";
-  return who ? who + " at " + keep : ch.name + " at " + keep;
+  if (!staff.length) return ch.name + " at " + keep;
+  const roles = (fac && FACILITY_ROLES[fac.defId]) || null;
+  let who: any = null;
+  if (roles && roles.length) {
+    // Walk the roster in its declared order and take the most senior post that is actually filled.
+    for (const role of roles) { const held = staff.filter((h) => h && h.role === role); if (held.length) { who = pick(held); break; } }
+  }
+  if (!who) who = pick(staff);                                  // no role table, or nobody matches one
+  return who.name + " at " + keep;
 }
 
 // One whole turn: every order, then the turn's flavor, then whatever the world did back.
@@ -2306,7 +2416,35 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
   t.household = week;
 }
 
+// Advance whatever is already on a facility's bench. Called at the TOP of the turn, before orders,
+// because an occupied room takes no order — the work simply continues. That is the DMG's rule, and
+// it is also the honest reading of a 7-day turn: the hirelings were at it all week either way.
+export function advanceFacilityCraft(s: AppState, ch: CharacterRecord, t: BastionTurn) {
+  (ch.bastion!.facilities || []).forEach((fac: any) => {
+    const w = fac.wip;
+    if (!w) return;
+    w.daysDone += BASTION_TURN_DT;
+    const def = bDef(fac) || {};
+    const room = def.name || "the room";
+    if (w.daysDone < w.daysNeeded) {
+      t.benefits.push("\u{1F528} " + room + ": " + w.label + " is still on the bench \u2014 "
+        + w.daysDone + " of " + w.daysNeeded + " days done, " + (w.daysNeeded - w.daysDone) + " to go. The room takes no other order until it is finished.");
+      return;
+    }
+    const iid = "it" + s.nextId++;
+    s.items[iid] = mkItem(iid, w.catalogId, itemClassOf(w.catalogId, "UNTRADEABLE"), ch.campaign,
+      verified("CRAFTED", w.maker), { type: "CHARACTER", id: ch.id });
+    s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+      date: t.date, dtSpent: 0, gpSpent: 0,
+      spentOn: ch.bastion!.name + " \u2014 " + room + ": finished " + w.label + " (" + w.daysNeeded + " days in all)" });
+    t.benefits.push("\u{1F528} " + room + ": " + w.label + " is finished \u2014 by " + w.maker
+      + ", " + w.daysNeeded + " days in all. The bench is clear.");
+    fac.wip = null;
+  });
+}
+
 export function resolveBastionTurn(s: AppState, ch: CharacterRecord, t: BastionTurn, leisure) {
+  advanceFacilityCraft(s, ch, t);                                // occupied rooms keep working, order or none
   t.orders.forEach((o) => resolveBastionOrder(s, ch, t, o, leisure));
   // Every room this turn took is free again. Keyed off the TURN NUMBER, not off t.orders — a
   // Maintain turn works the whole keep and has no order lines at all, so a release that walks the
@@ -2422,7 +2560,7 @@ export function billBastionWeek(ch: CharacterRecord, n, leisure) {
 
 // 4. The week ITSELF: what was ordered, how long it runs, and who is busy for it.
 export function openBastionWeek(ch: CharacterRecord, orders, maintaining, n, leisure) {
-  const allOrders = orders.map((o) => ({ facId: o.facId, orderId: o.orderId, detail: o.detail || "", gp: Math.max(0, +o.gp || 0), outId: o.outId || null, craftItem: o.craftItem || null }));
+  const allOrders = orders.map((o) => ({ facId: o.facId, orderId: o.orderId, detail: o.detail || "", gp: Math.max(0, +o.gp || 0), outId: o.outId || null, craftItem: o.craftItem || null, pickId: o.pickId || null }));
   const now = Date.now();
   const maxDays = maintaining ? 7 : Math.max(...allOrders.map((o) => (BASTION_ORDERS[o.orderId] || {}).days || 7));
   const turn: BastionTurn = {

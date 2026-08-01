@@ -151,7 +151,9 @@ if (ends.length) {
     });
   } else if (facOpen && Number(facOpen[1]) > 0) {
     candidates.push({
-      step: `Mint the next special facility (${facOpen[1]} of 28 still to start)` + (somethingUnfinished ? " \u2014 only after open tooling is finished" : ""),
+      // The TOTAL is parsed from the ledger line, never typed. It read a hardcoded 28 beside a
+      // derived count until 31 Jul — the same defect B-38 records, in the tool that reports it.
+      step: `Mint the next special facility (${facOpen[1]} of ${(/(\d+)\s+total/.exec(facLine) || [, "?"])[1]} still to start)` + (somethingUnfinished ? " \u2014 only after open tooling is finished" : ""),
       why: [`work-state: ${facLine}`,
             somethingUnfinished
               ? "profile (finish-to-depth, d13): DEMOTED \u2014 minting a new facility is new breadth; a started, unfinished tool must be completed first, and a facility is not 'minted in full' while its book tooling is pending"

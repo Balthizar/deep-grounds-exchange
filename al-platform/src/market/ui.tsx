@@ -17,51 +17,9 @@ import { catName, itemCat } from "../lib/core";
 // against the catalogue at call time, so a weapon row added tomorrow is craftable tomorrow. The
 // `mundane` guard is load-bearing — it keeps a magic item (Flame Tongue, category "Weapon (any
 // sword)") from being swept into "any melee weapon". A smith makes mundane steel, not artifacts.
-export function craftRuleMatches(rule) {
-  const cat = (rule.category || "").toLowerCase();
-  const except = (rule.except || []).map((x) => x.toLowerCase());
-  // The `except` entries are KEYWORDS, not full names: smith's "medium armor except hide" must drop
-  // "Hide Armor", and "melee weapon except club" must drop "Club". Match the keyword as a whole WORD
-  // in the item's name (word-boundary), so "hide" catches "Hide Armor" but not "Rawhide Shield", and
-  // "club" catches "Club"/"Greatclub" as intended. Full-name equality (the old test) only worked by
-  // luck where a name happened to equal its keyword (Whip), and silently let "Hide Armor" through.
-  const isExcepted = (name) => {
-    const n = (name || "").toLowerCase();
-    return except.some((kw) => new RegExp("(^|\\W)" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|\\W)").test(n));
-  };
-  return Object.values(CATALOG).filter((it) =>
-    it.mundane &&
-    !(it as any).awardOnly &&   // Q16: award-only rows (firearms, poisons) are never craftable
-    (it.category || "").toLowerCase().includes(cat) &&
-    !isExcepted(it.name)
-  ).map((it) => it.id);
-}
+export { craftRuleMatches, craftItemsFor } from "../lib/rules";
+import { craftItemsFor, catDisposable, craftMaterialsGp, craftDays } from "../lib/rules";   // MOVED 31 Jul: the reducer needs them too, and a reducer must not import from a UI module. Re-exported here so every existing import site keeps working.
 
-
-
-// Whether an item class may be released.
-// Whether an item may leave a roster via a logged, DM-approved disposal. Default yes; the catalogue marks bound/cursed items (whose own text forbids it) as disposable:false.
-export function catDisposable(cat) { return !cat || cat.disposable !== false; }
-
-
-
-// What a workbench can craft.
-// Everything a tool can make, as catalogue ids: its explicit items plus every id its rules resolve
-// to, de-duplicated. Does NOT include `special` outputs (scroll/potion) — those mint through their
-// own frame, not the gear catalogue, and are surfaced separately by toolSpecials().
-//
-// Q16 (Frank, 26 Jul): the award-only filter sits HERE, at the one place both halves converge,
-// rather than only inside craftRuleMatches. That placement is deliberate and was earned — the
-// harness caught `g_musket` sitting in Tinker's Tools' hand-written `items` list, which a
-// rules-only guard sailed straight past. A structural gate has to cover the hand-written half too,
-// or it only guards the door somebody already remembered to lock.
-export function craftItemsFor(toolId) {
-  const t = TOOL_CRAFTS[toolId];
-  if (!t) return [];
-  const ids = new Set<string>(t.items || []);
-  (t.rules || []).forEach((r) => craftRuleMatches(r).forEach((id) => ids.add(id)));
-  return [...ids].filter((id) => !(CATALOG[id] || {}).awardOnly);
-}
 
 
 // ============================================================================
@@ -562,6 +520,31 @@ export function WorkbenchModal({ modal, state, dispatch, accountId, close }: { d
     <div className="dg-market">
       <h3 className="dg-modal-h">The Workbench — {ch.name}</h3>
       <p className="dg-muted sm">Craft with the tools in {ch.name}'s pack. Character-made items are logged on their sheet, count toward the carry limit, and can't be sold. On hand: <b>{ch.dt} DT</b> · {(() => { const c = coinsFromGp(ch.gp || 0); return <b title={(ch.gp || 0).toFixed(2) + " gp"}>{c.gp} gp · {c.sp} sp · {c.cp} cp</b>; })()}.</p>
+      {/* ON THE BENCH (31 Jul). Long work spans downtime turns, so it needs somewhere to live and a
+          way to see it. While something is unfinished the bench takes no new work — the PH's Bastion
+          analogue says the facility "can't be used to craft anything else", and the same holds for a
+          pair of hands. Abandoning is always available so the bench can never be permanently stuck. */}
+      {ch.wip && (() => {
+        const w = ch.wip, left = w.daysNeeded - w.daysDone, pct = Math.round((w.daysDone / w.daysNeeded) * 100);
+        const canDo = Math.min(left, ch.dt || 0);
+        return (
+          <div className="dg-admin-row" style={{ display: "block", marginBottom: 10 }}>
+            <b>On the bench: {w.label}</b>
+            <div style={{ background: "var(--dg-line, #ddd)", borderRadius: 3, height: 8, margin: "6px 0", overflow: "hidden" }}>
+              <div style={{ width: pct + "%", height: "100%", background: "var(--dg-accent, #7a5)" }} />
+            </div>
+            <div className="dg-muted sm">{w.daysDone} of {w.daysNeeded} days done ({pct}%) · {left} still to work · {w.gpPaid} gp of materials already spent.</div>
+            <div className="dg-row-actions" style={{ marginTop: 6 }}>
+              <button className="dg-btn sm" disabled={canDo <= 0}
+                title={canDo <= 0 ? "No downtime days on hand" : ""}
+                onClick={() => dispatch({ type: "ADVANCE_WIP", charId: ch.id, by: accountId })}>
+                {canDo >= left ? "Finish it (" + left + " " + (left === 1 ? "day" : "days") + ")" : "Work " + canDo + " " + (canDo === 1 ? "day" : "days")}
+              </button>
+              <button className="dg-btn ghost sm" onClick={() => dispatch({ type: "ABANDON_WIP", charId: ch.id, by: accountId })}>Abandon (materials lost)</button>
+            </div>
+          </div>
+        );
+      })()}
       {tools.length === 0 && <div className="dg-muted sm">No toolkit in the pack. Carry an artisan's tool to craft with it.</div>}
       {tools.map((tid: any) => {
         const tool = CATALOG[tid || ""];
@@ -578,8 +561,27 @@ export function WorkbenchModal({ modal, state, dispatch, accountId, close }: { d
               </div>
             )}
             {itemIds.length > 0 && (
-              <div className="dg-muted sm" style={{ marginTop: 4 }}>
-                This tool can also make: {itemIds.map((id: any) => (CATALOG[id] || {}).name).filter(Boolean).sort().slice(0, 12).join(", ")}{itemIds.length > 12 ? ", …" : ""}. <span style={{ fontStyle: "italic" }}>(Item crafting from the workbench is coming next — scrolls first.)</span>
+              <div style={{ marginTop: 6 }}>
+                <b>Craft an item</b>
+                <div className="dg-muted sm" style={{ marginBottom: 4 }}>
+                  Raw materials cost half the item&rsquo;s price; the work takes its price in gp divided by ten, in days (PH, &ldquo;Crafting Equipment&rdquo;). What you make is character-created and can&rsquo;t be traded.
+                </div>
+                {itemIds.map((id: any) => {
+                  const cat = CATALOG[id] || {};
+                  const gp = craftMaterialsGp(cat.gp || 0);
+                  const days = craftDays(cat.gp || 0);
+                  const shortGp = gp > (ch.gp || 0), busy = !!ch.wip;
+                  return (
+                    <div key={id} className="dg-admin-row">
+                      <span>{cat.name}</span>
+                      <span className="dg-muted sm">{gp} gp · {days} {days === 1 ? "day" : "days"}</span>
+                      <button className="dg-btn ghost sm" disabled={shortGp || busy}
+                        title={busy ? "Something is already on the bench" : shortGp ? "Not enough gold for the raw materials" : days > (ch.dt || 0) ? "You can start it — the work will carry over to your next downtime" : ""}
+                        onClick={() => dispatch({ type: "CRAFT_ITEM", charId: ch.id, by: accountId, catalogId: id })}>Craft</button>
+                    </div>
+                  );
+                }).slice(0, 40)}
+                {itemIds.length > 40 && <div className="dg-muted sm">&hellip;and {itemIds.length - 40} more this tool can make.</div>}
               </div>
             )}
           </div>

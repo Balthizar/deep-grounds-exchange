@@ -20,7 +20,7 @@ export const ITEM_ACTION_NAMES: readonly string[] = [
   "DECLINE_CHARM_GIFT", "DELETE_ITEM", "DISMISS_SWAP", "GIFT_CERT", "IMPORT_CHARACTER_ITEM",
   "MARK_LOST", "MINT_BOOK_ITEM", "OFFER_CHARM_GIFT", "PROPOSE_TRADE", "REASSIGN_SHELF_ITEM", "REJECT_DM_ITEM",
   "REJECT_IMPORT_ITEM", "REJECT_PAPER_ITEM", "REJECT_SLOT_ITEM", "REMOVE_GIFT",
-  "REMOVE_WISH", "REQUEST_AUTH", "ROLL_ITEM_SLOT", "SCRIBE_SCROLL",
+  "ABANDON_WIP", "ADVANCE_WIP", "CRAFT_ITEM", "REMOVE_WISH", "REQUEST_AUTH", "ROLL_ITEM_SLOT", "SCRIBE_SCROLL",
   "SELL_TO_RONALDO",
   "SEND_TRADE_PROPOSAL", "SET_CHARM_DESC", "SUBMIT_DISPOSAL", "SUBMIT_DM_ITEM", "SUBMIT_SLOT_ITEM",
   "TOGGLE_ATTUNED", "TOGGLE_CARRIED", "TOGGLE_EQUIPPED", "TOGGLE_GIFT_CARRIED",
@@ -37,7 +37,8 @@ export const ITEM_ACTION_NAMES: readonly string[] = [
 // ============================================================================
 
 import type { AppState } from "../types";
-import { ATTUNE_SLOTS, CARRIED_LIMITS, MARKET_BY_ID, SCROLL_COST, TRADE_DT, sellValueOf, attunedCount, canTradeAcct, cancelTradeItems, carriedCount, carriedCounts, carriedCraftTools, equipSlot, giftLimit, handOverItem, inputterOf, isDMRole, itemBucket, legendaryTierBlocked, logTradeCost, liveCharmItemsHeld, mayActOnChar, mayActOnItem, meetsReq, normalizeCarriedGifts, provOf, satisfyWishlist, tierFromLevel, toolSpecials, tradeLegal, tradeSideStale, verifyingDMs } from "../lib/rules";
+import { CATALOG } from "../data/catalog";
+import { craftItemsFor, craftMaterialsGp, craftDays, ATTUNE_SLOTS, CARRIED_LIMITS, MARKET_BY_ID, SCROLL_COST, TRADE_DT, sellValueOf, attunedCount, canTradeAcct, cancelTradeItems, carriedCount, carriedCounts, carriedCraftTools, equipSlot, giftLimit, handOverItem, inputterOf, isDMRole, itemBucket, legendaryTierBlocked, logTradeCost, liveCharmItemsHeld, mayActOnChar, mayActOnItem, meetsReq, normalizeCarriedGifts, provOf, satisfyWishlist, tierFromLevel, toolSpecials, tradeLegal, tradeSideStale, verifyingDMs } from "../lib/rules";
 import { ACCOUNTS, accName, catName, itemCat, itemClassOf, mkItem, putBlob, unverified, verified } from "../lib/core";
 import { findOrCreateThread } from "../bastion/engine";
 
@@ -347,16 +348,119 @@ export function itemActions(s: any, action: any, dropNotice: (p: any) => void): 
       // gate 2: ALPG — the spell must be on the character's class list
       if (!(sp.classes || []).includes(ch.cls)) return s;
       const cost = SCROLL_COST[sp.level]; if (!cost) return s;
-      if ((cost.gp || 0) > (ch.gp || 0) || (cost.days || 0) > (ch.dt || 0)) return s;   // pay first
-      ch.gp = (ch.gp || 0) - cost.gp; ch.dt -= cost.days;
+      if (ch.wip) return s;                                                // one thing on the bench
+      if ((cost.gp || 0) > (ch.gp || 0)) return s;                          // the ink is bought up front
       const date = todayLocal();
+      // Same spanning rule as CRAFT_ITEM, and scrolls need it MORE: the PH's own table runs to 120
+      // days for a 9th-level scroll, which no character holds in one downtime pool. Before this, the
+      // reducer simply refused and the high end of the table was unreachable.
+      ch.gp = (ch.gp || 0) - cost.gp;
+      const spend = Math.min(cost.days, ch.dt || 0);
+      ch.dt -= spend;
       const catId = "scroll_L" + sp.level;
+      if (spend >= cost.days) {
+        const iid = "it" + s.nextId++;
+        s.items[iid] = mkItem(iid, catId, itemClassOf(catId, "UNTRADEABLE"), ch.campaign,
+          verified("CRAFTED", ch.name), { type: "CHARACTER", id: ch.id },
+          { spellId: sp.id, spellName: sp.name });                         // <- the instance identity
+        s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+          date, dtSpent: cost.days, gpSpent: cost.gp, spentOn: ch.name + " scribed a Spell Scroll (" + sp.name + ")" });
+        return s;
+      }
+      ch.wip = { kind: "scroll", spellId: sp.id, spellName: sp.name, label: "a Spell Scroll (" + sp.name + ")",
+                 daysNeeded: cost.days, daysDone: spend, gpPaid: cost.gp, startedAt: date };
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+        date, dtSpent: spend, gpSpent: cost.gp, spentOn: ch.name + " began scribing " + sp.name + " (" + spend + " of " + cost.days + " days done)" });
+      return s;
+    }
+    // CRAFT_ITEM — the workbench's third door, and the one the UI has been promising since it
+    // shipped ("Item crafting from the workbench is coming next"). Same shape as SCRIBE_SCROLL: the
+    // goat makes it themselves with a toolkit in their pack, so it is CRAFTED and UNTRADEABLE.
+    //
+    // PH 2024 ch. 6 "Crafting Equipment": raw materials worth HALF the purchase cost (round down),
+    // and purchase cost / 10 days (round up). Both derived by `craftMaterialsGp` / `craftDays` —
+    // never retyped here, because the bastion Craft order reads the same rule and two copies would
+    // drift. Proficiency is enforced by `carriedCraftTools`, which only returns tools the character
+    // actually carries AND is proficient with.
+    //
+    // NO ASSISTANTS at the workbench: the PH lets one other character help and divide the time, but
+    // that is a table negotiation between two players, not something the platform can attest. The
+    // bastion facility is where multiple hands are modelled, because there the hirelings are known.
+    case "CRAFT_ITEM": {
+      const ch = s.characters[action.charId];
+      if (!ch || ch.ownerId !== action.by) return s;                        // owner only
+      const cat = CATALOG[action.catalogId];
+      if (!cat || cat.awardOnly) return s;                                  // real, non-award row only
+      // gate 1: the character carries a tool that makes this item, and is proficient with it
+      const tools = carriedCraftTools(s, ch.id).filter((tid) => craftItemsFor(tid).includes(action.catalogId));
+      if (!tools.length) return s;
+      // gate 2: pay the materials and the days, all-or-nothing, before the item exists
+      const gp = craftMaterialsGp(cat.gp || 0);
+      const days = craftDays(cat.gp || 0);
+      // ONE JOB AT A TIME, and this is not a house rule: the PH's unit is a DAY OF 8 HOURS' WORK and
+      // 1 DT is 1 day. A day spent on this is not available to spend on something else, so a second
+      // job could only ever be worked with days the first job has already consumed. (I first justified
+      // this by borrowing the DMG's facility clause — "the facility can't be used to craft anything
+      // else" — which is a rule about a ROOM. Frank corrected it. The day itself is the constraint.)
+      if (ch.wip) return s;
+      if (gp > (ch.gp || 0)) return s;                                      // materials are bought up front
+      const date = todayLocal();
+      // The materials are always paid now; the DAYS may not all be available yet. Long work opens a
+      // work-in-progress and consumes whatever downtime the character actually has, then waits for
+      // the next turn. Short work that fits inside the pool finishes here, exactly as before.
+      ch.gp = (ch.gp || 0) - gp;
+      const spend = Math.min(days, ch.dt || 0);
+      ch.dt -= spend;
+      if (spend >= days) {
+        const iid = "it" + s.nextId++;
+        s.items[iid] = mkItem(iid, action.catalogId, itemClassOf(action.catalogId, "UNTRADEABLE"), ch.campaign,
+          verified("CRAFTED", ch.name), { type: "CHARACTER", id: ch.id });
+        s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+          date, dtSpent: days, gpSpent: gp, spentOn: ch.name + " crafted " + cat.name + " (" + gp + " gp of raw materials, " + days + (days === 1 ? " day" : " days") + ")" });
+        return s;
+      }
+      ch.wip = { kind: "item", catalogId: action.catalogId, label: cat.name, daysNeeded: days, daysDone: spend, gpPaid: gp, startedAt: date };
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+        date, dtSpent: spend, gpSpent: gp, spentOn: ch.name + " began " + cat.name + " (" + gp + " gp of raw materials; " + spend + " of " + days + " days done)" });
+      return s;
+    }
+    // ADVANCE_WIP — put more downtime into whatever is on the bench. The item mints the moment the
+    // days are met, so the player never has to notice the boundary; they just keep working.
+    case "ADVANCE_WIP": {
+      const ch = s.characters[action.charId];
+      if (!ch || ch.ownerId !== action.by || !ch.wip) return s;
+      const w = ch.wip;
+      const want = Math.max(1, action.days || (w.daysNeeded - w.daysDone));
+      const spend = Math.min(want, w.daysNeeded - w.daysDone, ch.dt || 0);
+      if (spend <= 0) return s;
+      ch.dt -= spend; w.daysDone += spend;
+      const date = todayLocal();
+      if (w.daysDone < w.daysNeeded) {
+        s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+          date, dtSpent: spend, gpSpent: 0, spentOn: ch.name + " worked on " + w.label + " (" + w.daysDone + " of " + w.daysNeeded + " days done)" });
+        return s;
+      }
       const iid = "it" + s.nextId++;
+      const catId = w.kind === "scroll" ? ("scroll_L" + (SPELLS[w.spellId!] || {}).level) : w.catalogId!;
       s.items[iid] = mkItem(iid, catId, itemClassOf(catId, "UNTRADEABLE"), ch.campaign,
         verified("CRAFTED", ch.name), { type: "CHARACTER", id: ch.id },
-        { spellId: sp.id, spellName: sp.name });                           // <- the instance identity
+        w.kind === "scroll" ? { spellId: w.spellId, spellName: w.spellName } : undefined);
       s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
-        date, dtSpent: cost.days, gpSpent: cost.gp, spentOn: ch.name + " scribed a Spell Scroll (" + sp.name + ")" });
+        date, dtSpent: spend, gpSpent: 0, spentOn: ch.name + " finished " + w.label + " (" + w.daysNeeded + (w.daysNeeded === 1 ? " day" : " days") + " in all)" });
+      ch.wip = null;
+      return s;
+    }
+    // ABANDON_WIP — the materials are spent and stay spent (PH: they are consumed into the work).
+    // The days already put in are gone too. This exists so a bench is never permanently blocked by
+    // something the player no longer wants.
+    case "ABANDON_WIP": {
+      const ch = s.characters[action.charId];
+      if (!ch || ch.ownerId !== action.by || !ch.wip) return s;
+      const w = ch.wip;
+      s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+        date: todayLocal(), dtSpent: 0, gpSpent: 0,
+        spentOn: ch.name + " abandoned " + w.label + " unfinished (" + w.daysDone + " of " + w.daysNeeded + " days, " + w.gpPaid + " gp of materials lost)" });
+      ch.wip = null;
       return s;
     }
     case "BUY_SCROLL": {
