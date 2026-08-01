@@ -836,5 +836,7 @@ this is a reconciliation to be scheduled, not a bug to be panicked over.**
 | `features: []` on the def | **does not exist** | the Armory's 1d8 defenders feature is unimplemented |
 | `open: null` | **does not exist** | §3's own argument — *a TODO the gate reads is a deadline* — is currently unenforced |
 
-**`BASTION_FACILITIES` holds 14 rooms: 8 specials and 6 basics.** The other 20 DMG specials have no
-definition at all. That is the honest denominator for any statement about facility progress.
+**`BASTION_FACILITIES` holds 14 rooms: 8 specials and 6 basics.** The other **21** DMG specials have
+no definition at all. That is the honest denominator for any statement about facility progress —
+**the roster is 29, not 28** (B-69: a stale copy of `facility_mint.cjs` had lost SACRISTY, which is
+exactly the B-38 defect the roster guard exists to prevent).

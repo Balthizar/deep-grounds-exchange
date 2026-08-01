@@ -499,6 +499,39 @@ spread. No wiki changes that. What Mistipedia DOES make possible is the *traditi
 imbue a deck, how it must be kept, what a reading is for. That is lore and is fair game; the card list
 is not.
 
+## B-69 — MY CONTAINER HELD A STALE `facility_mint.cjs`, AND IT HAD LOST SACRISTY (31 Jul)
+
+Frank asked me to pull the pushed state and compare it against my working copy. **GitHub had the
+correct file; my container had an older, broken one, and I had been reading facility state from it
+all morning.**
+
+The container's copy carried a **28**-entry `DMG_SPECIALS` roster with **SACRISTY absent**, and had
+lost both the `DMG_SPECIALS_BY_LEVEL` partition — the deliberate second, independent statement of the
+same roster — and the entire B-38 comment explaining why they exist.
+
+**This is B-38 recurring, in the one file written to prevent it.** B-38 (29 Jul) recorded that the
+roster shipped as 28 with Sacristy missing, that the omission was structurally invisible because
+*the roster IS the denominator*, and that the ledger would happily print `28/28 COMPLETE` with a
+legal AL facility absent from the platform entirely. The fix was the roster-integrity guard. A stale
+copy silently reverted both the entry and the guard.
+
+**Consequences, all of them mine to correct:**
+- I reported **8 of 28, 20 remaining** to Frank. The truth is **8 of 29, 21 remaining.**
+- Backlog D — which I "corrected" this morning for being four mints stale — was then wrong in a new
+  way. Corrected again, from `--status`.
+- FACILITY_FORMAT.md §15 said "the other 20 DMG specials". Corrected to 21.
+
+**Why nothing caught it.** I never modified the file, so it never entered a delta zip, never appeared
+in `git status`, and never diverged from anything I was watching. The gate passed green throughout
+because the file is internally consistent — it is simply consistent about the wrong roster. **A stale
+file that nobody edits is invisible to every check that looks at changes.**
+
+**What caught it: the owner asking for a comparison against the remote.** That is the only operation
+in the workflow that inspects files nobody touched. Worth doing at the START of a session rather than
+the end — `git fetch && git diff --stat origin/main` before any work, so a restored container is
+verified against the repository instead of trusted.
+
+
 ## B-68 — THE DELTA ZIPS WERE BUILT FROM A HAND-TYPED FILE LIST (31 Jul)
 
 Asked for a zip to update the desktop against GitHub, I diffed the working tree instead of assuming

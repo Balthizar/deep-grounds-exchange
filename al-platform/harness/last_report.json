@@ -1,14 +1,14 @@
 {
-  "ranAt": "2026-08-01T02:28:23.635Z",
+  "ranAt": "2026-08-01T02:39:27.926Z",
   "ok": true,
-  "totalMs": 34284,
+  "totalMs": 34360,
   "unreadableVerdicts": [],
   "steps": [
     {
       "suite": "tsc -b",
       "kind": "build",
       "passed": true,
-      "ms": 15907,
+      "ms": 15343,
       "summary": "tsc -b — built clean",
       "verdictRead": true
     },
@@ -16,7 +16,7 @@
       "suite": "test:self",
       "kind": "suite",
       "passed": true,
-      "ms": 140,
+      "ms": 179,
       "summary": "SELF-CHECK: all 19 suites accounted for — every suite is gated or declared, and this suite is in the gate",
       "verdictRead": true
     },
@@ -24,7 +24,7 @@
       "suite": "lint",
       "kind": "suite",
       "passed": true,
-      "ms": 241,
+      "ms": 258,
       "summary": "Found 170 warnings and 0 errors.",
       "verdictRead": true
     },
@@ -32,7 +32,7 @@
       "suite": "check:actions",
       "kind": "suite",
       "passed": true,
-      "ms": 136,
+      "ms": 163,
       "summary": "ACTION CONTRACT: all checks passed",
       "verdictRead": true
     },
@@ -40,7 +40,7 @@
       "suite": "check:generated",
       "kind": "suite",
       "passed": true,
-      "ms": 181,
+      "ms": 206,
       "summary": "GENERATED DATA: in sync with srd-source",
       "verdictRead": true
     },
@@ -48,7 +48,7 @@
       "suite": "check:conformance",
       "kind": "suite",
       "passed": true,
-      "ms": 877,
+      "ms": 672,
       "summary": "CONFORMANCE: every registry entry conforms",
       "verdictRead": true
     },
@@ -56,7 +56,7 @@
       "suite": "check:ledger",
       "kind": "suite",
       "passed": true,
-      "ms": 1244,
+      "ms": 1199,
       "summary": "LEDGER: LIBRARY_SUBJECTS_100.md matches the live registry — 100 rows, 100 sourced, 0 open",
       "verdictRead": true
     },
@@ -64,7 +64,7 @@
       "suite": "test:behaviour",
       "kind": "suite",
       "passed": true,
-      "ms": 690,
+      "ms": 676,
       "summary": "BEHAVIOUR: all checks passed",
       "verdictRead": true
     },
@@ -72,7 +72,7 @@
       "suite": "test:minified",
       "kind": "suite",
       "passed": true,
-      "ms": 625,
+      "ms": 672,
       "summary": "BEHAVIOUR (minified): all checks passed",
       "verdictRead": true
     },
@@ -80,7 +80,7 @@
       "suite": "test:immutable",
       "kind": "suite",
       "passed": true,
-      "ms": 728,
+      "ms": 793,
       "summary": "IMMUTABILITY: all actions clean",
       "verdictRead": true
     },
@@ -88,7 +88,7 @@
       "suite": "test:reachability",
       "kind": "suite",
       "passed": true,
-      "ms": 171,
+      "ms": 196,
       "summary": "REACHABILITY: every action is dispatched or declared (0 pending screen, 0 internal)",
       "verdictRead": true
     },
@@ -96,7 +96,7 @@
       "suite": "test:antiliteral",
       "kind": "suite",
       "passed": true,
-      "ms": 148,
+      "ms": 167,
       "summary": "ANTI-LITERAL: no hardcoded seed ids in assertions — every subject is derived",
       "verdictRead": true
     },
@@ -104,7 +104,7 @@
       "suite": "test:transitions",
       "kind": "suite",
       "passed": true,
-      "ms": 9374,
+      "ms": 9666,
       "summary": "TRANSITIONS: all 661 checks passed (2 skipped)",
       "verdictRead": true
     },
@@ -112,7 +112,7 @@
       "suite": "test:sampler",
       "kind": "suite",
       "passed": true,
-      "ms": 640,
+      "ms": 697,
       "summary": "SAMPLER: all 12 population checks passed across 5 sampled accounts",
       "verdictRead": true
     },
@@ -120,7 +120,7 @@
       "suite": "test:render",
       "kind": "suite",
       "passed": true,
-      "ms": 1040,
+      "ms": 1069,
       "summary": "RENDER: all 117 components mounted",
       "verdictRead": true
     },
@@ -128,7 +128,7 @@
       "suite": "test:facilities",
       "kind": "suite",
       "passed": true,
-      "ms": 479,
+      "ms": 511,
       "summary": "FACILITY-MINT: all 14 minted facilities hold the strict bar (arcane_study, archive, armory, library, observatory, scriptorium, smithy, workshop, bedroom, dining, kitchen, courtyard, parlor, storage)",
       "verdictRead": true
     },
@@ -136,7 +136,7 @@
       "suite": "vite build",
       "kind": "build",
       "passed": true,
-      "ms": 1463,
+      "ms": 1731,
       "summary": "vite build — built clean",
       "verdictRead": true
     },
@@ -144,7 +144,7 @@
       "suite": "check:coverage",
       "kind": "suite",
       "passed": true,
-      "ms": 200,
+      "ms": 162,
       "summary": "COVERAGE: all 198 actions are named in a suite",
       "verdictRead": true
     }

@@ -73,13 +73,16 @@ Current fronts, in the order they'd close fastest:
 
 ---
 
-## D · FACILITY MINTS — 20 remaining (derived, 31 Jul)
+## D · FACILITY MINTS — 21 remaining of 29 (derived, 31 Jul)
 
 **Counts are DERIVED from `node harness/facility_mint.cjs --status`, never hand-typed** — the old
 line here read "25 remaining · 4/29" and had drifted four mints and one total behind the code.
 
-Built to the CURRENT strict bar (8/28): arcane_study · archive · armory · library · observatory ·
-scriptorium · smithy · workshop. Basics 6/6.
+Built to the CURRENT strict bar (**8 of 29**): arcane_study · archive · armory · library ·
+observatory · scriptorium · smithy · workshop. Basics 6/6.
+
+**The denominator is 29, not 28** — see B-69. A stale `facility_mint.cjs` in the container had lost
+SACRISTY and the roster-integrity guard, and I reported 28 all morning on the strength of it.
 
 **BLOCKER before any new mint (B-67, FACILITY_FORMAT.md §10.5).** The strict bar checks the stat
 block and the seven registry tables. It does NOT check `tools`, `options`, `tables`, `features`,
@@ -87,9 +90,9 @@ block and the seven registry tables. It does NOT check `tools`, `options`, `tabl
 its own §8 feature (*stocked → defenders roll 1d8*) unimplemented. **Extend `facility_mint.cjs` to
 the full §3 schema first**, or the divergence is propagated across the remaining 20 rooms.
 
-Not yet started (20): barrack · demiplane · gaming_hall · garden · greenhouse · guildhall ·
-laboratory · meditation_chamber · menagerie · pub · reliquary · sanctuary · sanctum · stable ·
-storehouse · teleportation_circle · theater · training_area · trophy_room · war_room
+Not yet started (21): barrack · demiplane · gaming_hall · garden · greenhouse · guildhall ·
+laboratory · meditation_chamber · menagerie · pub · reliquary · **sacristy** · sanctuary · sanctum ·
+stable · storehouse · teleportation_circle · theater · training_area · trophy_room · war_room
 
 ---
 
