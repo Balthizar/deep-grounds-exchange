@@ -200,11 +200,19 @@ export const BASTION_FACILITIES: Record<string, any> = {
   //   under AL's carry limits, not here; it arrives when the Charm rooms do.
   armory: { id: "armory", name: "Armory", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["trade", "maintain"], note: "A hall of mannequins, weapon-racks, shield-hooks, and ammunition chests, kept by a quartermaster. Issue Trade and the racks are stocked \u2014 armor, Shields, weapons, and ammunition \u2014 for 100 GP plus 100 for each Bastion Defender, halved if the Bastion has a Smithy. While it is stocked your defenders are harder to kill: any event that rolls to see whether you lose defenders rolls a d8 in place of each d6. The equipment is expended the moment such an event ends \u2014 whatever you have or lost \u2014 leaving the Armory bare until you Stock it again." },
   archive: { id: "archive", name: "Archive", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 13, orders: ["research", "maintain"],
-    note: "A repository of valuable books, maps, and scrolls \u2014 usually attached to a Library behind a locked or secret door (DMG). The Research order sends the archivist hunting helpful lore for 7 days: they gain knowledge as if they had cast Legend Lore (an SRD spell \u2014 the pointer, not the text), and share it the next time you speak. The Reference Book is chosen ONCE, one of five subjects; while you and the book are in your Bastion, the DM grants the book's study benefit at the table. The DMG's own five titles are not SRD, so each house shelves the Exchange's own edition \u2014 a cavern's arcana book and a ship's are not the same book." },
+    note: "A repository of valuable books, maps, and scrolls \u2014 usually attached to a Library behind a locked or secret door (DMG). The Research order sends the archivist hunting helpful lore for 7 days: they gain knowledge as if they had cast Legend Lore (an SRD spell \u2014 the pointer, not the text), and share it the next time you speak. The Reference Book is chosen ONCE, one of five subjects; while you and the book are in your Bastion, the DM grants the book's study benefit at the table. The DMG's own five titles are not SRD, so each house shelves the Exchange's own edition \u2014 a cavern's arcana book and a ship's are not the same book.",
+    shelvesBooks: true,
+    // Same doubling, half the base: the Archive is the smaller, locked room behind the Library.
+    // Absolute counts live in `bookShelfCap` and nowhere else.
+    enlargeBenefit: "twice the shelf room \u2014 a second locked press for the rarer volumes" },
   scriptorium: { id: "scriptorium", name: "Scriptorium", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 9, orders: ["craft", "maintain"], note: "A room of desks and writing supplies. Its scribe will copy a nonmagical book (you supply the blank book), scribe a spell scroll of 3rd level or lower from their own class list, or run off up to fifty broadsheets or pamphlets \u2014 and carry them anywhere within fifty miles. You choose the scribe: a Novice Mage scribes Wizard scrolls, an Acolyte scribes Cleric scrolls.", scribeClasses: [{ id: "mage", label: "Novice Mage", cls: "Wizard", role: "Novice Mage" }, { id: "acolyte", label: "Acolyte", cls: "Cleric", role: "Acolyte" }], outputs: { craft: [{ id: "book_replica", label: "A book replica \u2014 copy of a nonmagical book (you supply a blank book; 7 days)", catalogId: "g_book", needsBlankBook: true }, { id: "spell_scroll", label: "A spell scroll \u2014 your scribe's class, 3rd level or lower (a DM verifies)", scroll: true, maxLevel: 3 }, { id: "paperwork", label: "Paperwork \u2014 up to 50 broadsheets or pamphlets (1 GP each, 7 days; delivered within 50 miles)", paperwork: true, perCopy: 1 }] } },
   smithy: { id: "smithy", name: "Smithy", kind: "special", space: "roomy", prereq: null, hirelings: 2, minLevel: 5, orders: ["craft", "maintain"], note: "A forge, an anvil, and the tools of the trade. Its smiths will make anything smith's tools can make \u2014 a blade, a harness of armour, a length of chain \u2014 and, once you have the standing for it, forge an Armament from the magic tables.", tool: "g_tool_smith", outputs: { craft: [{ id: "smith_mundane", label: "Smith's work \u2014 anything smith's tools can make (a DM verifies against the tool's list)", tool: "g_tool_smith" }, { id: "armament_common", label: "A Common magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "common", minLevel: 9 }, { id: "armament_uncommon", label: "An Uncommon magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "uncommon", minLevel: 9 }] } },
   workshop: { id: "workshop", name: "Workshop", kind: "special", space: "roomy", prereq: null, hirelings: 3, minLevel: 5, orders: ["craft", "maintain"], note: "A creative space fitted with six kinds of artisan's tools of your choosing. Its three hirelings craft anything those tools can make \u2014 and, once you have the standing for it, an Implement from the magic tables. You pick the six tools when you build it.", toolChoice: { count: 6, from: ["g_tool_carpenter", "g_tool_cobbler", "g_tool_glassblow", "g_tool_jeweler", "g_tool_leather", "g_tool_mason", "g_tool_painter", "g_tool_potter", "g_tool_tinker", "g_tool_weaver", "g_tool_woodcarver"] }, outputs: { craft: [{ id: "gear_chosen", label: "Adventuring gear \u2014 anything the workshop's chosen tools can make (a DM verifies)", toolChoice: true }, { id: "implement_common", label: "A Common magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "common", minLevel: 9 }, { id: "implement_uncommon", label: "An Uncommon magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "uncommon", minLevel: 9 }] } },
-  library: { id: "library", name: "Library", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["research", "maintain"], note: "A collection of books with desks and reading chairs. Its librarian will research a topic \u2014 a legend, an event or place, a person, a kind of creature, or a famous object \u2014 and return with up to three accurate things you did not know. It is also a place to shelve the books your characters carry.", shelvesBooks: true },
+  library: { id: "library", name: "Library", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["research", "maintain"], note: "A collection of books with desks and reading chairs. Its librarian will research a topic \u2014 a legend, an event or place, a person, a kind of creature, or a famous object \u2014 and return with up to three accurate things you did not know. It is also a place to shelve the books your characters carry.", shelvesBooks: true,
+    // The shelf is the room's mechanical benefit and the reason to enlarge it. The PROSE deliberately
+    // states the DOUBLING and never the absolute counts: `bookShelfCap` owns those numbers, and a
+    // second copy of them here would be a second source of truth waiting to drift (B-44).
+    enlargeBenefit: "twice the shelf room \u2014 the stacks run the full length of the new wall" },
   observatory: { id: "observatory", name: "Observatory", kind: "special", space: "roomy", prereq: "spell_focus", hirelings: 1, minLevel: 13, orders: ["empower", "maintain"],
     note: "Situated atop the keep, a telescope aimed at the night sky. A Long Rest up here grants the Observatory Charm; the Empower order sends someone \u2014 you or the hireling \u2014 to explore the eldritch mysteries of the stars for 7 consecutive nights, and on an odd die an unknown power bestows a Charm you can keep or gift (my Q15 ruling: it is minted as a gift-only item with a lifetime).",
     charm: { name: "Observatory Charm", desc: "One casting of Contact Other Plane, no spell slot spent. Lasts 7 days or until you use it \u2014 and you can't gain this Charm again while you still have it (DMG, Observatory).", grant: "You spent a Long Rest at the eyepiece, and the far corners of Wildspace looked back: for a week you can put one question to the other side without paying a slot for the asking." } },
@@ -1483,10 +1491,18 @@ export function anyLibrarySubject(rng: () => number): LibrarySubject | null {
 // size tier up DOUBLES the cap (cramped→roomy→vast = ×1, ×2, ×4). Special facilities are DMG
 // size-locked, so in practice each sits at its own tier's cap unless it can be resized — the scaling
 // simply resolves to the facility's actual size. Non-shelving facilities return 0.
+// BUGFIX (Frank, 31 Jul): the base is the cap AT THE FACILITY'S OWN STARTING SIZE, not at cramped.
+// The old version indexed the tier from `cramped` regardless of what size the room actually starts
+// at — and since both shelving facilities are printed `roomy`, every keep in the game was running
+// one tier high: Archive 20 where it should hold 10, Library 40 where it should hold 20. The tier is
+// now measured as the DISTANCE ENLARGED from the printed space, so a room that has not been enlarged
+// always sits exactly on its base.
 export function bookShelfCap(defId: string, size?: string): number {
   const base = defId === "archive" ? 10 : defId === "library" ? 20 : 0;
   if (!base) return 0;
-  const tier = Math.max(0, ["cramped", "roomy", "vast"].indexOf(size || "roomy"));
+  const SIZES = ["cramped", "roomy", "vast"];
+  const printed = ((BASTION_FACILITIES[defId] || {}).space as string) || "roomy";
+  const tier = Math.max(0, SIZES.indexOf(size || printed) - SIZES.indexOf(printed));
   return base * Math.pow(2, tier);
 }
 
@@ -1824,24 +1840,29 @@ export const BASTION_BARRACKS_CAP = { roomy: 12, vast: 25 };
 // which is what a peel tower is FOR, and what the walls have always implied and never delivered.
 export const BASTION_ATTACK_DICE_RAID = 2;    // Exchange: a raiding band is not a siege
 
-export const BASTION_REGIONS = [   // SAMPLE — AL season regions first, then major Realms regions; edit freely (canonical place references, not book text)
-  { id: "moonsea", name: "The Moonsea", note: "Seasons 1–3 · Phlan, Mulmaster, Hillsfar" },
-  { id: "underdark", name: "The Underdark", note: "Season 3 · Rage of Demons" },
-  { id: "barovia", name: "Barovia", note: "Season 4 · Curse of Strahd" },
-  { id: "swordcoast", name: "The Sword Coast", note: "Season 5 · Storm King's Thunder" },
-  { id: "waterdeep", name: "Waterdeep", note: "Seasons 6 & 8" },
-  { id: "chult", name: "Chult", note: "Season 7 · Tomb of Annihilation" },
-  { id: "baldursgate", name: "Baldur's Gate", note: "Season 9 · Avernus Rising" },
-  { id: "avernus", name: "Avernus", note: "Season 9 · the Nine Hells" },
-  { id: "icewinddale", name: "Icewind Dale", note: "Season 10 · Rime of the Frostmaiden" },
-  { id: "feywild", name: "The Feywild", note: "Season 11 · Wild Beyond the Witchlight" },
-  { id: "wildspace", name: "Wildspace & the Astral Sea", note: "Season 12 · Spelljammer" },
-  { id: "neverwinter", name: "Neverwinter & the North", note: "the Sword Coast North" },
-  { id: "silvermarches", name: "The Silver Marches", note: "Silverymoon and the frontier" },
-  { id: "cormyr", name: "Cormyr", note: "the Forest Kingdom" },
-  { id: "dalelands", name: "The Dalelands", note: "the eastern vales" },
-  { id: "heartlands", name: "The Western Heartlands", note: "Elturel, Baldur's Gate hinterland" },
-  { id: "dessarin", name: "The Dessarin Valley", note: "Elemental Evil hardcover country" },
+// `storyline: true` marks a region an official D&D storyline actually visited. It is NOT decoration:
+// harness/ledger.cjs derives the Library roster's region doctrine from this flag, so the twelve
+// storyline regions and the even split are read out of the code rather than hand-seeded in the
+// ledger document (a declared target cannot audit itself). Flipping a flag here retargets the gate.
+// NB: "season" is an obsolete AL term (AL DM's Guide, "Seasons & Campaigns"); these are storylines.
+export const BASTION_REGIONS = [   // storyline regions first, then the wider Realms; canonical place references, not book text
+  { id: "moonsea", name: "The Moonsea", note: "Seasons 1–3 · Phlan, Mulmaster, Hillsfar" , storyline: true },
+  { id: "underdark", name: "The Underdark", note: "Season 3 · Rage of Demons" , storyline: true },
+  { id: "barovia", name: "Barovia", note: "Season 4 · Curse of Strahd" , storyline: true },
+  { id: "swordcoast", name: "The Sword Coast", note: "Season 5 · Storm King's Thunder" , storyline: true },
+  { id: "waterdeep", name: "Waterdeep", note: "Seasons 6 & 8" , storyline: true },
+  { id: "chult", name: "Chult", note: "Season 7 · Tomb of Annihilation" , storyline: true },
+  { id: "baldursgate", name: "Baldur's Gate", note: "Season 9 · Avernus Rising" , storyline: true },
+  { id: "avernus", name: "Avernus", note: "Season 9 · the Nine Hells" , storyline: true },
+  { id: "icewinddale", name: "Icewind Dale", note: "Season 10 · Rime of the Frostmaiden" , storyline: true },
+  { id: "feywild", name: "The Feywild", note: "Season 11 · Wild Beyond the Witchlight" , storyline: true },
+  { id: "wildspace", name: "Wildspace & the Astral Sea", note: "Season 12 · Spelljammer" , storyline: true },
+  { id: "neverwinter", name: "Neverwinter & the North", note: "the Sword Coast North" , storyline: false },
+  { id: "silvermarches", name: "The Silver Marches", note: "Silverymoon and the frontier" , storyline: false },
+  { id: "cormyr", name: "Cormyr", note: "the Forest Kingdom" , storyline: false },
+  { id: "dalelands", name: "The Dalelands", note: "the eastern vales" , storyline: false },
+  { id: "heartlands", name: "The Western Heartlands", note: "Elturel, Baldur's Gate hinterland" , storyline: false },
+  { id: "dessarin", name: "The Dessarin Valley", note: "Elemental Evil hardcover country" , storyline: true },
 ];
 
 export const BASTION_FORMS = [   // purely cosmetic house-flavor (NOT a book mechanic) — the form colors how facilities read

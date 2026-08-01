@@ -29,9 +29,30 @@ const roadmap = read("LIBRARY_SUBJECTS_100.md");
 // file. Prose notes elsewhere (e.g. the AL-faction summary) also use ✅ and were inflating the total
 // to 107 against a 100-subject list — a silent miscount. Anchor to the numbered-line shape so stray
 // marks in commentary can never corrupt the count again (fix at the source, not by editing the note).
-const numbered = roadmap.split("\n").filter((l) => /^\s*\d+\.\s*[✅⬜🔨]/.test(l));
-const subjOpen = numbered.filter((l) => /⬜/.test(l)).length;
-const subjDone = numbered.filter((l) => /✅/.test(l)).length;
+//
+// B-41 (30 Jul): this class was written WITHOUT the `u` flag, so it was not a class of three marks —
+// it was a class of four UTF-16 code UNITS: ✅, ⬜, and the two halves of 🔨 (\uD83D\uDD28). A lone
+// lead surrogate matches the lead half of ANY character in its block, so 📕, 🗿 and 🚀 all counted as
+// roadmap rows while 🎯 (lead \uD83C) did not. An arbitrary line, invisibly drawn. The `u` flag makes
+// the class mean the three characters it appears to mean.
+//
+// The marks are also partitioned EXHAUSTIVELY now. Previously `done` and `open` were two independent
+// filters, so a 🔨 row belonged to neither and simply vanished from the work-state line — the counts
+// would no longer sum to the row count, and nothing said so. Same defect class as B-40: a count that
+// can be quietly incomplete. The partition is asserted instead.
+const MARK = { "\u2705": "done", "\u2b1c": "open", "\uD83D\uDD28": "wip" };
+const rowRe = /^\s*\d+\.\s*(\u2705|\u2b1c|\uD83D\uDD28)/u;
+const numbered = [];
+for (const l of roadmap.split("\n")) {
+  const m = rowRe.exec(l);
+  if (m) numbered.push({ line: l, state: MARK[m[1]] });
+}
+const subjDone = numbered.filter((r) => r.state === "done").length;
+const subjOpen = numbered.filter((r) => r.state === "open").length;
+const subjWip = numbered.filter((r) => r.state === "wip").length;
+// Every row carries exactly one known mark by construction; if that ever stops being true the driver
+// is reporting a partial count, which is worse than reporting none. It says so rather than shipping it.
+const subjPartitionOk = subjDone + subjOpen + subjWip === numbered.length;
 
 let facLine = "";
 try { facLine = execSync("node harness/facility_mint.cjs --status", { cwd: ROOT, encoding: "utf8" }).trim().split("\n").pop().trim(); } catch { facLine = "(facility ledger unavailable)"; }
@@ -140,11 +161,78 @@ if (ends.length) {
   }
 }
 if (subjOpen > 0) {
-  candidates.push({
-    step: `Author the next Library subject batch (${subjDone} done, ${subjOpen} open) — lean toward the thinnest DMG category`,
-    why: [`work-state: ${subjDone}/${subjDone + subjOpen} subjects sourced`, "profile (course-correct on imbalance): keep categories flat, lean away from whatever's ahead"],
-    weight: 40,
-  });
+  // SELECTION HIERARCHY (Frank's ruling, 30 Jul; corrected same day).
+  //
+  // The first version of this block claimed "region first, then thinnest DMG category, interlock as
+  // tiebreak" — and computed ONLY the region. The category tier existed as a sentence in the `why`
+  // output with no code behind it: a described thing, not a delivered one. Frank caught it. The
+  // category split is the DMG's own ("a legend, a known event or location, a person of significance,
+  // a type of creature, or a famous object"), and it is not a global nicety — it must hold INSIDE
+  // each region, or a bastion in Avernus reads five famous objects and never meets a person.
+  //
+  // THREE TIERS, each derived:
+  //   1. REGION   — the storyline region with the fewest sourced subjects, among those still open.
+  //   2. CATEGORY — within that region, the DMG category with the fewest sourced, among those that
+  //                 still have an open row THERE. A category with no open row in the region cannot
+  //                 be worked, and recommending it is advice that cannot be taken.
+  //   3. DEPTH    — among the open rows in that region AND category, author the subject with the
+  //                 LONGEST, most in-depth source article first. Rationale: a thin wiki page cannot
+  //                 honestly fill 20 facts, so the die floats below 20 and the subject ships
+  //                 half-built. Taking the deep sources first maximises real yield and defers the
+  //                 thin ones until their thinness is a measured fact rather than a surprise.
+  //
+  // TIER 3 IS NOT MECHANISED, AND THE OUTPUT SAYS SO. Article depth cannot be measured from here —
+  // it needs the page. So this block NAMES the eligible candidates and states the rule; the depth
+  // comparison happens at authoring time. That is a deliberate line: after B-47, this driver does not
+  // print a tier it has not computed. Listing candidates IS computed; ranking them is not, and it is
+  // labelled as the author's step rather than dressed up as a finding.
+  // Interlock survives only as a tiebreak between candidates equal on all three.
+  const CATS = ["LEGEND / MYTH", "EVENT OR LOCATION", "PERSON OF SIGNIFICANCE", "TYPE OF CREATURE", "FAMOUS OBJECT"];
+  const SHORT = { "LEGEND / MYTH": "legend", "EVENT OR LOCATION": "location", "PERSON OF SIGNIFICANCE": "person", "TYPE OF CREATURE": "creature", "FAMOUS OBJECT": "object" };
+  const entries = [];
+  let cat = null;
+  for (const line of roadmap.split("\n")) {
+    const h = /^##\s+([A-Z /]+?)\s+\(\d+\)/.exec(line);
+    if (h && CATS.includes(h[1].trim())) cat = h[1].trim();
+    const m = /^(\d+)\.\s+(\u2705|\u2b1c|\uD83D\uDD28)\s+\*\*(.+?)\*\*(?:\s+\u00b7\s+`(\w+)`)?/u.exec(line);
+    if (m && m[4] && cat) entries.push({ done: m[2] === "\u2705", label: m[3].trim(), region: m[4], cat });
+  }
+
+  const regions = [...new Set(entries.map((e) => e.region))];
+  const sourcedIn = (r) => entries.filter((e) => e.region === r && e.done).length;
+  const openIn = (r) => entries.filter((e) => e.region === r && !e.done).length;
+
+  // ---- tier 1: thinnest region that still has open rows ----------------------------------------
+  const workable = regions.filter((r) => openIn(r) > 0);
+  const closed = regions.filter((r) => openIn(r) === 0);
+  const floor = workable.length ? Math.min(...workable.map(sourcedIn)) : 0;
+  const tiedRegions = workable.filter((r) => sourcedIn(r) === floor).sort();
+  const pick = tiedRegions[0];
+
+  if (pick) {
+    // ---- tier 2: thinnest category INSIDE that region, restricted to ones with an open row -------
+    const inRegion = entries.filter((e) => e.region === pick);
+    const catDone = {}, catOpen = {};
+    CATS.forEach((c) => { catDone[c] = 0; catOpen[c] = 0; });
+    inRegion.forEach((e) => { if (e.done) catDone[e.cat]++; else catOpen[e.cat]++; });
+    const workableCats = CATS.filter((c) => catOpen[c] > 0);
+    const catFloor = workableCats.length ? Math.min(...workableCats.map((c) => catDone[c])) : 0;
+    const tiedCats = workableCats.filter((c) => catDone[c] === catFloor);
+    // ---- tier 3: name the eligible candidates; depth is compared at authoring time ---------------
+    const cands = inRegion.filter((e) => !e.done && tiedCats.includes(e.cat)).map((e) => e.label);
+
+    candidates.push({
+      step: `Author the next Library subject batch (${subjDone} done, ${subjOpen} open) — in \`${pick}\`, category: ${tiedCats.map((c) => SHORT[c]).join(" or ")}`,
+      why: [
+        `work-state: ${subjDone}/${numbered.length} subjects sourced`,
+        `tier 1 region: \`${pick}\` at ${floor} sourced${tiedRegions.length > 1 ? ` (tied: ${tiedRegions.join(", ")})` : ""}${closed.length ? ` · closed: ${closed.join(", ")}` : ""}`,
+        `tier 2 category in \`${pick}\`: ${tiedCats.map((c) => `${SHORT[c]} ${catDone[c]}`).join(", ")} sourced — thinnest with an open row there`,
+        `tier 3 candidates (author the DEEPEST source first — not measurable here, compare at authoring time): ${cands.join(" · ")}`,
+        "profile (course-correct on imbalance): region, then category within region, then richest source; interlock only breaks ties",
+      ],
+      weight: 40,
+    });
+  }
 }
 
 candidates.sort((a, b) => b.weight - a.weight);
@@ -154,7 +242,11 @@ const top3 = candidates.slice(0, 3);
 console.log("\nNEXT \u2014 project triage\n" + "=".repeat(66));
 console.log("\n[1] WORK-STATE");
 console.log(`    facilities: ${facLine}`);
-console.log(`    library:    ${subjDone} subjects done, ${subjOpen} open`);
+console.log(`    library:    ${subjDone} of ${numbered.length} subjects done, ${subjOpen} open${subjWip ? `, ${subjWip} in progress` : ""}`);
+if (!subjPartitionOk) {
+  console.log(`    \u26a0 the ${numbered.length} roadmap rows do not partition into done/open/in-progress`);
+  console.log("      (" + [subjDone, subjOpen, subjWip].join(" + ") + " = " + (subjDone + subjOpen + subjWip) + ") — this count is INCOMPLETE, do not order work from it");
+}
 console.log("\n[2] TEST-STATE");
 console.log(`    ${testState}`);
 console.log("\n[3] LOOSE ENDS (open items with no supporting note)");

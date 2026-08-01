@@ -10,11 +10,29 @@ Never change anything while the gate is red.
 - Owner's rulings are Frank's; Claude writes implementation.
 - Parser discipline: never accept the first count — verify two independent ways.
 
-## Code state
-`al-platform/` — Vite/React, gate green at last verification.
-Specials **4/29** (Arcane Study, Observatory, Archive, Armory). Basics 6/6.
-Next mints: Barrack, Garden, Library, Sanctuary, Smithy, Storehouse, Workshop.
-`NOTICE_VIEW` extraction (~4,712 lines) remains the largest structural win outstanding.
+## Code state — verified from a clean clone, 29 Jul (head `c7d0063` + this session's fixes)
+
+`al-platform/` — Vite/React. **Gate green, 19 suites.** `npm run check` is the gate; `npm run report`
+itemises it; `npm run next` is the advisory triage driver (reads work-state, test-state, loose ends).
+
+**Facilities — specials 8/29, basics 6/6.** Do not read a facility count out of a document; run
+`npm run facilities`, which derives the ledger from the live registry.
+- Minted specials: Arcane Study · Archive · Armory · Library · Observatory · Scriptorium · Smithy · Workshop
+- Next at L5: **Barrack · Garden · Sanctuary · Storehouse**
+- 21 to start. The roster is **29**, not 28 — **Sacristy** (L9, Craft, `Bastions.md:1014`) was missing
+  from it entirely until B-38. Roster now cross-checked against an independent per-level partition by
+  `npm run check:roster`, because a declared target cannot audit itself.
+
+**Library subjects — 24 of 102 sourced.** `LIBRARY_SUBJECTS_100.md` is the ledger `npm run next`
+reads; it had drifted from the registry three ways (B-39) and is now gated against it by
+`npm run check:ledger`. Roster is 102, not 100, because two authored faction subjects had no row and
+nothing was struck to make room.
+
+**Standing structural work:** `NOTICE_VIEW` extraction (~4,712 lines) remains the largest structural
+win outstanding. Lint sits at 171 warnings / 0 errors.
+
+**Two new checks in the chain** (both negative-tested, both found further defects on first run):
+`check:ledger` · `check:roster`.
 
 ## Region graph — `research/regions/`
 | file | what |
@@ -31,7 +49,14 @@ Next mints: Barrack, Garden, Library, Sanctuary, Smithy, Storehouse, Workshop.
 Only **Llorkh → Zhentil Keep (Black Road)** is missing. It is **not on the open web** — it would be in
 the 2e *Anauroch* sourcebook. Everything else on the chain is cited or day-derived.
 
-### Open rulings (Frank's)
+### Open rulings (Frank's) — raised 29 Jul, small and quick
+0a. **Library roster size.** Hold at 102, or strike two ⬜ candidates for a round 100? Which two is a
+    content call. Noted at the head of `LIBRARY_SUBJECTS_100.md`.
+0b. **The Blackstaff.** Rows 59 and 84 were the same subject listed twice, once as a person and once
+    as an object. Labels are disambiguated for now (*the office* / *the staff*); collapsing them into
+    one subject frees a category slot for a fresh candidate.
+
+### Open rulings (Frank's) — region graph
 1. **Repin the ruler.** Pin is 11.76 mi/day from Waterdeep→Neverwinter=200 mi. Four cited legs average
    **18.2**, and the 200-mi figure cannot be reconciled with the cited Leilon→Neverwinter=100 mi on the
    same road. Every `days` edge is likely ~1.5× short. **This gates the rest.**

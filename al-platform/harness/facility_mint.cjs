@@ -18,13 +18,34 @@ const fs = require("fs");
 const path = require("path");
 const root = path.resolve(__dirname, "..");
 
-// ---- the authoritative DMG special-facility roster (28) — the target the ledger measures against.
+// ---- the authoritative DMG special-facility roster (29) — the target the ledger measures against.
+//
+// COUNT VERIFIED TWO INDEPENDENT WAYS (29 Jul) against the Bastions chapter, first clean copy only
+// (the extract contains a second, ligature-broken copy — see the `fi`/`fl` artifacts):
+//   (a) 29 lines matching /Level \d+ Bastion Facility/
+//   (b) 29 lines beginning "Prerequisite:"
+// and the extracted name sequence is alphabetically continuous, so nothing is missing between names.
+// By level: 9 at L5 · 10 at L9 · 6 at L13 · 4 at L17 = 29.
+//
+// B-38 (29 Jul): this roster shipped as 28 and omitted SACRISTY (Level 9, Space Roomy, 1 hireling,
+// Order Craft, Prerequisite "Ability to use a Holy Symbol or Druidic Focus as a Spellcasting Focus"
+// — Bastions.md:1014). The omission was structurally invisible: the roster IS the denominator, so
+// the ledger would have printed 28/28 COMPLETE with a legal facility absent from the platform
+// entirely. A denominator cannot audit itself — hence the roster integrity guard in --minted mode.
 const DMG_SPECIALS = [
   "arcane_study", "archive", "armory", "barrack", "demiplane", "gaming_hall", "garden", "greenhouse",
   "guildhall", "laboratory", "library", "meditation_chamber", "menagerie", "observatory", "pub",
-  "reliquary", "sanctuary", "sanctum", "scriptorium", "smithy", "stable", "storehouse",
+  "reliquary", "sacristy", "sanctuary", "sanctum", "scriptorium", "smithy", "stable", "storehouse",
   "teleportation_circle", "theater", "training_area", "trophy_room", "war_room", "workshop",
 ];
+// Per-level partition of the roster above. Kept separate from the flat list ON PURPOSE: it is the
+// second, independent statement of the same fact, so a name dropped from one side fails the guard.
+const DMG_SPECIALS_BY_LEVEL = {
+  5:  ["arcane_study", "armory", "barrack", "garden", "library", "sanctuary", "smithy", "storehouse", "workshop"],
+  9:  ["gaming_hall", "greenhouse", "laboratory", "sacristy", "scriptorium", "stable", "teleportation_circle", "theater", "training_area", "trophy_room"],
+  13: ["archive", "meditation_chamber", "menagerie", "observatory", "pub", "reliquary"],
+  17: ["demiplane", "guildhall", "sanctum", "war_room"],
+};
 // Facilities that legitimately DO NOT craft — an explicit, auditable "not applicable" for the craft
 // column. The Archive is pure Research (Legend Lore + Reference Book); giving it craft would violate
 // AL and step on the Scriptorium/Arcane Study. Add to this list only with a cited reason.
@@ -149,7 +170,45 @@ const arg = process.argv[2];
 let m;
 try { m = loadLive(); } catch (e) { console.log("FACILITY-MINT: bundle failed\n" + (e.stderr ? e.stderr.toString() : e.message)); process.exit(1); }
 
+// ---- roster integrity: the denominator cannot audit itself, so check it explicitly (B-38) -----
+// Cross-checks the flat roster against its independent per-level partition, so a name dropped from
+// either side fails loudly instead of shrinking the target silently.
+function checkRoster() {
+  const fail = [];
+  const EXPECT = 29, BY_LEVEL_EXPECT = { 5: 9, 9: 10, 13: 6, 17: 4 };
+  if (DMG_SPECIALS.length !== EXPECT) fail.push(`roster length is ${DMG_SPECIALS.length}, DMG has ${EXPECT}`);
+  const dupes = DMG_SPECIALS.filter((id, i) => DMG_SPECIALS.indexOf(id) !== i);
+  if (dupes.length) fail.push(`duplicate ids in roster: ${dupes.join(", ")}`);
+  const sorted = [...DMG_SPECIALS].sort();
+  if (DMG_SPECIALS.join("|") !== sorted.join("|")) fail.push("roster is not alphabetical (the chapter is; keep them aligned so a gap is visible)");
+  const flat = [];
+  for (const [lvl, ids] of Object.entries(DMG_SPECIALS_BY_LEVEL)) {
+    if (ids.length !== BY_LEVEL_EXPECT[lvl]) fail.push(`level ${lvl} holds ${ids.length} facilities, DMG has ${BY_LEVEL_EXPECT[lvl]}`);
+    flat.push(...ids);
+  }
+  const onlyFlat = DMG_SPECIALS.filter((id) => !flat.includes(id));
+  const onlyLvl = flat.filter((id) => !DMG_SPECIALS.includes(id));
+  if (onlyFlat.length) fail.push(`in the roster but on no level: ${onlyFlat.join(", ")}`);
+  if (onlyLvl.length) fail.push(`on a level but not in the roster: ${onlyLvl.join(", ")}`);
+  const strayNoncraft = [...NONCRAFT].filter((id) => !DMG_SPECIALS.includes(id));
+  if (strayNoncraft.length) fail.push(`NONCRAFT names facilities that are not on the roster: ${strayNoncraft.join(", ")}`);
+  return fail;
+}
+
+if (arg === "--roster") {
+  const fail = checkRoster();
+  fail.forEach((f) => console.log(`  ✗ ${f}`));
+  console.log(fail.length ? `\nROSTER: ${fail.length} integrity failure(s)` : `ROSTER: ${DMG_SPECIALS.length} DMG specials, flat list and per-level partition agree`);
+  process.exit(fail.length ? 1 : 0);
+}
+
 if (arg === "--minted") {
+  const rosterFail = checkRoster();
+  if (rosterFail.length) {
+    rosterFail.forEach((f) => console.log(`  ✗ roster: ${f}`));
+    console.log(`\nFACILITY-MINT: the roster itself is wrong — fix the target before measuring against it`);
+    process.exit(1);
+  }
   // GATE MODE: every facility that HAS a registerFacility mint (furniture defined) must still pass the
   // full strict bar. Fails the build if a minted facility regresses. Pending facilities are not checked
   // here (they're honestly incomplete — the ledger tracks them). "Minted" = has furniture defined.

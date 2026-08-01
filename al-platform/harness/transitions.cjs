@@ -3304,9 +3304,19 @@ for (const [name, fn] of T) {
     s = reducer(s, { type: "MINT_BOOK_ITEM", charId: ch.id, by: ch.ownerId, title: libMint.title, topic: libMint.topic, paragraph: libMint.paragraph, defId: "library", size: "roomy" });
     const stored = Object.values(s.items).find((x) => x.bookItem && x.paragraph);
     ok(!!stored && stored.inPack === false && !!stored.paragraph, "a minted Library book shelves (inPack false) carrying its paragraph");
-    // size-scaled caps
-    ok(bookShelfCap("archive", "roomy") === 20 && bookShelfCap("library", "roomy") === 40 && bookShelfCap("library", "cramped") === 20 && bookShelfCap("library", "vast") === 80,
-      "shelf caps scale: Archive 10 base, Library 20 base, doubling per size tier (cramped/roomy/vast)");
+    // Size-scaled caps, CORRECTED 31 Jul. The base is the cap AT THE ROOM'S PRINTED SIZE — both
+    // shelving facilities print `roomy`, so an un-enlarged Archive holds 10 and an un-enlarged
+    // Library 20, doubling once for the single enlargement DMG allows them (roomy > vast).
+    //
+    // THIS ASSERTION PREVIOUSLY ENCODED THE BUG. It was written from what the function did rather
+    // than from what the owner specified, so it asserted 20/40 at roomy and passed for as long as
+    // the defect existed — the test defended the bug against the requirement. That is the failure
+    // mode worth remembering here: a check written by reading the implementation cannot ever fail.
+    ok(bookShelfCap("archive", "roomy") === 10 && bookShelfCap("archive", "vast") === 20
+       && bookShelfCap("library", "roomy") === 20 && bookShelfCap("library", "vast") === 40,
+      "shelf caps: Archive 10 and Library 20 at their PRINTED size, doubling when enlarged to vast");
+    ok(bookShelfCap("smithy", "roomy") === 0 && bookShelfCap("library", undefined) === 20,
+      "shelf caps: non-shelving rooms hold nothing; an unspecified size falls back to the printed one");
   }
 }
 

@@ -1,10 +1,34 @@
 # The Facility Format
 
-**v2 · 17 July 2026.** One schema, derived from reading all 29 — not from the 14 that are built.
-Supersedes v1. Every figure is read out of the DMG chapter (`Bastions.md`), the ALPG, SRD 5.2
+**v3 · 31 July 2026.** One schema, derived from reading all 29 — not from the 14 that are built.
+Supersedes v2. Every figure is read out of the DMG chapter (`Bastions.md`), the ALPG, SRD 5.2
 (CC-BY-4.0), or the running app. Nothing is recalled.
 
-**What changed from v1**, and both changes came from the owner rejecting the first answer:
+> **v3 exists because this document stopped keeping up with the build.** The owner's instruction,
+> 31 Jul: *the format is supposed to reflect everything a facility is and needs to be, as we develop
+> new tools for the new facilities.* It had been treated as a spec written once and left, so it never
+> learned about the registry tables, the hireling model, the furnishing ladder, or the Library book
+> generator — the largest single piece of facility tooling in the project. **§10–§12 are new and are
+> the living inventory: if a facility gains a mechanism, it is described there or the format is
+> stale again.**
+
+**What changed in v3 — §13–§15 are a new PATTERN LIBRARY**, and they are the part of this document
+meant to keep growing. §1–§12 say what a facility *must have*. §13 onward say **how we have solved
+things before**, so the next room is built by reference instead of from scratch:
+
+- **§13** — what a facility is made of, and which of the four files each part lives in.
+- **§14** — **the shelf**: an in-world container a room owns. Written for the Library and Archive,
+  but the pattern is the reusable part — the Menagerie's pens and the Stable's stalls are the same
+  problem, and should not be re-solved.
+- **§15** — naming, and the fields §3 promises that are not built yet.
+
+> **The standing instruction that produced this section (Frank, 31 Jul):** *the format should act
+> like a living document — add the tools we create to it, so when we create new facilities we have a
+> basis to compare to, and a reference for how we solved certain problems.* **When a room gains a
+> mechanism, the pattern goes in §13+ in the same delta.** A tool built and not written down here is
+> a tool the next facility will build again, differently.
+
+**What changed from v1 → v2**, and both changes came from the owner rejecting the first answer:
 
 - **§4 is now ONE derivation with named overrides**, not two kinds of craft row. Named options
   *narrow* a tool's output; they are not a second list beside it.
@@ -649,3 +673,168 @@ by the parser.** This is the discipline the generators inherit — it is not a f
 
 > A parser with a hole answers cheerfully, in green. So did `Bastions.md` with every table missing,
 > and so did 1,860 assertions against an `arrows20` that had lost its meaning.
+
+---
+
+## 13 · PATTERN LIBRARY — what a facility is made of, and where each part lives
+
+**§3 describes ONE of four places a room lives.** A facility that has a perfect §3 definition and
+nothing else is not built; it is declared. This section is the checklist a room must satisfy before
+the word *minted* is honest, and it is derived from the running app, not recalled.
+
+### 10.1 · The four homes
+
+| where | what lives there | shape |
+|---|---|---|
+| `src/data/bastion.ts` → `BASTION_FACILITIES` | the stat block and the craft model | one object per room (§3) |
+| `src/bastion/registry.ts` | everything the room *feels* like | seven per-room tables, below |
+| `src/bastion/engine.ts` | what an order DOES when given | `resolveBastionOrder` branch |
+| `src/reducer/*.ts` | what the player can dispatch | actions (`MINT_BOOK_ITEM`, `ENLARGE_BASTION_FACILITY`, …) |
+
+### 10.2 · The registry tables — all seven are required
+
+Every one of these is keyed by facility id. A room missing any of them falls back to generic text,
+which is the tell that it was never finished.
+
+| table | what it holds | required |
+|---|---|---|
+| `BASTION_LIFE_TASKS` | the week's beats — what the staff were seen doing | **≥6 beats**, and they must differ by bastion form |
+| `FACILITY_FURNISHINGS` | `[{ slot, name }]` — what stands in the room | ≥1 slot, and ≥1 slot must have a **ladder ≥2 tiers** |
+| `FACILITY_ROLES` | the job titles its hirelings hold | ≥1 |
+| `FACILITY_REACTIONS` | the room's own voice on events | present — absence silently falls back to generic |
+| `BASTION_SIZE_FLAVOR` | how cramped/roomy/vast read for THIS room | present |
+| `FACILITY_RUIN` | how it reads when neglected or sacked | present |
+| `FACILITY_FORM_NAMES` | its name in each of the **8 bastion forms** | all 8, non-empty, **distinct from each other and from the canonical name** |
+
+### 10.3 · Hirelings — the establishment model
+
+Staffing is **derived, never typed**. `facEstablishment({ defId, size })` returns the post count;
+`staffFacility` fills it with hirelings that each carry a **name and an age**. The strict bar is
+that the room fills its establishment exactly, and that no hireling arrives anonymous.
+
+- Specials always have a post. **Basics have zero staff by design** — the two-tier household model —
+  so the staffing, orders and craft checks are structurally skipped for `kind: "basic"`. That is not
+  a loophole; the applicable columns are held to the same bar and the inapplicable ones are declared
+  inapplicable.
+- The **War Room** is the one room whose `hirelings` is an object (`{ min: 2, note: … }`). Accept
+  both shapes and normalise on read. Do not make 28 rooms pay for one.
+
+### 10.4 · Furniture — the ladder is the point
+
+`FACILITY_FURNISHINGS` says what a room starts with; `FURNISHING_LADDER` says what it can become.
+A room whose every slot is terminal cannot be improved, and an unimprovable room is a dead end for a
+player with gold. **At least one slot must offer two or more tiers.**
+
+### 10.5 · The strict bar, and what it does NOT yet check
+
+`harness/facility_mint.cjs` enforces §10.2–§10.4 and the §2 stat block. **As of 31 Jul it does not
+check `tools`, `options`/`outputs`, `tables`, `features`, `enlarge`, `capacity` or `open`** — seven
+of the ten fields §3 defines. A room can therefore read `✅ MINTED` while, for example, the Armory's
+§8 feature (*stocked → defenders roll 1d8*) is entirely unimplemented, which is the actual state
+today. **Extending the checker to the full §3 schema is the prerequisite for minting the remaining
+20 rooms**, or the divergence gets propagated twenty times.
+
+---
+
+## 14 · PATTERN · the shelf — an in-world container a room owns
+
+Two rooms hold a **shelf**: an in-world container of items a character owns, kept at the bastion.
+This is the largest piece of facility tooling in the project and v2 did not mention it.
+
+> **REUSE THIS.** The shelf is not a Library feature, it is a *container* pattern, and at least three
+> unbuilt rooms need the same thing: the **Menagerie**'s pens (§6 already sizes them — four tiny to a
+> medium), the **Stable**'s stalls, and the **Storehouse**'s stores. Building any of those, copy this
+> shape rather than inventing a second one:
+>
+> | the pattern | the Library's instance |
+> |---|---|
+> | a flag on the def saying the room contains things | `shelvesBooks: true` |
+> | a **capacity function** owning the numbers, keyed by def + size | `bookShelfCap(defId, size)` |
+> | base = capacity **at the room's PRINTED size**, doubling per tier enlarged | 20 at roomy, 40 at vast |
+> | an `enlargeBenefit` whose prose says *doubles*, never the count | "twice the shelf room…" |
+> | contents mint as real items with provenance, via one reducer action | `MINT_BOOK_ITEM` |
+> | contents rest **at the bastion** (`inPack: false`), with a reversible pack toggle | packing a book |
+> | the cap counts **by kind**, so two rooms' contents do not compete | library vs archive books |
+> | at the cap the add is refused **silently and without penalty** | shelf simply full |
+>
+> Two of those rules are the ones that cost us time and are worth taking for free: **the capacity
+> function must own the numbers** (prose that restates them is a second source of truth), and **the
+> base is the printed size, not `cramped`** — getting that wrong put every keep in the game one tier
+> high, and the test that should have caught it had been written from the code instead of from the
+> requirement.
+
+### 11.1 · Which rooms shelve, and how much
+
+`shelvesBooks: true` on the definition; capacity from `bookShelfCap(defId, size)`.
+
+| room | printed size | cap there | enlarged to vast |
+|---|---|---|---|
+| **Library** | roomy | **20** | 40 |
+| **Archive** | roomy | **10** | 20 |
+
+**The base is the cap at the room's PRINTED size, not at cramped.** This was a live bug until
+31 Jul: the tier was indexed from `cramped` regardless of where the room actually starts, so every
+keep ran one tier high — Archive 20, Library 40. The tier is now the **distance enlarged** from the
+printed space, so an un-enlarged room always sits exactly on its base.
+
+> The transitions suite asserted the buggy numbers, because the check had been written from what the
+> function did rather than from what was specified. **A test written by reading the implementation
+> can never fail.** It is now written from the requirement.
+
+### 11.2 · Growth
+
+The shelf is the reason to enlarge these rooms, and `enlargeBenefit` is what the app promises in
+return for the money. Costs come from `BASTION_ENLARGE` (roomy→vast: 2,000 gp / 80 days) and are
+never retyped.
+
+**The benefit prose states the DOUBLING and never the absolute counts.** `bookShelfCap` owns those
+numbers; a second copy in prose is a second source of truth waiting to drift.
+
+### 11.3 · The two kinds of book
+
+Both mint through `MINT_BOOK_ITEM` as a real `STORY_ITEM` with provenance. They differ in what is
+inside them:
+
+| | Library book | Archive book |
+|---|---|---|
+| carries | `paragraph` — three sourced facts, stitched | `wikiUrl` — a pointer |
+| `source` tag | `The Deep Grounds Exchange — Library` | `— Archive` |
+| from | `LIBRARY_SUBJECTS` (100 subjects, 1,965 facts) | `ARCHIVE_BOOKS` + `composeArchiveTitle` |
+| DMG basis | Research → *Topical Lore*, "up to three accurate pieces of information" | Research → *Helpful Lore* (Legend Lore) |
+
+### 11.4 · Rules that hold for both
+
+- **One copy per shelf.** Clicking twice owns once.
+- **Books land on the SHELF, not in the pack** (`inPack: false`). The player packs a book when they
+  want it at the table; a pack holding every book a character ever earned is clutter.
+- **The pack toggle is reversible** — leave it at the bastion, bring it back. Leaving it un-equips
+  and un-attunes it, so it stops counting against carried limits.
+- **The cap counts by KIND.** A library book (has a paragraph) and an archive book (has a link)
+  count against their own room's cap, not each other's.
+- **At the cap the shelf is simply full** — the mint is refused, silently and without penalty.
+
+### 11.5 · The generator, verified end to end
+
+Confirmed 31 Jul by running it, not by reading it: four Research turns on a live Library produced
+four distinct books — title, genre-matched closer, and a three-fact drift paragraph — and minting
+one through the reducer put a `bookItem` on the shelf carrying its paragraph, its topic and its
+provenance. **The Library book generator is complete.** See `FINDINGS.md` for the corpus record.
+
+---
+
+## 15 · PATTERN · naming, and what §3 promises that is not built yet
+
+Stated plainly so the next reader does not have to discover it. **Neither side is obviously right;
+this is a reconciliation to be scheduled, not a bug to be panicked over.**
+
+| §3 says | code has | note |
+|---|---|---|
+| `tools: [...]` / `{ choose, from }` | `tool: "g_tool_smith"` · `toolChoice: { count, from }` | model is implemented, names differ |
+| `options: { craft: [...] }` | `outputs: { craft: [...] }` | same shape, different key |
+| `enlarge: { to, benefit }` | `enlargeBenefit: "…"` (flat string) | costs already derive from `BASTION_ENLARGE`, so only the benefit needed a home |
+| `tables: {}` on the def | `ARCHIVE_BOOKS`, `PUB_TAPS`, … as separate exports | the "two sources of truth" §3 warns against |
+| `features: []` on the def | **does not exist** | the Armory's 1d8 defenders feature is unimplemented |
+| `open: null` | **does not exist** | §3's own argument — *a TODO the gate reads is a deadline* — is currently unenforced |
+
+**`BASTION_FACILITIES` holds 14 rooms: 8 specials and 6 basics.** The other 20 DMG specials have no
+definition at all. That is the honest denominator for any statement about facility progress.

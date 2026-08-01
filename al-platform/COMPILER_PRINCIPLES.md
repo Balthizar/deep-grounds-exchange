@@ -198,3 +198,30 @@ Every finding cites the file:line it was read from, so the driver's citation mea
 was genuinely reasoned from evidence, not a fact injected by the agent and read back (the
 opinion-laundering failure mode). PORTABLE: when a tool must reason about state, it reads the state,
 it does not accept the state as a parameter from whoever is being advised.
+
+## The file that declares the work is part of the work
+
+ORIGINATING BUG (B-44). The batch 9–10 delta zip carried `harness/ledger.cjs`, a new gating suite, but
+not the `package.json` that declares `check:ledger` and threads it into `check`. At the source end
+everything was correct and green. On the machine that reconstructed from the delta the suite existed
+on disk and no gate reached it — a test that never runs, which is worse than no test, because the
+gate still reports green while silently measuring less than it claims to.
+
+The class matters more than the instance. A hand-assembled change set carries the files someone
+*thought of as the change*. Manifests, lockfiles, script blocks, registry entries and config read as
+scaffolding rather than as content, so they are the files that get left behind — and their absence is
+invisible from the side that already has them.
+
+PORTABLE: an artifact that only takes effect because some manifest names it is not complete without
+that manifest. State it as a packing rule, not a habit: **if a change adds something that must be
+declared somewhere to run, the declaration ships in the same change.**
+
+MECHANISED (`tools/pack_delta.js`). The delta packer refuses to build a zip that adds or modifies a
+file under `harness/` unless `package.json` is included in the same zip. It is deliberately a dumb
+structural rule rather than a clever one — it does not try to work out whether *this particular*
+harness file needed wiring, because the cost of including a manifest that did not change is nil and
+the cost of omitting one that did is a green gate that is lying.
+
+COROLLARY, and the reason the rule is worth its false positives: `self_check.cjs` caught B-44 in one
+run. A guard that makes the gate audit its own completeness is worth more than any individual suite,
+because it is the only kind of test that fails when a test is *missing* rather than wrong.
