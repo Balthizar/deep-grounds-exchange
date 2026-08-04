@@ -1272,10 +1272,16 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
         t.benefits.push(ord.name + ": " + ((chosen && chosen.label) || catName(outCat)) + " — by " + maker + (craftCost > 0 ? " (" + craftCost + " gp in materials; character-created, not tradeable)" : " (character-created, not tradeable)"));
       }
     }
-  } else if (ord.producesGp) {
+  } else if (ord.producesGp && !(fac && (bDef(fac) as any).noGp)) {
     const g = bastionTradeIncome(ch.level || 1, fac ? fac.size : "cramped");   // auto income, scales with level (and size); no manual entry
     ch.gp = (ch.gp || 0) + g;
     t.benefits.push("Trade earned " + g + " gp");
+  } else if (ord.producesGp && fac && (bDef(fac) as any).noGp) {
+    // ⚠ A ROOM WHOSE TRADE IS A PURCHASE, NOT AN INCOME. The Stable's hireling goes to market on the
+    // character's coin; nothing is minted here. Narrated so the week is not silent.
+    t.benefits.push(ord.name + ": " + (fac ? bDef(fac).name : "the facility")
+      + " \u2014 the hireling went to market and back. Buying or selling a mount is at normal cost, out of "
+      + ch.name + "'s own purse, and the DM decides what was on offer.");
   } else {
     t.benefits.push(ord.name + (o.detail ? ": " + o.detail : ""));
   }
@@ -3186,6 +3192,10 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
       // turn in sunlight, so it is not in the yard at noon — it is doing the work at three in the
       // morning and handing over at dusk. This does not change WHAT it does; it changes when, and
       // the household notices.
+      // ⚠ THE STUDY'S SCHOLAR VOICES WENT WITH THE PICK (Frank, 3 Aug). They were good lines and they
+      // were reachable only through a choice that changed no outcome — so they came out with it.
+      // A scholar in an Arcane Study now speaks with the ordinary voice of their people, like
+      // everybody else in the household.
       if (nocturnalOf(doer.species) === "must" && rng() < 0.4) {
         // THE ARRANGEMENT is a third of what a vampire's presence produces, alongside the night shift
         // and the resting place. It is book-keeping, which is the joke and also the point.

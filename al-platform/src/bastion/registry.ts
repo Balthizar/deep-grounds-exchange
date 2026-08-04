@@ -1,4 +1,4 @@
-import { wasAliveOnce, isBucket, resolveBucket, DRYAD_TREES_WALL, facilityIsOutdoor, DRYAD_TREES, speciesCanHireAt, feyAffinity, FEY_DRIFTERS, chosenHireSpecies, canCross, formExcludes, rollParentsUnsexed, speciesAxes, rollRelOrientation, SPECIES_PREF_OWN, SPECIES_PREF_BROAD, AGE_PREF_WEIGHTS, registerNamingLookup, concealChance, BOND_EVENTS, BOND_DIMS, postLean, postMaleShare, POST_KIND, pairingOf, opennessOf, incongruenceFactor, orientationFactor, ATTRACTION_BASE, GENDER_IDENTITY, INTERSPECIES_FLOOR, INTERSPECIES_CEIL, poolDiversity, COUPLE_CHANCE, SPOUSE_SAME_SPECIES, SPOUSE_AGE_SPREAD, rollProfile, traitsOf, rollFaith, rollMarital, rollParents, CLASS_BY_ROLE, GENDER_MATCHES_SEX, HENCH_TRAITS, SPECIES_BY_REGION, SPECIES_BY_LOCALE, ALL_SPECIES, outlanderChance, poolFor, speciesCanHire, speciesCanDefend, speciesMindless } from "../data/bastion";
+import { faithCultureOf, wasAliveOnce, isBucket, resolveBucket, DRYAD_TREES_WALL, facilityIsOutdoor, DRYAD_TREES, speciesCanHireAt, feyAffinity, FEY_DRIFTERS, chosenHireSpecies, canCross, formExcludes, rollParentsUnsexed, speciesAxes, rollRelOrientation, SPECIES_PREF_OWN, SPECIES_PREF_BROAD, AGE_PREF_WEIGHTS, registerNamingLookup, concealChance, BOND_EVENTS, BOND_DIMS, postLean, postMaleShare, POST_KIND, pairingOf, opennessOf, incongruenceFactor, orientationFactor, ATTRACTION_BASE, GENDER_IDENTITY, INTERSPECIES_FLOOR, INTERSPECIES_CEIL, poolDiversity, COUPLE_CHANCE, SPOUSE_SAME_SPECIES, SPOUSE_AGE_SPREAD, rollProfile, traitsOf, rollFaith, rollMarital, rollParents, CLASS_BY_ROLE, GENDER_MATCHES_SEX, HENCH_TRAITS, SPECIES_BY_REGION, SPECIES_BY_LOCALE, ALL_SPECIES, outlanderChance, poolFor, speciesCanHire, speciesCanDefend, speciesMindless } from "../data/bastion";
 // ============================================================================
 // MY BASTION REGISTRY - the facilities system, as one self-contained unit.
 //
@@ -693,7 +693,7 @@ export function rollPerson(species: string, nm: { name: string; sex: "m" | "f"; 
     profile: mindless ? undefined : profile,
     traits: mindless ? [] : traitsOf(profile, age),
     socialClass: CLASS_BY_ROLE[role] || "labouring",
-    faith: (mindless || !ax.worships) ? undefined : rollFaith(SPECIES_NAMING[species]),
+    faith: (mindless || !ax.worships) ? undefined : rollFaith(faithCultureOf(species, SPECIES_NAMING[species])),
     marital: (mindless || !ax.romances) ? undefined : marital,
     // A people with no sexes has no mother and no father — see PARENT_STATES_UNSEXED.
     parents: (mindless || !ax.born) ? undefined : (ax.sexed === 'one' ? rollParents(age) : rollParentsUnsexed(age)),
@@ -878,6 +878,24 @@ function fallbackSpecies(regionId?: string | null, localeId?: string | null, def
   }
   return "Human";
 }
+
+// ⚠ THE ARCANE STUDY'S SCHOLAR PICK WAS REMOVED (Frank, 3 Aug). It was built on a guess — *"I was
+// guessing at the facility that needed it"* — and the check settled it: **the choice bought flavour
+// and nothing else.**
+//
+// The Scriptorium's pick is load-bearing: the scribe's class decides whether the room makes Cleric or
+// Wizard scrolls. The Study's outputs are five arcane foci, a blank book and the Arcana tables, and
+// **not one of them is gated on the hireling** — so an apprentice and an acolyte did identical work
+// and differed only in which flavour lines printed.
+//
+// Worse, the acolyte half contradicted the room's own prerequisite: the DMG gates an Arcane Study on
+// *"ability to use an Arcane Focus or a tool as a Spellcasting Focus"*, which a cleric with a holy
+// symbol does not meet. **The room is arcane by prerequisite and arcane by output**, and it was
+// offering to staff itself with somebody it would not admit.
+//
+// The Study staffs itself now, like the other thirteen rooms. Choosing a hireling is rare and the
+// Scriptorium is the exception.
+
 
 export function staffFacility(s: AppState, fac: Facility, count?, regionId?: string | null, localeId?: string | null, ch?: any) {   // count omitted = fill to establishment; regionId decides who lives near enough to be hired
   if (!Array.isArray(fac.henchmen)) fac.henchmen = [];

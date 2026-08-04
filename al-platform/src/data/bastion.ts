@@ -240,16 +240,6 @@ export const BASTION_FACILITIES: Record<string, any> = {
     // source of truth §3 warns against. The pointer is what makes them checkable.
     tables: { subjects: "ARCHIVE_BOOK_SUBJECTS", loreByRegion: "ARCHIVE_LORE_BY_REGION", loreGlobal: "ARCHIVE_LORE_GLOBAL" } },
   scriptorium: { id: "scriptorium", name: "Scriptorium", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 9, orders: ["craft", "maintain"], note: "A room of desks and writing supplies. Its scribe will copy a nonmagical book (you supply the blank book), scribe a spell scroll of 3rd level or lower from their own class list, or run off up to fifty broadsheets or pamphlets \u2014 and carry them anywhere within fifty miles. You choose the scribe: a Novice Mage scribes Wizard scrolls, an Acolyte scribes Cleric scrolls.", scribeClasses: [{ id: "mage", label: "Novice Mage", cls: "Wizard", role: "Novice Mage" }, { id: "acolyte", label: "Acolyte", cls: "Cleric", role: "Acolyte" }], outputs: { craft: [{ id: "book_replica", label: "A book replica \u2014 copy of a nonmagical book (you supply a blank book; 7 days)", catalogId: "g_book", needsBlankBook: true }, { id: "spell_scroll", label: "A spell scroll \u2014 your scribe's class, 3rd level or lower (a DM verifies)", scroll: true, maxLevel: 3 }, { id: "paperwork", label: "Paperwork \u2014 up to 50 broadsheets or pamphlets (1 GP each, 7 days; delivered within 50 miles)", paperwork: true, perCopy: 1 }] } },
-  // ⚠ THE STABLE — a DMG facility we simply did not have (Frank, 2 Aug). Bastions.md, level 9:
-  // *"Each Stable you add comes with one Riding Horse or Camel and two Ponies or Mules... the
-  // facility's hireling looks after these creatures."* Roomy, one hireling, Trade order.
-  //
-  // Added because Frank asked where the livestock for a vampire's arrangement would live, and the
-  // honest answer turned out to be **a room the book already has and the registry did not.**
-  //
-  // And it is OUTDOOR, which lights up the ten peoples whose `hire: "outdoor"` had nowhere to happen
-  // — treant, centaur, ogre, troll, minotaur and the rest have somewhere to work as of now.
-  stable: { id: "stable", name: "Stable", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 9, orders: ["trade", "maintain"], note: "Three Large animals, or six Medium. The hireling looks after them." },
   smithy: { id: "smithy", name: "Smithy", kind: "special", space: "roomy", prereq: null, hirelings: 2, minLevel: 5, orders: ["craft", "maintain"], note: "A forge, an anvil, and the tools of the trade. Its smiths will make anything smith's tools can make \u2014 a blade, a harness of armour, a length of chain \u2014 and, once you have the standing for it, forge an Armament from the magic tables.", tool: "g_tool_smith", outputs: { craft: [{ id: "smith_mundane", label: "Smith's work \u2014 anything smith's tools can make (a DM verifies against the tool's list)", tool: "g_tool_smith" }, { id: "armament_common", label: "A Common magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "common", minLevel: 9 }, { id: "armament_uncommon", label: "An Uncommon magic item \u2014 Armaments tables \u2726 (level 9+; you name it, a DM verifies)", magic: "armaments", rarity: "uncommon", minLevel: 9 }] } },
   workshop: { id: "workshop", name: "Workshop", kind: "special", space: "roomy", prereq: null, hirelings: 3, minLevel: 5, orders: ["craft", "maintain"], note: "A creative space fitted with six kinds of artisan's tools of your choosing. Its three hirelings craft anything those tools can make \u2014 and, once you have the standing for it, an Implement from the magic tables. You pick the six tools when you build it.", toolChoice: { count: 6, from: ["g_tool_carpenter", "g_tool_cobbler", "g_tool_glassblow", "g_tool_jeweler", "g_tool_leather", "g_tool_mason", "g_tool_painter", "g_tool_potter", "g_tool_tinker", "g_tool_weaver", "g_tool_woodcarver"] }, outputs: { craft: [{ id: "gear_chosen", label: "Adventuring gear \u2014 anything the workshop's chosen tools can make (a DM verifies)", toolChoice: true }, { id: "implement_common", label: "A Common magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "common", minLevel: 9 }, { id: "implement_uncommon", label: "An Uncommon magic item \u2014 Implements tables \u2726 (level 9+; you name it, a DM verifies)", magic: "implements", rarity: "uncommon", minLevel: 9 }] } },
   library: { id: "library", name: "Library", kind: "special", space: "roomy", prereq: null, hirelings: 1, minLevel: 5, orders: ["research", "maintain"], note: "A collection of books with desks and reading chairs. Its librarian will research a topic \u2014 a legend, an event or place, a person, a kind of creature, or a famous object \u2014 and return with up to three accurate things you did not know. It is also a place to shelve the books your characters carry.", shelvesBooks: true,
@@ -2417,6 +2407,11 @@ export const SPECIES_AXES: Record<string, {
   born?: boolean;       // had parents and a childhood
   fluid?: boolean;      // gender is a presentation that can change, not a fact set at birth
 }> = {
+  // ⚠ THE GITH HAVE NO GODS (Frank, 3 Aug): *"I do not remember gods of the gith."* There are none.
+  // Vlaakith is a lich-queen who demands veneration, not a deity, and the absence of a pantheon is
+  // the point of them. Their own voice already knew — *"said Vlaakith's name flatly, once, and the
+  // flatness was the whole opinion"* — and a faith roll would have contradicted the line.
+  Githyanki: { sexed: "one", gendered: true, desires: true, romances: true, worships: false, born: true },
   // A CONSTRUCT. It thinks, it has opinions, it can be devoted to a person — but it was BUILT, and
   // built things have makers rather than parents. 5e autognomes are gnome-made and do have
   // personalities, so `romances` stays true: attachment is not the same as desire.
@@ -9883,6 +9878,75 @@ export function traitsOf(profile?: Profile | null, age = 30): string[] {
 
 // Faith by naming culture, falling through to human. A quarter to a half of any household names
 // nobody in particular, which is deliberate: a keep where everyone has a god reads as a temple.
+// ⚠ FOURTEEN WORSHIPPING PEOPLES FELL BACK TO THE HUMAN TABLE (Frank, 3 Aug). His ruling for the
+// scribe candidates was *"derive the god from FAITH_BY_CULTURE and the race of the individual...
+// this should yield the MOST ACCURATE god or goddess for the individual that was created."*
+//
+// It could not, for these, because `FAITH_BY_CULTURE` had no row for their naming culture — so a
+// **Goblin in the Underdark rolled Torm**, a Faerûnian human god of courage, and a githyanki would
+// have got Chauntea.
+//
+// Eight cultures added. Each is the people's own published pantheon, weighted toward what that
+// people actually keeps — and each carries the same "no god in particular" out that the human table
+// does, because not everybody prays.
+Object.assign(FAITH_BY_CULTURE, {
+  // ⚠ `goblinoid` WAS A BUCKET OVER FIVE UNRELATED PEOPLES (Frank, 3 Aug): *"shouldn't a goblin get
+  // Maglubiyet?"* He did — and he could also roll **Kurtulmak, who is the KOBOLD god**, because the
+  // naming culture `goblinoid` covers Goblin, Bugbear, Kobold, Grimlock and Quaggoth.
+  //
+  // **A naming culture is not a pantheon**, which is the same defect as `Other Fey` standing in for
+  // a species. Sources: Maglubiyet is god of goblins and hobgoblins and CLAIMS the bugbears, who
+  // recognise him and fear him but keep Hruggek; Khurgorbaeyag is the one goblin god Maglubiyet left
+  // alive *"to keep the goblins in line"*; Kurtulmak is kobold and nothing to do with any of them.
+  goblin:    { "Maglubiyet": 46, "Khurgorbaeyag": 13, "Bargrivyek": 7, "Shar": 5, "Bane": 4,
+               "no god in particular": 25 },
+  bugbear:   { "Hruggek": 34, "Grankhul": 12, "Skiggaret": 9, "Maglubiyet": 16, "no god in particular": 29 },
+  kobold:    { "Kurtulmak": 58, "Tiamat": 9, "no god in particular": 33 },
+  // Grimlocks were made and kept by the illithids, and a freed one has usually stopped.
+  grimlock:  { "Ilsensine": 17, "Shar": 6, "no god in particular": 77 },
+  // Quaggoths keep a thonot rather than a priesthood, and half the people are still enslaved.
+  quaggoth:  { "Vaprak": 12, "Gorellik": 6, "no god in particular": 82 },
+  // Asmodeus by descent, and a great many refuse him precisely because of the descent.
+  tiefling:  { "Asmodeus": 18, "Ilmater": 11, "Tymora": 9, "Selûne": 8, "Mask": 6, "Beshaba": 5,
+               "Waukeen": 5, "Torm": 4, "no god in particular": 34 },
+  // ⚠ GITH REMOVED (Frank, 3 Aug): *"I do not remember gods of the gith."* **Correct — there are
+  // none.** Vlaakith is a lich-queen who demands veneration, not a deity, and the gith have no
+  // pantheon at all; that absence is the point of them.
+  //
+  // Their own voice already knew: *"said Vlaakith's name flatly, once, and the flatness was the whole
+  // opinion."* A faith roll would have contradicted the line. `worships: false` instead — see
+  // SPECIES_AXES.
+  // Fey-touched elves keep the Seldarine, with the Court's own emphasis.
+  eladrin:   { "Corellon Larethian": 30, "Sehanine Moonbow": 14, "Hanali Celanil": 11,
+               "Solonor Thelandira": 8, "Titania": 7, "Rillifane Rallathil": 6,
+               "no god in particular": 24 },
+  // The Raven Queen, and the elven dead.
+  shadarkai: { "the Raven Queen": 44, "Sehanine Moonbow": 9, "Kelemvor": 7, "Corellon Larethian": 6,
+               "no god in particular": 34 },
+  // The giff keep a service record, not a religion — but where they do, it is martial.
+  giff:      { "Tempus": 22, "Helm": 10, "Torm": 7, "no god in particular": 61 },
+  // Wildspace crews pray to whatever keeps a hull together, and to whatever is watching.
+  spacefarer:{ "Tempus": 12, "Selûne": 11, "Tymora": 11, "Waukeen": 9, "Umberlee": 7, "Helm": 6,
+               "no god in particular": 44 },
+  // Astral elves keep the Seldarine across a very long time, and some have stopped.
+  astral:    { "Corellon Larethian": 28, "Sehanine Moonbow": 16, "Angharradh": 8,
+               "Labelas Enoreth": 8, "no god in particular": 40 },
+});
+
+// ⚠ AND THE FAITH CULTURE IS NOT THE NAMING CULTURE (Frank, 3 Aug). `rollFaith` was being handed
+// `SPECIES_NAMING[species]`, so a goblin, a bugbear, a kobold, a grimlock and a quaggoth all shared
+// one pantheon because they share one naming convention.
+//
+// **One field was carrying two facts** — the same shape as `hire` holding size and hazard, and test 1
+// holding grip and force. Names travel together; gods do not. A separate map, defaulting to the
+// naming culture where they genuinely coincide.
+export const FAITH_CULTURE: Record<string, string> = {
+  Goblin: "goblin", Bugbear: "bugbear", Kobold: "kobold",
+  Grimlock: "grimlock", Quaggoth: "quaggoth",
+};
+export const faithCultureOf = (sp?: string | null, naming?: string | null) =>
+  (sp && FAITH_CULTURE[sp]) || naming || null;
+
 export function rollFaith(culture?: string | null): string {
   const pool = (culture && FAITH_BY_CULTURE[culture]) || FAITH_BY_CULTURE.human;
   const total = Object.values(pool).reduce((n, w) => n + w, 0);
@@ -10571,6 +10635,24 @@ export const VULNERABLE_TO: Record<string, Set<string>> = {
 };
 export const roomHarms = (vuln?: string | null, defId?: string | null) =>
   !!(vuln && VULNERABLE_TO[vuln] && defId && VULNERABLE_TO[vuln].has(defId));
+
+// ---- THE ARCANE STUDY CHOOSES ITS SCHOLAR (Frank, 3 Aug) ----------------------------------------
+// *"It NEEDS to offer the player the choice of either a canon wizard apprentice or a cleric acolyte.
+// That was a system I thought was entirely sorted."*
+//
+// It was not built at all — the room drew one Scholar and assigned it, with no candidates and no
+// pick. Nothing in DECISION_LOG or BACKLOG recorded the ruling either, which is the failure
+// underneath: **a decision nobody wrote down is a decision that did not happen.**
+//
+// SOURCING. `Priest Acolyte` is an SRD NPC (CR 1/4). The SRD has no apprentice-tier arcane NPC — its
+// ladder jumps to Mage at CR 6 — so the Apprentice is NAMED and not reproduced, which §10 permits:
+// the platform holds a title and its own prose, never a stat block.
+//
+// Both candidates are generated by the ordinary hireling code. They are whole people — species,
+// names, ages, bonds, the regional draw — and the choice decides which one stays. **The other goes
+// back where they came from**, which is why the room says so rather than silently discarding them.
+
+// What the household says once one of them is at the desk. The other is never mentioned again.
 
 // ---- A DRYAD ARRIVES WITH A TREE (Frank, 2 Aug) --------------------------------------------------
 // *"If a dryad is hired, her tree must appear in the garden — if it wasn't previously mentioned it
@@ -11533,6 +11615,115 @@ export const BASTION_ATTACK_DICE_RAID = 2;    // Exchange: a raiding band is not
 // storyline regions and the even split are read out of the code rather than hand-seeded in the
 // ledger document (a declared target cannot audit itself). Flipping a flag here retargets the gate.
 // NB: "season" is an obsolete AL term (AL DM's Guide, "Seasons & Campaigns"); these are storylines.
+// ---- WHERE A MAGE LEARNED IT (Frank, 3 Aug) -----------------------------------------------------
+// *"When a space opens up for that specific facility the system generates two candidates. One a
+// wizard apprentice of a known school in or near the region of the keep, the other an acolyte of a
+// god worshipped heavily in or around the region... from the user's perspective these two people
+// arrived to offer their services."*
+//
+// **The acolyte half needs no data at all.** Frank's ruling handles it: generate the person from the
+// regional demographics, and their own `faith` — already rolled from FAITH_BY_CULTURE against their
+// species — IS the regional god. A dwarf-heavy region yields Moradin acolytes without a table.
+//
+// The mage half needs the school, and *"we need to append that to the regions directly."*
+//
+// ⚠ NOT EVERY REGION HAS ONE, and Frank ruled that each should take whichever answer fits it:
+//
+//   `school`   a real institution in or near the region
+//   `abroad`   no school here; this mage trained elsewhere and came. Makes them an OUTSIDER, which
+//              is the truth of those places.
+//   `informal` no institution, but instruction exists — a devil, a helm, a thing in a hollow hill
+//   `none`     no mage arrives at all. Only the acolyte comes, and the room is divine or it waits.
+//
+// ⚠ `none` HAS ZERO USERS AND STAYS ON PURPOSE (Frank, 3 Aug): *"we can keep it in case WotC decides
+// to release a region missing one or the other."* Every one of the seventeen teaches magic somehow —
+// Barovia was the last holdout and it has a hedge-wizard — so this branch is currently unreachable.
+//
+// **It is a considered retention, not dead code.** A published region with no arcane tradition is a
+// real possibility and the branch costs nothing to keep; deleting it would mean rediscovering the
+// need under deadline. The unreachability is ASSERTED in the gate rather than left to be noticed,
+// per the rule that a branch with no reader is a defect unless somebody says why.
+//
+// The same applies to the acolyte side: `anAcolyteOffers` returns false for a region whose whole
+// population is godless. None is, today. If one ships, it works.
+//
+// Sourcing: the six marked SOURCED are canonical institutions confirmed against the Realms sources.
+// The rest are reasoned from the region's own published character and are labelled as the Exchange's
+// reading, not as citations — per EXCHANGE_PRODUCTION_STANDARD §9.
+export const REGION_ARCANE: Record<string, { kind: "school" | "abroad" | "informal" | "none"; of: string; why?: string }> = {
+  // ── SOURCED: real institutions ────────────────────────────────────────────────────────────────
+  waterdeep:     { kind: "school", of: "the Watchful Order of Magists and Protectors" },
+  neverwinter:   { kind: "school", of: "the Hosttower of the Arcane at Luskan" },
+  silvermarches: { kind: "school", of: "the Lady's College at Silverymoon" },
+  underdark:     { kind: "school", of: "Sorcere, in Menzoberranzan" },
+  cormyr:        { kind: "school", of: "the War Wizards" },
+  moonsea:       { kind: "school", of: "the Brotherhood of the Cloak at Mulmaster" },
+
+  // ── REASONED: a city big enough to teach its own ──────────────────────────────────────────────
+  baldursgate:   { kind: "school", of: "a tower on the Wide that takes apprentices for coin" },
+  dalelands:     { kind: "school", of: "a tutor at Shadowdale, in the shadow of a more famous one" },
+  heartlands:    { kind: "school", of: "a chapter house at Berdusk that trains its own" },
+
+  // ── ABROAD: no school here; this one came ─────────────────────────────────────────────────────
+  // Chult is defined by who steps off a ship at Port Nyanzaru. Icewind Dale's nearest instruction is
+  // Luskan, and the Arcane Brotherhood has had designs on the Ten Towns for a long while.
+  chult:         { kind: "abroad", of: "Waterdeep", why: "came south off a ship and stayed" },
+  icewinddale:   { kind: "abroad", of: "Luskan", why: "came north and has not said why" },
+  dessarin:      { kind: "abroad", of: "Waterdeep", why: "trained in the city and prefers the valley" },
+  swordcoast:    { kind: "abroad", of: "Baldur's Gate", why: "trained down the coast and works up it" },
+
+  // ── INFORMAL: no institution, but instruction ─────────────────────────────────────────────────
+  // A devil that kept the terms. A helm you learn by sitting in one. Something in a hollow hill that
+  // did not give a name. All three are how those places actually teach.
+  avernus:       { kind: "informal", of: "a devil that honoured the terms of the tutelage" },
+  wildspace:     { kind: "informal", of: "a spelljamming helm, learned by serving at one" },
+  feywild:       { kind: "informal", of: "something in a hollow hill that did not give its name" },
+
+  // ⚠ BAROVIA WAS `none` AND THAT WAS MY REASONING, NOT THE SETTING (Frank, 3 Aug): *"why does
+  // Barovia not get a hedge wizard's apprentice?"*
+  //
+  // Because I wrote "the Mists let nothing in" — which is about ARRIVAL and says nothing about
+  // whether Barovia teaches its own. **It plainly does.** Strahd is a wizard. Baba Lysaga is. The
+  // Vistani read. Every village has somebody who knows a little and is careful about who knows it.
+  //
+  // `informal` was always the right answer: no institution, and instruction all the same. The
+  // repression is the flavour — in Barovia you learn magic quietly or you learn it from something
+  // that should not have been opened.
+  barovia:       { kind: "informal", of: "a hedge-wizard in a village that does not say the word aloud" },
+};
+export const arcaneOf = (regionId?: string | null) => (regionId && REGION_ARCANE[regionId]) || null;
+
+// How the mage introduces themself, by how they were taught. The player reads a person, not a field.
+export function arcaneBlurb(regionId?: string | null): string | null {
+  const a = arcaneOf(regionId);
+  if (!a || a.kind === "none") return null;                 // nobody arrives
+  if (a.kind === "school")   return "apprentice of " + a.of;
+  if (a.kind === "abroad")   return "apprenticed at " + a.of + (a.why ? " \u2014 " + a.why : "");
+  return "taught by " + a.of;                                // informal
+}
+// ⚠ AND WHETHER A MAGE COMES AT ALL. In Barovia only the acolyte offers, and the Scriptorium is a
+// divine room there or it stays empty. That is a real consequence of where the keep stands.
+// ⚠ A PEOPLE WITH NO GODS CANNOT BE THE ACOLYTE (Frank, 3 Aug). The consequence of the gith ruling,
+// and it was live: a **githyanki was drawn as the acolyte candidate 17 times in 800**, and would have
+// introduced themself as an acolyte of nothing.
+//
+// The mage half has no such constraint — anybody can be taught. It is only the divine candidate that
+// needs somebody who prays.
+export const canBeAcolyte = (sp?: string | null) => !!sp && !!speciesAxes(sp).worships && !speciesMindless(sp);
+
+// And whether ANY of a region's people do. If a region's whole population were godless, no acolyte
+// offers — the mirror of Barovia, where no mage does.
+export function anAcolyteOffers(regionId?: string | null, localeId?: string | null): boolean {
+  const pool = (localeId && SPECIES_BY_LOCALE[regionId || ""] && SPECIES_BY_LOCALE[regionId || ""][localeId])
+    || SPECIES_BY_REGION[regionId || ""] || SPECIES_BY_REGION.swordcoast || {};
+  return Object.keys(pool).some((sp) => canBeAcolyte(sp));
+}
+
+export const aMageOffers = (regionId?: string | null) => {
+  const a = arcaneOf(regionId);
+  return !a || a.kind !== "none";
+};
+
 export const BASTION_REGIONS = [   // storyline regions first, then the wider Realms; canonical place references, not book text
   { id: "moonsea", name: "The Moonsea", note: "Seasons 1–3 · Phlan, Mulmaster, Hillsfar" , storyline: true },
   { id: "underdark", name: "The Underdark", note: "Season 3 · Rage of Demons" , storyline: true },

@@ -364,4 +364,32 @@ magmin sets fire to what it touches.
 A `why` that bars a people from a post may not disqualify on CHARACTER — no "murderous", no "evil",
 no "and nothing else". **If it cannot hold a post, the reason has to be something about the body.**
 
+## A BRANCH KEPT FOR A FUTURE THAT HAS NOT ARRIVED (Frank, 3 Aug)
+
+`REGION_ARCANE` has four kinds and one of them — `none`, meaning no mage candidate offers — ended the
+day with **zero users**. Every region in the Realms teaches magic somehow; Barovia was the last
+holdout and it has a hedge-wizard.
+
+By the standing rule that would be a defect: *a table with no reader is a defect unless the
+unreachability is asserted.* Frank kept it:
+
+> *"We can keep it in case WotC decides to release a region missing one or the other."*
+
+**That is the exception the rule was always pointing at, stated properly.** The difference between
+dead code and a considered retention is not whether anything uses it — it is whether somebody can say
+why it is there.
+
+```
+DEAD CODE               nothing uses it and nobody remembers why it exists
+CONSIDERED RETENTION    nothing uses it, the reason is written down, and the
+                        unreachability is asserted so it stays a known state
+```
+
+A published region with no arcane tradition is a real possibility, the branch costs nothing to keep,
+and deleting it would mean rediscovering the need under deadline.
+
+**The test is the same one that governs a considered omission** (intersex, two-headedness): could a
+reader tell the difference between a decision and an oversight? If the answer is only "by asking",
+it needs writing down.
+
 

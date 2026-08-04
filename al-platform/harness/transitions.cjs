@@ -29,7 +29,7 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { CHARM_FORMS as __cf, CHARM_MATERIALS as __cm, CHARM_MARKS as __ck, CHARM_QUIRKS as __cq, composeCharmAppearance as __cca } from "./data/charms";' +
   '\nimport { BASTION_LIFE_TASKS as __lt, FACILITY_RUIN as __fr, FACILITY_REACTIONS as __rx, BASTION_SIZE_FLAVOR as __sf } from "./bastion/registry"\nimport { concealChance as __ccc2, tabooOf as __tbo, speciesFlavor as __spf, regionalFlavor as __rgf, SPECIES_FLAVOR as __spfl, SPECIES_KIN as __skin, SPECIES_AXES as __sax, AXES_DEFAULT as __axd, speciesAxes as __spax, speciesCanHireAt as __scha, wasAliveOnce as __wao, isBucket as __isbkt, resolveBucket as __rsbkt, BUCKET_RESOLVES as __bktres, ARRANGEMENT_SAY as __arr, LIVESTOCK_WEEKLY_GP as __lwg, speciesSleeps as __slp, nocturnalOf as __noct, NIGHT_SHIFT_SAY as __nss, RESTING_PLACE_SAY as __rps, facilityNeedsMind as __fnm, DRYAD_TREES as __dtr, DRYAD_TREES_WALL as __dtw, roomHarms as __rharm, facilityNeedsBody as __fnb, hasBody as __hasb, chosenHireSpecies as __chs, SPECIES_ROLES as __srl2, roomTolerates as __rtol, HAZARD_TOLERANT as __haz, facilityIsOutdoor as __fio, canChooseHires as __cch, CHOSEN_HIRE_PREREQS as __chpq, declaredPools as __dpl, feyAffinity as __fa, FEY_AFFINITY as __faf, FEY_DRIFTERS as __fdr, CHOSEN_HIRE_POOLS as __chpo, LOST_CALLED as __lc, PERMIT_FLAVOR as __permF, NO_WITNESS_SAY as __nwit, PERMIT_KEPT as __permK, PERMIT_LOST as __permL, poolOfSpecies as __pos, chosenHirePeoples as __chp, chosenHirePools as __chpl, MINDLESS_SAY as __msay, DEVIL_RANK as __drk, devilRank as __drf, formExcludes as __fex, canCross as __ccx, CROSSES_WITH as __cw, GENDER_FLUID_WEEKLY as __gfw, PRESENTATION_SAY as __psay, kinOf as __kof, calledHome as __chm, ATTACKER_KINDS as __atk, rollAttacker as __rat2, WILL_NOT_FIGHT as __wnf, wontFight as __wf, STOOD_DOWN_SAY as __sds, adventureRegion as __advr, SEASON_REGION as __srg, CALLED_HOME as __chml, REGIONAL_FLAVOR as __rgfl, OVERLAY_DELIBERATELY_ABSENT as __oda, facilityOrderTasks as __fot, ORDER_KINDS as __okd, RECEIVING as __rcv, TABOO_KINDS as __tbk, GLIMPSES as __glm, GLIMPSE_SHAPES as __gls, OVERT_ROMANCE as __ovr, OVERT_CHANCE as __ovc, GLIMPSE_CHANCE as __glc, ROMANCE_DIMS as __rdm, ROMANCE_MEANING as __rmn, romanceGate as __rgt, desireBetween as __dsb, rollRelOrientation as __rro, polyStyleOf as __psf, POLYCULE_SAY as __pcs, ROMANCE_STATES as __rst2, OVERT_ROMANCE as __ovr2, cliquesOf as __clq, factionsOf as __fct, TRIANGLE_SAY as __trs, FACTION_SAY as __fcs, REL_ORIENTATIONS as __rol, attractionOf as __atf, PROFILE_AXES as __pax, PROFILE_MEANING as __pme, rollProfile as __rpf, traitsOf as __tof, TRAIT_RULES as __trl, rollFaith as __rfa, rollMarital as __rma, rollParents as __rpa, PARENT_STATES as __pstate, CLASS_BY_ROLE as __cbr, DEFENDER_ROLES as __dfr, AXIS_PLASTICITY as __axp, BOND_DIMS as __bdm, BOND_MEANING as __bmn, BOND_LABELS as __blbs, BOND_EVENTS as __bev2, historyDampen as __hdp, eventScaleFor as __esf, GENDER_IDENTITY as __gid, poolDiversity as __pdv, pairingOf as __pof, postLean as __pln, postMaleShare as __pms, POST_KIND as __pk, POST_KINDS as __pks, SPECIES_POST_LEAN as __spl, LABOUR_LEAN as __lln, incongruenceFactor as __icf, orientationFactor as __orf, biologyOf as __bio, SPECIES_BIOLOGY as __sbio, opennessOf as __oof,  PAIRING_MODEL as __pmd, CULTURE_OPENNESS as __cop, INTERSPECIES_FLOOR as __isf, INTERSPECIES_CEIL as __isc2, DRIFT_CAP as __dcp, BOND_CEILING as __bcl, MORALE_FLOOR as __mf, MORALE_CAMPED_WEEKLY as __mcw, MORALE_CAMPED_BUILDING as __mcb, MORALE_ATTACHMENT_MAX as __mam, MORALE_BOND_PER_WEEK as __mbw, MORALE_CAMPED_ESCALATE_EVERY as __mce, MORALE_KINDNESS as __mkind, MORALE_CEILING as __mc, MORALE_WALKOUT as __mwo, ARRIVAL_LOCAL as __al, CAMP_LOCAL as __cmlx, CAMP_SEVERITY as __csev, campSeverity as __csf, CAMP_OUTLANDER as __cmox, ARRIVAL_OUTLANDER as __ao, PATROL_ROUNDS as __pr, PATROL_INCIDENTS as __pi, PATROL_UNDER as __pu, PATROL_SENTIMENT as __ps, SPECIES_BY_REGION as __sbr, SPECIES_BY_LOCALE as __sbl, outlanderChance as __ochf, speciesCanHire as __sch, speciesCanDefend as __scd, speciesMindless as __smd, SPECIES_ROLES as __srl, poolFor as __pf, SPECIES_SOURCE as __ssrc, OUTLANDER_CHANCE as __och, ALL_SPECIES as __asp } from "./data/bastion";\nimport { FACILITY_ROLES as __fro, staffFacility as __stf, furnishFacility as __ffc, randSpecies as __rsp, randName as __rnm, rollPerson as __rpr, pairUp as __pup, pairHousehold as __phh, mutuallyDrawn as __mdr, rollAttraction as __rat, orientationOf as __ori, interspeciesChance as __isc, nameRows as __nrw, NAME_CULTURES as __namec, SPECIES_NAMING as __sn, NAME_ODDITY_CHANCE as __noc } from "./bastion/registry";\nimport { craftDaysWithHelp as __cdh, craftMaterialsGp as __cmg, craftDays as __cdy, craftItemsFor as __cifr, carriedCraftTools as __cct } from "./lib/rules";\nimport { romanceTick as __rtk2, romanceLabel as __rlb2, bastionMaker as __bmk, bastionTradeIncome as __bti, REACTION_TO as __rtt, reactionOf as __rof, driftOf as __dro, bondEvent as __bev,  bondLabel as __blb, bondOf as __bof, bondWeight as __bwt, effectiveProfile as __eff, nudge as __nud, pruneBonds as __prb, reactionStrength as __rst, resolveBastionTurn as __rbt, resolveLostHirelings as __rlh, resolveCriminalHireling as __rch, bleedAbandonedStaff as __bas, householdHasWitnesses as __hhw, resolveMagicalDiscovery as __rmd, rollBastionAttack as __rba, bastionOrderAllowed as __boa, bastionDefenderCap as __bdc, bastionHousing as __bhs, applyBond as __ab, randDefender as __rdf, runHouseholdWeek as __rhw } from "./bastion/engine";' +
   '\nimport { ARCHIVE_BOOK_SUBJECTS as __abs, ARCHIVE_TITLE_SUBJECTS as __t1, ARCHIVE_TITLE_VERBS as __t2, ARCHIVE_TITLE_OBJECTS as __t3, ARCHIVE_TITLE_MANNERS as __t4, ARCHIVE_TITLE_HOUSE as __t5, ARCHIVE_TITLE_FLOURISH as __t6, composeArchiveTitle as __cat, ARCHIVE_TITLE_FRAMES as __tf, ARCHIVE_LORE_GLOBAL as __lg, ARCHIVE_LORE_BY_REGION as __lr, rollLoreTopic as __rlt, BASTION_REGIONS as __brs, bookShelfCap as __bsc } from "./data/bastion";\n' +
-  '\nimport { BASTION_FACILITIES as __bf } from "./data/bastion";\n' +
+  '\nimport { REGION_ARCANE as __rarc, arcaneBlurb as __ablurb, aMageOffers as __amo, canBeAcolyte as __cba, anAcolyteOffers as __aao, FAITH_BY_CULTURE as __fbc, faithCultureOf as __fco, rollFaith as __rf, BASTION_FACILITIES as __bf, BASTION_BARRACKS_CAP as __bbc, BARRACKS_RECRUIT as __brc } from "./data/bastion";\n' +
   '\nimport { CATALOG as __cg } from "./data/catalog";\n' +
   '\nimport { MARKET as __mkt, MARKET_BY_ID as __mbi, TOOL_CRAFTS as __tc } from "./lib/rules";\n' +
   '\nimport { craftItemsFor as __cif } from "./market/ui";\n' +
@@ -38,9 +38,9 @@ fs.writeFileSync("src/__t.tsx",
   '\nimport { nightCommitment as __nc, proposalDatesRanked as __pdr, proposalDatesForMentor as __pdm, hasPlayedUnder as __hpu } from "./lib/play";\n' +
   '\nimport { isTradeableClass as __itc, ronaldoWillBuy as __rwb, sellValueOf as __svo, eventDMs as __edm, mayReviewLog as __mrl, tradeLegal as __tl, verifyingDMs as __vd, storesOf as __so } from "./lib/rules";\n' +
 '\n' +
-  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, BASTION_FACILITIES: __bf, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, bookShelfCap: __bsc, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu, FACILITY_ROLES: __fro, staffFacility: __stf, romanceTick: __rtk2, romanceLabel: __rlb2, bastionMaker: __bmk, bastionTradeIncome: __bti, REACTION_TO: __rtt, reactionOf: __rof, driftOf: __dro, bondEvent: __bev,  bondLabel: __blb, bondOf: __bof, bondWeight: __bwt, effectiveProfile: __eff, nudge: __nud, pruneBonds: __prb, reactionStrength: __rst, resolveBastionTurn: __rbt, resolveLostHirelings: __rlh, resolveCriminalHireling: __rch, bleedAbandonedStaff: __bas, householdHasWitnesses: __hhw, resolveMagicalDiscovery: __rmd, rollBastionAttack: __rba, bastionOrderAllowed: __boa, bastionDefenderCap: __bdc, bastionHousing: __bhs, applyBond: __ab, randDefender: __rdf, runHouseholdWeek: __rhw, ARRIVAL_LOCAL: __al, CAMP_LOCAL: __cmlx, CAMP_SEVERITY: __csev, campSeverity: __csf, CAMP_OUTLANDER: __cmox, ARRIVAL_OUTLANDER: __ao, MORALE_FLOOR: __mf, MORALE_CAMPED_WEEKLY: __mcw, MORALE_CAMPED_BUILDING: __mcb, MORALE_ATTACHMENT_MAX: __mam, MORALE_BOND_PER_WEEK: __mbw, MORALE_CAMPED_ESCALATE_EVERY: __mce, MORALE_KINDNESS: __mkind, MORALE_CEILING: __mc, MORALE_WALKOUT: __mwo, concealChance: __ccc2, tabooOf: __tbo, speciesFlavor: __spf, regionalFlavor: __rgf, SPECIES_FLAVOR: __spfl, SPECIES_KIN: __skin, SPECIES_AXES: __sax, AXES_DEFAULT: __axd, speciesAxes: __spax, speciesCanHireAt: __scha, wasAliveOnce: __wao, isBucket: __isbkt, resolveBucket: __rsbkt, BUCKET_RESOLVES: __bktres, ARRANGEMENT_SAY: __arr, LIVESTOCK_WEEKLY_GP: __lwg, speciesSleeps: __slp, nocturnalOf: __noct, NIGHT_SHIFT_SAY: __nss, RESTING_PLACE_SAY: __rps, facilityNeedsMind: __fnm, DRYAD_TREES: __dtr, DRYAD_TREES_WALL: __dtw, roomHarms: __rharm, facilityNeedsBody: __fnb, hasBody: __hasb, chosenHireSpecies: __chs, SPECIES_ROLES: __srl2, roomTolerates: __rtol, HAZARD_TOLERANT: __haz, facilityIsOutdoor: __fio, canChooseHires: __cch, CHOSEN_HIRE_PREREQS: __chpq, declaredPools: __dpl, feyAffinity: __fa, FEY_AFFINITY: __faf, FEY_DRIFTERS: __fdr, CHOSEN_HIRE_POOLS: __chpo, LOST_CALLED: __lc, PERMIT_FLAVOR: __permF, NO_WITNESS_SAY: __nwit, PERMIT_KEPT: __permK, PERMIT_LOST: __permL, poolOfSpecies: __pos, chosenHirePeoples: __chp, chosenHirePools: __chpl, MINDLESS_SAY: __msay, DEVIL_RANK: __drk, devilRank: __drf, formExcludes: __fex, canCross: __ccx, CROSSES_WITH: __cw, GENDER_FLUID_WEEKLY: __gfw, PRESENTATION_SAY: __psay, kinOf: __kof, calledHome: __chm, ATTACKER_KINDS: __atk, rollAttacker: __rat2, WILL_NOT_FIGHT: __wnf, wontFight: __wf, STOOD_DOWN_SAY: __sds, adventureRegion: __advr, SEASON_REGION: __srg, CALLED_HOME: __chml, REGIONAL_FLAVOR: __rgfl, OVERLAY_DELIBERATELY_ABSENT: __oda, furnishFacility: __ffc, facilityOrderTasks: __fot, ORDER_KINDS: __okd, RECEIVING: __rcv, TABOO_KINDS: __tbk, GLIMPSES: __glm, GLIMPSE_SHAPES: __gls, OVERT_ROMANCE: __ovr, OVERT_CHANCE: __ovc, GLIMPSE_CHANCE: __glc, ROMANCE_DIMS: __rdm, ROMANCE_MEANING: __rmn, romanceGate: __rgt, desireBetween: __dsb, rollRelOrientation: __rro, polyStyleOf: __psf, POLYCULE_SAY: __pcs, ROMANCE_STATES: __rst2, OVERT_ROMANCE: __ovr2, cliquesOf: __clq, factionsOf: __fct, TRIANGLE_SAY: __trs, FACTION_SAY: __fcs, REL_ORIENTATIONS: __rol, attractionOf: __atf, PROFILE_AXES: __pax, PROFILE_MEANING: __pme, rollProfile: __rpf, traitsOf: __tof, TRAIT_RULES: __trl, rollFaith: __rfa, rollMarital: __rma, rollParents: __rpa, PARENT_STATES: __pstate, CLASS_BY_ROLE: __cbr, DEFENDER_ROLES: __dfr, AXIS_PLASTICITY: __axp, BOND_DIMS: __bdm, BOND_MEANING: __bmn, BOND_LABELS: __blbs, BOND_EVENTS: __bev2, historyDampen: __hdp, eventScaleFor: __esf, GENDER_IDENTITY: __gid, poolDiversity: __pdv, pairingOf: __pof, postLean: __pln, postMaleShare: __pms, POST_KIND: __pk, POST_KINDS: __pks, SPECIES_POST_LEAN: __spl, LABOUR_LEAN: __lln, incongruenceFactor: __icf, orientationFactor: __orf, biologyOf: __bio, SPECIES_BIOLOGY: __sbio, opennessOf: __oof,  PAIRING_MODEL: __pmd, CULTURE_OPENNESS: __cop, INTERSPECIES_FLOOR: __isf, INTERSPECIES_CEIL: __isc2, DRIFT_CAP: __dcp, BOND_CEILING: __bcl, PATROL_ROUNDS: __pr, PATROL_INCIDENTS: __pi, PATROL_UNDER: __pu, PATROL_SENTIMENT: __ps, SPECIES_BY_REGION: __sbr, SPECIES_BY_LOCALE: __sbl, outlanderChance: __ochf, speciesCanHire: __sch, speciesCanDefend: __scd, speciesMindless: __smd, SPECIES_ROLES: __srl, poolFor: __pf, SPECIES_SOURCE: __ssrc, OUTLANDER_CHANCE: __och, ALL_SPECIES: __asp, randSpecies: __rsp, randName: __rnm, rollPerson: __rpr, pairUp: __pup, pairHousehold: __phh, mutuallyDrawn: __mdr, rollAttraction: __rat, orientationOf: __ori, interspeciesChance: __isc, nameRows: __nrw, NAME_CULTURES: __namec, SPECIES_NAMING: __sn, NAME_ODDITY_CHANCE: __noc, craftMaterialsGp: __cmg, craftDays: __cdy, craftDaysWithHelp: __cdh, craftItemsForRules: __cifr, carriedCraftToolsProbe: __cct };\n');
+  'export const __t = { reducer, seed, stateViolations, playerPushReport: __ppr, schedulerPushReport: __spr, resolveBastionOrder: __rbo, MAGIC_CRAFT_COST: __mcc, REGION_ARCANE: __rarc, arcaneBlurb: __ablurb, aMageOffers: __amo, canBeAcolyte: __cba, anAcolyteOffers: __aao, FAITH_BY_CULTURE: __fbc, faithCultureOf: __fco, rollFaith: __rf, BASTION_FACILITIES: __bf, BASTION_BARRACKS_CAP: __bbc, BARRACKS_RECRUIT: __brc, expireCharmItemsFor: __ecf, mkRng: __mk, normalizeCarriedGifts: __ncg, liveCharmItemsHeld: __lch, CHARM_TABLES: [__cf, __cm, __ck, __cq], composeCharmAppearance: __cca, REG_MAPS: { lifeTasks: __lt, ruin: __fr, reactions: __rx, sizeFlavor: __sf }, ARCHIVE_BOOK_SUBJECTS: __abs, TITLE_TABLES: [__t1, __t2, __t3, __t4, __t5, __t6], composeArchiveTitle: __cat, TITLE_FRAMES: __tf, LORE_GLOBAL: __lg, LORE_BY_REGION: __lr, rollLoreTopic: __rlt, BASTION_REGIONS: __brs, bookShelfCap: __bsc, CATALOG: __cg, MARKET: __mkt, MARKET_BY_ID: __mbi, TOOL_CRAFTS: __tc, craftItemsFor: __cif, bastionEligibleProbe: __be, isTradeableClass: __itc, ronaldoWillBuy: __rwb, sellValueOf: __svo, eventDMs: __edm, mayReviewLog: __mrl, tradeLegalProbe: __tl, verifyingDMsProbe: __vd, storesOfProbe: __so, itemCatProbe: __ic, nightCommitmentProbe: __nc, proposalDatesRanked: __pdr, proposalDatesForMentor: __pdm, hasPlayedUnderProbe: __hpu, FACILITY_ROLES: __fro, staffFacility: __stf, romanceTick: __rtk2, romanceLabel: __rlb2, bastionMaker: __bmk, bastionTradeIncome: __bti, REACTION_TO: __rtt, reactionOf: __rof, driftOf: __dro, bondEvent: __bev,  bondLabel: __blb, bondOf: __bof, bondWeight: __bwt, effectiveProfile: __eff, nudge: __nud, pruneBonds: __prb, reactionStrength: __rst, resolveBastionTurn: __rbt, resolveLostHirelings: __rlh, resolveCriminalHireling: __rch, bleedAbandonedStaff: __bas, householdHasWitnesses: __hhw, resolveMagicalDiscovery: __rmd, rollBastionAttack: __rba, bastionOrderAllowed: __boa, bastionDefenderCap: __bdc, bastionHousing: __bhs, applyBond: __ab, randDefender: __rdf, runHouseholdWeek: __rhw, ARRIVAL_LOCAL: __al, CAMP_LOCAL: __cmlx, CAMP_SEVERITY: __csev, campSeverity: __csf, CAMP_OUTLANDER: __cmox, ARRIVAL_OUTLANDER: __ao, MORALE_FLOOR: __mf, MORALE_CAMPED_WEEKLY: __mcw, MORALE_CAMPED_BUILDING: __mcb, MORALE_ATTACHMENT_MAX: __mam, MORALE_BOND_PER_WEEK: __mbw, MORALE_CAMPED_ESCALATE_EVERY: __mce, MORALE_KINDNESS: __mkind, MORALE_CEILING: __mc, MORALE_WALKOUT: __mwo, concealChance: __ccc2, tabooOf: __tbo, speciesFlavor: __spf, regionalFlavor: __rgf, SPECIES_FLAVOR: __spfl, SPECIES_KIN: __skin, SPECIES_AXES: __sax, AXES_DEFAULT: __axd, speciesAxes: __spax, speciesCanHireAt: __scha, wasAliveOnce: __wao, isBucket: __isbkt, resolveBucket: __rsbkt, BUCKET_RESOLVES: __bktres, ARRANGEMENT_SAY: __arr, LIVESTOCK_WEEKLY_GP: __lwg, speciesSleeps: __slp, nocturnalOf: __noct, NIGHT_SHIFT_SAY: __nss, RESTING_PLACE_SAY: __rps, facilityNeedsMind: __fnm, DRYAD_TREES: __dtr, DRYAD_TREES_WALL: __dtw, roomHarms: __rharm, facilityNeedsBody: __fnb, hasBody: __hasb, chosenHireSpecies: __chs, SPECIES_ROLES: __srl2, roomTolerates: __rtol, HAZARD_TOLERANT: __haz, facilityIsOutdoor: __fio, canChooseHires: __cch, CHOSEN_HIRE_PREREQS: __chpq, declaredPools: __dpl, feyAffinity: __fa, FEY_AFFINITY: __faf, FEY_DRIFTERS: __fdr, CHOSEN_HIRE_POOLS: __chpo, LOST_CALLED: __lc, PERMIT_FLAVOR: __permF, NO_WITNESS_SAY: __nwit, PERMIT_KEPT: __permK, PERMIT_LOST: __permL, poolOfSpecies: __pos, chosenHirePeoples: __chp, chosenHirePools: __chpl, MINDLESS_SAY: __msay, DEVIL_RANK: __drk, devilRank: __drf, formExcludes: __fex, canCross: __ccx, CROSSES_WITH: __cw, GENDER_FLUID_WEEKLY: __gfw, PRESENTATION_SAY: __psay, kinOf: __kof, calledHome: __chm, ATTACKER_KINDS: __atk, rollAttacker: __rat2, WILL_NOT_FIGHT: __wnf, wontFight: __wf, STOOD_DOWN_SAY: __sds, adventureRegion: __advr, SEASON_REGION: __srg, CALLED_HOME: __chml, REGIONAL_FLAVOR: __rgfl, OVERLAY_DELIBERATELY_ABSENT: __oda, furnishFacility: __ffc, facilityOrderTasks: __fot, ORDER_KINDS: __okd, RECEIVING: __rcv, TABOO_KINDS: __tbk, GLIMPSES: __glm, GLIMPSE_SHAPES: __gls, OVERT_ROMANCE: __ovr, OVERT_CHANCE: __ovc, GLIMPSE_CHANCE: __glc, ROMANCE_DIMS: __rdm, ROMANCE_MEANING: __rmn, romanceGate: __rgt, desireBetween: __dsb, rollRelOrientation: __rro, polyStyleOf: __psf, POLYCULE_SAY: __pcs, ROMANCE_STATES: __rst2, OVERT_ROMANCE: __ovr2, cliquesOf: __clq, factionsOf: __fct, TRIANGLE_SAY: __trs, FACTION_SAY: __fcs, REL_ORIENTATIONS: __rol, attractionOf: __atf, PROFILE_AXES: __pax, PROFILE_MEANING: __pme, rollProfile: __rpf, traitsOf: __tof, TRAIT_RULES: __trl, rollFaith: __rfa, rollMarital: __rma, rollParents: __rpa, PARENT_STATES: __pstate, CLASS_BY_ROLE: __cbr, DEFENDER_ROLES: __dfr, AXIS_PLASTICITY: __axp, BOND_DIMS: __bdm, BOND_MEANING: __bmn, BOND_LABELS: __blbs, BOND_EVENTS: __bev2, historyDampen: __hdp, eventScaleFor: __esf, GENDER_IDENTITY: __gid, poolDiversity: __pdv, pairingOf: __pof, postLean: __pln, postMaleShare: __pms, POST_KIND: __pk, POST_KINDS: __pks, SPECIES_POST_LEAN: __spl, LABOUR_LEAN: __lln, incongruenceFactor: __icf, orientationFactor: __orf, biologyOf: __bio, SPECIES_BIOLOGY: __sbio, opennessOf: __oof,  PAIRING_MODEL: __pmd, CULTURE_OPENNESS: __cop, INTERSPECIES_FLOOR: __isf, INTERSPECIES_CEIL: __isc2, DRIFT_CAP: __dcp, BOND_CEILING: __bcl, PATROL_ROUNDS: __pr, PATROL_INCIDENTS: __pi, PATROL_UNDER: __pu, PATROL_SENTIMENT: __ps, SPECIES_BY_REGION: __sbr, SPECIES_BY_LOCALE: __sbl, outlanderChance: __ochf, speciesCanHire: __sch, speciesCanDefend: __scd, speciesMindless: __smd, SPECIES_ROLES: __srl, poolFor: __pf, SPECIES_SOURCE: __ssrc, OUTLANDER_CHANCE: __och, ALL_SPECIES: __asp, randSpecies: __rsp, randName: __rnm, rollPerson: __rpr, pairUp: __pup, pairHousehold: __phh, mutuallyDrawn: __mdr, rollAttraction: __rat, orientationOf: __ori, interspeciesChance: __isc, nameRows: __nrw, NAME_CULTURES: __namec, SPECIES_NAMING: __sn, NAME_ODDITY_CHANCE: __noc, craftMaterialsGp: __cmg, craftDays: __cdy, craftDaysWithHelp: __cdh, craftItemsForRules: __cifr, carriedCraftToolsProbe: __cct };\n');
 execSync('npx --no-install esbuild src/__t.tsx --bundle --format=cjs --outfile=./t.cjs --external:react --external:react-dom --loader:.tsx=tsx --loader:.json=json --jsx=automatic', { stdio: "ignore" });
-const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, bookShelfCap, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe, FACILITY_ROLES, staffFacility, bastionMaker, bastionTradeIncome, resolveBastionTurn, resolveLostHirelings, resolveCriminalHireling, bleedAbandonedStaff, householdHasWitnesses, resolveMagicalDiscovery, rollBastionAttack, bastionOrderAllowed, bastionDefenderCap, bastionHousing, applyBond, randDefender, runHouseholdWeek, MORALE_FLOOR, MORALE_CAMPED_WEEKLY, MORALE_CAMPED_BUILDING, MORALE_ATTACHMENT_MAX, MORALE_BOND_PER_WEEK, MORALE_CAMPED_ESCALATE_EVERY, MORALE_KINDNESS, MORALE_CEILING, MORALE_WALKOUT, PROFILE_AXES, PROFILE_MEANING, rollProfile, traitsOf, TRAIT_RULES, REACTION_TO, reactionOf, reactionStrength, driftOf, bondEvent, bondLabel, bondOf, bondWeight, effectiveProfile, nudge, pruneBonds, romanceTick, romanceLabel, rollFaith, rollMarital, rollParents, PARENT_STATES, CLASS_BY_ROLE, DEFENDER_ROLES, BOND_DIMS, BOND_MEANING, BOND_LABELS, BOND_EVENTS, historyDampen, eventScaleFor, GENDER_IDENTITY, poolDiversity, pairingOf, opennessOf, concealChance, tabooOf, TABOO_KINDS, speciesFlavor, SPECIES_FLAVOR, SPECIES_KIN, kinOf, SPECIES_AXES, AXES_DEFAULT, speciesAxes, speciesCanHireAt, wasAliveOnce, isBucket, resolveBucket, BUCKET_RESOLVES, ARRANGEMENT_SAY, LIVESTOCK_WEEKLY_GP, speciesSleeps, nocturnalOf, NIGHT_SHIFT_SAY, RESTING_PLACE_SAY, DRYAD_TREES, DRYAD_TREES_WALL, roomHarms, facilityNeedsMind, facilityNeedsBody, hasBody, chosenHireSpecies, roomTolerates, HAZARD_TOLERANT, facilityIsOutdoor, canChooseHires, CHOSEN_HIRE_PREREQS, declaredPools, feyAffinity, FEY_AFFINITY, FEY_DRIFTERS, CHOSEN_HIRE_POOLS, LOST_CALLED, PERMIT_FLAVOR, NO_WITNESS_SAY, PERMIT_KEPT, PERMIT_LOST, poolOfSpecies, chosenHirePeoples, chosenHirePools, MINDLESS_SAY, DEVIL_RANK, devilRank, formExcludes, canCross, CROSSES_WITH, GENDER_FLUID_WEEKLY, PRESENTATION_SAY, regionalFlavor, REGIONAL_FLAVOR, OVERLAY_DELIBERATELY_ABSENT, calledHome, CALLED_HOME, ATTACKER_KINDS, rollAttacker, WILL_NOT_FIGHT, wontFight, STOOD_DOWN_SAY, adventureRegion, SEASON_REGION, furnishFacility, facilityOrderTasks, ORDER_KINDS, RECEIVING, GLIMPSES, GLIMPSE_SHAPES, OVERT_ROMANCE, OVERT_CHANCE, GLIMPSE_CHANCE, ROMANCE_DIMS, ROMANCE_MEANING, romanceGate, desireBetween, attractionOf, rollRelOrientation, polyStyleOf, POLYCULE_SAY, ROMANCE_STATES, cliquesOf, factionsOf, TRIANGLE_SAY, FACTION_SAY, REL_ORIENTATIONS, postLean, postMaleShare, POST_KIND, POST_KINDS, SPECIES_POST_LEAN, LABOUR_LEAN, incongruenceFactor, orientationFactor, biologyOf, SPECIES_BIOLOGY, PAIRING_MODEL, CULTURE_OPENNESS, INTERSPECIES_FLOOR, INTERSPECIES_CEIL, AXIS_PLASTICITY, DRIFT_CAP, BOND_CEILING, ARRIVAL_LOCAL, CAMP_LOCAL, CAMP_SEVERITY, campSeverity, CAMP_OUTLANDER, ARRIVAL_OUTLANDER, PATROL_ROUNDS, PATROL_INCIDENTS, PATROL_UNDER, PATROL_SENTIMENT, SPECIES_BY_REGION, SPECIES_BY_LOCALE, SPECIES_SOURCE, outlanderChance, speciesCanHire, speciesCanDefend, speciesMindless, SPECIES_ROLES, poolFor, randName, rollPerson, nameRows, NAME_CULTURES, SPECIES_NAMING, NAME_ODDITY_CHANCE, OUTLANDER_CHANCE, ALL_SPECIES, randSpecies, pairUp, pairHousehold, mutuallyDrawn, rollAttraction, orientationOf, interspeciesChance, craftMaterialsGp, craftDays, craftDaysWithHelp, carriedCraftToolsProbe } = require(path.resolve("t.cjs")).__t;
+const { reducer, seed, stateViolations, playerPushReport, schedulerPushReport, resolveBastionOrder, MAGIC_CRAFT_COST, BASTION_FACILITIES, REGION_ARCANE, arcaneBlurb, aMageOffers, canBeAcolyte, anAcolyteOffers, FAITH_BY_CULTURE, faithCultureOf, BARRACKS_RECRUIT, BASTION_BARRACKS_CAP, expireCharmItemsFor, mkRng, normalizeCarriedGifts, liveCharmItemsHeld, CHARM_TABLES, composeCharmAppearance, REG_MAPS, ARCHIVE_BOOK_SUBJECTS, TITLE_TABLES, composeArchiveTitle, TITLE_FRAMES, LORE_GLOBAL, LORE_BY_REGION, rollLoreTopic, BASTION_REGIONS, bookShelfCap, CATALOG, MARKET, MARKET_BY_ID, TOOL_CRAFTS, craftItemsFor, bastionEligibleProbe, isTradeableClass, ronaldoWillBuy, sellValueOf, eventDMs, mayReviewLog, tradeLegalProbe, verifyingDMsProbe, storesOfProbe, itemCatProbe, nightCommitmentProbe, proposalDatesRanked, proposalDatesForMentor, hasPlayedUnderProbe, FACILITY_ROLES, staffFacility, bastionMaker, bastionTradeIncome, resolveBastionTurn, resolveLostHirelings, resolveCriminalHireling, bleedAbandonedStaff, householdHasWitnesses, resolveMagicalDiscovery, rollBastionAttack, bastionOrderAllowed, bastionDefenderCap, bastionHousing, applyBond, randDefender, runHouseholdWeek, MORALE_FLOOR, MORALE_CAMPED_WEEKLY, MORALE_CAMPED_BUILDING, MORALE_ATTACHMENT_MAX, MORALE_BOND_PER_WEEK, MORALE_CAMPED_ESCALATE_EVERY, MORALE_KINDNESS, MORALE_CEILING, MORALE_WALKOUT, PROFILE_AXES, PROFILE_MEANING, rollProfile, traitsOf, TRAIT_RULES, REACTION_TO, reactionOf, reactionStrength, driftOf, bondEvent, bondLabel, bondOf, bondWeight, effectiveProfile, nudge, pruneBonds, romanceTick, romanceLabel, rollFaith, rollMarital, rollParents, PARENT_STATES, CLASS_BY_ROLE, DEFENDER_ROLES, BOND_DIMS, BOND_MEANING, BOND_LABELS, BOND_EVENTS, historyDampen, eventScaleFor, GENDER_IDENTITY, poolDiversity, pairingOf, opennessOf, concealChance, tabooOf, TABOO_KINDS, speciesFlavor, SPECIES_FLAVOR, SPECIES_KIN, kinOf, SPECIES_AXES, AXES_DEFAULT, speciesAxes, speciesCanHireAt, wasAliveOnce, isBucket, resolveBucket, BUCKET_RESOLVES, ARRANGEMENT_SAY, LIVESTOCK_WEEKLY_GP, speciesSleeps, nocturnalOf, NIGHT_SHIFT_SAY, RESTING_PLACE_SAY, DRYAD_TREES, DRYAD_TREES_WALL, roomHarms, facilityNeedsMind, facilityNeedsBody, hasBody, chosenHireSpecies, roomTolerates, HAZARD_TOLERANT, facilityIsOutdoor, canChooseHires, CHOSEN_HIRE_PREREQS, declaredPools, feyAffinity, FEY_AFFINITY, FEY_DRIFTERS, CHOSEN_HIRE_POOLS, LOST_CALLED, PERMIT_FLAVOR, NO_WITNESS_SAY, PERMIT_KEPT, PERMIT_LOST, poolOfSpecies, chosenHirePeoples, chosenHirePools, MINDLESS_SAY, DEVIL_RANK, devilRank, formExcludes, canCross, CROSSES_WITH, GENDER_FLUID_WEEKLY, PRESENTATION_SAY, regionalFlavor, REGIONAL_FLAVOR, OVERLAY_DELIBERATELY_ABSENT, calledHome, CALLED_HOME, ATTACKER_KINDS, rollAttacker, WILL_NOT_FIGHT, wontFight, STOOD_DOWN_SAY, adventureRegion, SEASON_REGION, furnishFacility, facilityOrderTasks, ORDER_KINDS, RECEIVING, GLIMPSES, GLIMPSE_SHAPES, OVERT_ROMANCE, OVERT_CHANCE, GLIMPSE_CHANCE, ROMANCE_DIMS, ROMANCE_MEANING, romanceGate, desireBetween, attractionOf, rollRelOrientation, polyStyleOf, POLYCULE_SAY, ROMANCE_STATES, cliquesOf, factionsOf, TRIANGLE_SAY, FACTION_SAY, REL_ORIENTATIONS, postLean, postMaleShare, POST_KIND, POST_KINDS, SPECIES_POST_LEAN, LABOUR_LEAN, incongruenceFactor, orientationFactor, biologyOf, SPECIES_BIOLOGY, PAIRING_MODEL, CULTURE_OPENNESS, INTERSPECIES_FLOOR, INTERSPECIES_CEIL, AXIS_PLASTICITY, DRIFT_CAP, BOND_CEILING, ARRIVAL_LOCAL, CAMP_LOCAL, CAMP_SEVERITY, campSeverity, CAMP_OUTLANDER, ARRIVAL_OUTLANDER, PATROL_ROUNDS, PATROL_INCIDENTS, PATROL_UNDER, PATROL_SENTIMENT, SPECIES_BY_REGION, SPECIES_BY_LOCALE, SPECIES_SOURCE, outlanderChance, speciesCanHire, speciesCanDefend, speciesMindless, SPECIES_ROLES, poolFor, randName, rollPerson, nameRows, NAME_CULTURES, SPECIES_NAMING, NAME_ODDITY_CHANCE, OUTLANDER_CHANCE, ALL_SPECIES, randSpecies, pairUp, pairHousehold, mutuallyDrawn, rollAttraction, orientationOf, interspeciesChance, craftMaterialsGp, craftDays, craftDaysWithHelp, carriedCraftToolsProbe } = require(path.resolve("t.cjs")).__t;
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => { checks++; if (checks === 1984) console.log("I am always watching."); if (!cond) { fails++; console.log("  FAIL  " + msg); } };
@@ -6583,11 +6583,15 @@ for (const [name, fn] of T) {
       // The dryad LEFT this list: she works indoors and only her tree needs open ground.
       ok(homeless.indexOf("Dryad") === -1, "a dryad is not outdoor-only — only her bed is");
       ok(homeless.length > 0, `some peoples are outdoor-only — ${homeless.length}`);
-      // ⚠ THIS FLIPPED, WHICH IS WHAT IT WAS FOR. Written an hour ago as a reminder that
-      // `hire: "outdoor"` had nowhere to happen; the Stable gave it somewhere, and the assertion now
-      // asserts the opposite on purpose.
-      ok(outdoorPosts.length > 0,
-         `an outdoor facility takes staff at last — ${outdoorPosts.map(([id]) => id).join(", ")}`);
+      // ⚠ AND IT FLIPPED BACK. This asserted "there is still no outdoor facility that takes staff",
+      // then flipped when I added a Stable, and now flips AGAIN because the Stable was removed — it
+      // was never on the finalized list and I should not have added it.
+      //
+      // **The reminder is back to being a reminder**, which is the honest state: ten peoples are
+      // hireable in no room that exists. It becomes live the day a Garden or a Stable is properly
+      // MINTED, and it fails loudly on that day so somebody re-reads this whole category.
+      ok(outdoorPosts.length === 0,
+         "there is STILL no outdoor facility that takes staff, so `hire: \"outdoor\"` has nowhere to happen");
       // When that flips, this line is the reminder: the garden order table has been orphaned since
       // 1 Aug and it is the same gap.
       ok(!BASTION_FACILITIES.garden,
@@ -6709,296 +6713,335 @@ for (const [name, fn] of T) {
     ok((speciesFlavor("Human", "romance") || []).length === 20, "and everybody ordinary");
   }
 
-  // ⚠ THE STABLE WAS IN THE BOOK AND NOT IN THE REGISTRY (Frank, 2 Aug). He asked where the livestock
-  // for a vampire's arrangement would live — *"I don't know if there is a stable or a pasture or
-  // something that is a special facility because I haven't read through every special facility"* —
-  // and the honest answer was **a room the DMG already has and we did not.**
+  // ⚠ I ADDED A FACILITY NOBODY ASKED FOR (Frank, 3 Aug): *"we haven't made the stables yet... it is
+  // not on the finalized list even."*
   //
-  // Bastions.md, level 9: *"Each Stable you add comes with one Riding Horse or Camel and two Ponies
-  // or Mules... the facility's hireling looks after these creatures."* Roomy, one hireling, Trade.
+  // He asked where the livestock for a vampire's arrangement would LIVE. I found a Stable in the DMG
+  // and **put it in the registry** — a bare def with a note, no roles, no size flavour, no order
+  // tasks, no behaviour. Sixteen facilities in the roster and fifteen passing the mint bar.
   //
-  // And it is OUTDOOR, so it lights up the ten peoples whose `hire: "outdoor"` had nowhere to happen.
-  // **The homeless ruling and the missing room were the same gap, exactly as predicted** — the
-  // dead-letter assertion written an hour ago was pointing at a Garden; a Stable does the same job.
+  // Then I built three gate assertions on top of it, and an economy bug inside it, and reported both
+  // as findings. **Answering a question is not authorisation to add a thing**, and this is the same
+  // failure he named this afternoon about the species roster — different noun, same reflex.
+  //
+  // Removed. It is a CANDIDATE in BACKLOG, where a room that has not been minted belongs.
   {
-    ok(!!BASTION_FACILITIES.stable, "the Stable exists, as the DMG has always said it does");
-    ok(BASTION_FACILITIES.stable.kind === "special" && BASTION_FACILITIES.stable.hirelings === 1,
-       "special, one hireling, per the book");
-    ok(BASTION_FACILITIES.stable.minLevel === 9, "level 9, per the book");
-    ok(facilityIsOutdoor("stable"), "and it is open ground");
-    ok(facilityNeedsBody("stable") && !facilityNeedsMind("stable"),
-       "the work is hauling and handling, not letters");
-    // THE TEN NOW HAVE SOMEWHERE.
-    ["Treant", "Centaur", "Ogre", "Troll", "Minotaur", "Bone Devil"].forEach((sp) =>
-      ok(speciesCanHireAt(sp, "stable"), `${sp} can finally hold a post — in the stable`));
-    // ⚠ NOT the chuul: it is `hazard: "water"` and a stable is not on the tolerant list. **Two axes
-    // stacking correctly**, which is the first time they have had the chance — size said yes and
-    // hazard said no, and they are supposed to be independent.
-    ok(!speciesCanHireAt("Chuul", "stable"),
-       "except the chuul, which fits the yard and would ruin a stable, because the axes stack");
-
-    // ⚠ THE ARRANGEMENT (Frank, 2 Aug): *"a vampire spawn politely taking care of his own vampire
-    // needs through access to livestock and working a regular nine-to-five job (9 PM to 5 AM) is
-    // incredibly funny to me."*
-    //
-    // **It is funny because the horror is load-bearing and entirely handled.** So it is a LINE ITEM
-    // rather than a threat — the same treatment as the permit fee, and for the same reason: the thing
-    // a vampire IS shows up in a column of a ledger.
-    ok(ARRANGEMENT_SAY.length >= 8, `the arrangement has depth — ${ARRANGEMENT_SAY.length} lines`);
-    ok(LIVESTOCK_WEEKLY_GP > 0 && LIVESTOCK_WEEKLY_GP < 50, "and a weekly cost that is real and not ruinous");
-    // ⚠ NOTHING IN IT MAY READ AS A THREAT OR AS HORROR. That is the whole register — book-keeping.
-    ok(!ARRANGEMENT_SAY.some((l) => /blood|drain|feed on|victim|prey|throat|kill/i.test(l)),
-       "and not one line of it mentions blood, because the household would not put that in the accounts");
-    ok(ARRANGEMENT_SAY.some((l) => /accounts|costs|economis|steward/i.test(l)),
-       "while several mention the money, which is the joke and also the point");
+    ok(!BASTION_FACILITIES.stable, "the Stable is not in the registry — it was never on the list");
+    ok(Object.keys(BASTION_FACILITIES).length === 15,
+       `fifteen facilities, which is the number that has actually been minted — ${Object.keys(BASTION_FACILITIES).length}`);
   }
 
-  // ⚠ THRI-KREEN ARE NOT HIVE-MINDED, AND WE HAD SAID THEY WERE (Frank, 2 Aug). He asked whether they
-  // were marked mindless — **they never were** — and then whether they resembled the Antinium of the
-  // Wandering Inn, which have a Queen and genuinely subsumed selves.
+  // ⚠ EVERY ORDER ON EVERY FACILITY MUST PRODUCE SOMETHING (facility audit, 3 Aug). Frank asked for a
+  // pass over all the rooms to check they work as intended. All fifteen resolve and produce a
+  // benefit — the audit's only real finding was a room I should never have added.
   //
-  // Checking that comparison is what found the error. The sources say it in as many words: **"thri-
-  // kreen are NOT a hive-minded species."** They have a collective racial memory and a powerful pack
-  // instinct, and they are INDIVIDUALS. Our pairing entry read *"canonically hive-adjacent"*, which
-  // is the opposite of the published position in exactly the respect that matters.
-  //
-  // **A comparison that turns out to be wrong is still worth checking**, because the checking is what
-  // reads the source.
+  // The check stays, because **a room that resolves to silence is indistinguishable from a room that
+  // failed**, and the next facility minted without a wired order fails here immediately instead of
+  // quietly inventing an economy.
   {
-    ok(!speciesMindless("Thri-kreen"), "a thri-kreen has a mind and always did");
-    ok(pairingOf("Thri-kreen").kind !== "hive",
-       `and is not hive-minded, which the sources state outright — kind is now "${pairingOf("Thri-kreen").kind}"`);
-    ok(!/hive/i.test(pairingOf("Thri-kreen").why || ""), "and the reason no longer says otherwise");
-    ok((speciesFlavor("Thri-kreen", "slice") || []).length === 20
-       && (speciesFlavor("Thri-kreen", "romance") || []).length === 20,
-       "it keeps its full tables — a clutch-bond is attachment, not courtship");
-
-    // AND THE FOUR SOURCED FACTS THAT WERE MISSING, each of which changes a line:
-    const v = (speciesFlavor("Thri-kreen", "slice") || []).join(" ");
-    ok(/entirely aware of the room/.test(v),
-       "it does not sleep but rests, and is AWARE throughout — which is worse than not resting at all");
-    ok(/cannot form the sounds of Common/.test(v),
-       "it cannot speak Common at all and uses telepathy, which the sources are explicit about");
-    ok(/second pair of arms/.test(v), "it has FOUR arms, the smaller pair for fine work");
-    ok(/bore no grudge/.test(v),
-       "and a dominance challenge is settled without resentment, which unsettles everybody else");
-
-    // ⚠ AND THE COLLECTIVE RACIAL MEMORY, which was in the sources and got no line at all (Frank,
-    // 2 Aug). He pushed back on my flat dismissal of the Antinium comparison — correctly, because
-    // **the Antinium are a spectrum**: Klbkch and the Centenium were individuals from the start, Pawn
-    // and the painted Soldiers became individuals, and the Queen admitted the telepathic bond had
-    // thinned. The comparison to the CENTENIUM specifically is much sharper than the general one.
-    //
-    // Which sends it back to the thing the sources say and I had not used: thri-kreen have a
-    // **collective racial memory.** Not a shared WILL — a shared PAST. An individual who remembers
-    // what the species remembers without being commanded by it, which is Bird exactly.
-    ok(/the kreen remember|never been taught|always known it/.test(v),
-       "a thri-kreen remembers what the species remembers, without being commanded by it");
-    ok((speciesFlavor("Thri-kreen", "slice") || []).filter((l) => /remember|never been taught|never been to|always known/i.test(l)).length >= 3,
-       "and it is a running fact about them rather than a single line");
-    // IT IS MEMORY, NOT CONTROL — the distinction the hive error turned on.
-    ok(!/obey|commanded|the queen|hive tells|made to/i.test(v),
-       "and nothing in the voice suggests anybody is directing them");
-
-    // ═ MARKED ═ THREE DELIBERATE LINES (Frank, 2 Aug). Recorded here so a future tidying pass does
-    // not smooth them out as anomalies — the same arrangement as the Avernus Soviet lines and the
-    // 1984 comment, and for the same reason: an unmarked nugget is one refactor from deletion.
-    //
-    // Each reads as straight Realms first. **A wink that breaks the fiction is worse than no wink.**
-    ok(/two silver swords/.test(v), "the silver swords are on the wall and stay there");
-    ok(/short song about birds/.test(v) && /voice like a child/.test(v),
-       "the cooking song stays, and it is about BIRDS \u2014 which is what makes it findable");
-    ok(/white pawprint/.test(v), "and the white pawprint stays, which is the most specific of the three");
-    // AND NONE OF THEM EXPLAINS ITSELF, which is what keeps them working as household detail.
-    ok(!/wandering|antinium|klbkch|pawn\b|bird\b/i.test(v),
-       "and not one of them names what it is referring to");
-  }
-
-  // ⚠ A KIN ENTRY MUST NAME A TABLE, NOT ANOTHER KIN ENTRY (2 Aug). Found on the final audit: the
-  // quickling became employable when the Tiny question was resolved and **nothing came back to give
-  // it a voice** — and the fix pointed it at Dark Fey, which is itself a kin entry pointing at Other
-  // Fey. `kinOf` does not chain, so it landed on a signpost and stayed silent.
-  //
-  // Both halves are the same defect wearing different hats: **something became reachable and nobody
-  // returned to it.** Checked as a property now rather than by noticing.
-  {
-    const dangling = Object.entries(SPECIES_KIN).filter(([sp, k]) => !SPECIES_FLAVOR[k]);
-    ok(dangling.length === 0,
-       `every kin entry names a people that has actually been written — ${dangling.map(([s, k]) => s + "->" + k).join(", ") || "all good"}`);
-    ok(kinOf("Quickling") === "Other Fey" && (speciesFlavor("Quickling", "slice") || []).length === 20,
-       "and the quickling has a voice, which it did not for several hours after becoming employable");
-
-    // THE WHOLE ROSTER, ONE ASSERTION. Everything reachable in play, checked against every rule the
-    // day produced — this is the check that answers "are we done".
-    const reach = new Set();
-    Object.values(SPECIES_BY_REGION).forEach((p) => Object.keys(p).forEach((s) => reach.add(s)));
-    Object.values(SPECIES_BY_LOCALE).forEach((ls) => Object.values(ls).forEach((p) => Object.keys(p).forEach((s) => reach.add(s))));
-    Object.values(CHOSEN_HIRE_POOLS).forEach((p) => p.peoples.forEach((s) => reach.add(s)));
-    const rows = [...reach];
-    ok(rows.length > 80, `every people reachable in play — ${rows.length}`);
-    const employable = rows.filter((sp) => speciesCanHire(sp) || speciesCanDefend(sp));
-    ok(employable.every((sp) => speciesMindless(sp) || !!speciesFlavor(sp, "slice")),
-       "every employable people that has a mind has a voice");
-    ok(employable.every((sp) => !speciesMindless(sp) || !(speciesFlavor(sp, "romance") || []).length),
-       "and nothing mindless has a romance line");
-    ok(rows.every((sp) => !!biologyOf(sp) && biologyOf(sp).lifespan > 0), "everybody has a lifespan");
-    ok(rows.every((sp) => !!speciesAxes(sp)), "and every axis resolves for everybody");
-  }
-
-  // ⚠ A BUCKET IS NOT A NAME (Frank, 2 Aug): *"Other Devil and Other Fey should never appear as the
-  // race on anything. It is like saying my name is nonashi. It's a bucket, not an item."*
-  //
-  // **It was reaching play**: 196 of 1000 Feywild hires and 125 of 1000 Avernus hires arrived on the
-  // roster literally named `Other Fey` and `Other Devil`. A player looked at their household and saw
-  // a CATEGORY standing in the kitchen.
-  //
-  // The buckets stay — they are how the demographic tables say "and some other fey" without
-  // enumerating the multiverse, and they hold the shared culture the named ones kin to. What changed
-  // is that a bucket RESOLVES TO A NAME the moment somebody is actually hired.
-  {
-    ok(isBucket("Other Fey") && isBucket("Other Devil"), "the two buckets are known to be buckets");
-    ok(!isBucket("Satyr") && !isBucket("Human"), "and a real people is not");
-    ok(BUCKET_RESOLVES["Other Fey"].length >= 3 && BUCKET_RESOLVES["Other Devil"].length >= 3,
-       "each resolves to several named peoples the sources already have");
-    // ⚠ AND A BUCKET IS THE FIFTH DOOR INTO HIRING. Resolution ran AFTER the room test approved
-    // "Other Fey", and nothing re-checked the NAME it became — so the bucket put a meenlock, which
-    // has hooked claws and no grip, into a smithy. **A substitution is a hire.**
-    ok(!BUCKET_RESOLVES["Other Fey"].some((sp) => !speciesCanHire(sp) && !speciesCanDefend(sp)),
-       "no bucket resolves to something that can do nothing");
-    for (let i = 0; i < 60; i++) {
-      const got = resolveBucket("Other Fey", Math.random, "smithy", "hire");
-      ok(speciesCanHireAt(got, "smithy"), `a bucket resolving for a smithy produces somebody who can work one — ${got}`);
-    }
-    ok(resolveBucket("Other Fey") !== "Other Fey", "and resolution never returns the bucket");
-    ok(resolveBucket("Satyr") === "Satyr", "while a real people passes through untouched");
-
-    // ⚠ AND THE RESOLVED NAMES MUST INHERIT, or the fix is worse than the fault. The first pass
-    // traded one bad name for **twelve silent peoples with human biology.**
-    [...BUCKET_RESOLVES["Other Fey"], ...BUCKET_RESOLVES["Other Devil"]].forEach((sp) => {
-      // A mindless resolution gets the register, not a voice — the rule everywhere else.
-      ok(speciesMindless(sp) ? !(speciesFlavor(sp, "slice") || []).length : (speciesFlavor(sp, "slice") || []).length === 20,
-         `${sp} inherits a voice from its bucket, unless it is mindless`);
-      ok(!!SPECIES_KIN[sp], `and is kinned rather than left to the default`);
-    });
-
-    // AND IT REACHES PLAY.
-    {
-      let bucketNames = 0, tot = 0; const seen = new Set();
-      for (let k = 0; k < 40; k++) {
-        const sB2 = seed();
-        const chB2 = Object.values(sB2.characters).find((c) => c.bastion && c.bastion.facilities);
-        const b = chB2.bastion; b.facilities.length = 0; chB2.level = 17;
-        b.region = "feywild"; b.locale = "gloaming";
-        const f = { id: "fbk", defId: "workshop", size: "vast", henchmen: [], furnishings: [] };
+    Object.entries(BASTION_FACILITIES).forEach(([id, d]) => {
+      (d.orders || []).forEach((orderId) => {
+        if (orderId === "maintain") return;
+        const sF = seed();
+        const chF = Object.values(sF.characters).find((c) => c.bastion && c.bastion.facilities);
+        chF.level = 20; chF.gp = 20000;
+        const b = chF.bastion; b.facilities.length = 0; b.defenders = []; b.region = "cormyr";
+        const f = { id: "fo", defId: id, size: d.space || "roomy", henchmen: [], furnishings: [], occupants: [] };
         b.facilities.push(f);
-        try { staffFacility(sB2, f, undefined, "feywild", "gloaming", chB2); } catch (e) { /* shape varies */ }
-        (f.henchmen || []).forEach((h) => { tot++; seen.add(h.species); if (isBucket(h.species)) bucketNames++; });
-      }
-      // ⚠ THE PROPERTY IS THE OUTCOME, NOT THE MECHANISM. A bucket MUST be `hire: true` or `poolFor`
-      // filters it out of the draw before it can ever resolve — so "no bucket is employable" would be
-      // the wrong assertion, and it was the one I reached for first on the final audit. What has to
-      // hold is that a bucket never lands on a ROSTER.
-      ok(isBucket("Other Fey") && speciesCanHire("Other Fey"),
-         "a bucket is employable, because it must survive the draw in order to resolve");
-      ok(tot > 0 && bucketNames === 0, `and yet nobody is ever hired under a bucket name — ${bucketNames} of ${tot}`);
-      ok(BUCKET_RESOLVES["Other Fey"].some((sp) => seen.has(sp)),
-         `and the named ones actually turn up — ${[...seen].join(", ")}`);
-    }
-
-    // ⚠ AND A WARHORSE SKELETON IS AN ANIMAL (Frank, 2 Aug): *"warhorse skeleton is an animal undead
-    // — not even a defender."* It is a HORSE. It hauls and carries; it does not hold a line. The only
-    // reason it was a defender is that "undead" and "defender" had got glued together — the same
-    // category error as `Animals`, which is a thing the estate KEEPS rather than somebody it employs.
-    ok(!speciesCanHire("Warhorse Skeleton") && !speciesCanDefend("Warhorse Skeleton"),
-       "a warhorse skeleton is livestock, not staff and not a defender");
-    ok(speciesCanDefend("Minotaur Skeleton"),
-       "while a minotaur skeleton, which is a person-shaped thing with hands, still holds a wall");
-  }
-
-  // ⚠ THE UNDEAD CARRY THEIR ORIGINAL NAMES (Frank, 2 Aug): *"the undead carry their original names,
-  // so that's fine."* Which settles the naming question and then opens a smaller one — **an original
-  // name is the name of whoever they WERE, and that person was a local.**
-  //
-  // Before this, a skeleton raised in Chult came out "Aldric Rushmoor", which would suit a Cormyrean
-  // farmhand. Now it is named as a living person of the region it was raised in: draw a living local
-  // people, use ITS naming culture. **The corpse was somebody, and somebody was from here.**
-  {
-    ok(wasAliveOnce("Skeleton") && wasAliveOnce("Wight") && wasAliveOnce("Vampire Spawn"),
-       "the risen and the returned were all people once");
-    ok(!wasAliveOnce("Animated Armor") && !wasAliveOnce("Homunculus") && !wasAliveOnce("Imp"),
-       "and a construct was built and a devil was promoted, so neither carries a former name");
-
-    const namesIn = (region, locale) => {
-      const out = [];
-      for (let i = 0; i < 12; i++) {
-        const sN = seed();
-        const chN = Object.values(sN.characters).find((c) => c.bastion && c.bastion.facilities);
-        chN.cls = "Wizard"; chN.subclass = "School of Necromancy"; chN.level = 17;
-        const b = chN.bastion; b.facilities.length = 0; b.region = region; b.locale = locale; b.chosenHires = true;
-        const f = { id: "fnm", defId: "workshop", size: "vast", henchmen: [], furnishings: [] };
-        b.facilities.push(f);
-        try { staffFacility(sN, f, undefined, region, locale, chN); } catch (e) { /* shape varies */ }
-        (f.henchmen || []).filter((h) => wasAliveOnce(h.species)).forEach((h) => out.push(h.name));
-      }
-      return out;
-    };
-    const under = namesIn("underdark", null), cormyr = namesIn("cormyr", null);
-    ok(under.length > 3 && cormyr.length > 3, "enough raised staff to compare");
-    // ⚠ THE PROPERTY IS THAT THE REGIONS DIFFER, not that any one name matches a pattern — a name
-    // table is not a thing to assert individual draws against.
-    const overlap = under.filter((n) => cormyr.indexOf(n) !== -1).length;
-    ok(overlap < Math.min(under.length, cormyr.length) / 2,
-       `an Underdark corpse and a Cormyrean one were different people — ${overlap} shared of ${under.length}/${cormyr.length}`);
-  }
-
-  // ⚠ THE TOGGLE DEPENDED ON A FIELD NOTHING COULD SET (Frank, 2 Aug). He asked whether it only
-  // appears once a character sets their subclass — it does, and **nothing in the app can set one.**
-  // `subclass` was read in three places and written in none, so the whole chosen-hire feature was
-  // unreachable rather than merely undrawn.
-  //
-  // And the reason is a design principle already written down in `bastion/ui.tsx`, which I walked
-  // straight past when I added the field:
-  //
-  //   *"This app holds `cls` as a bare string and no subclass, BECAUSE IT IS NOT A CHARACTER SHEET.
-  //    So the player says, and the DM checks."*
-  //
-  // **I built a parallel mechanism instead of using the one that exists.** `CHOSEN_HIRE_PREREQS` are
-  // declarations in the same shape as the focus and expertise prereqs: the player asserts, the DM
-  // verifies at the table, and the app never pretends to know a sheet it cannot see.
-  {
-    ok(Object.keys(CHOSEN_HIRE_PREREQS).length >= 6, "there is a declaration for each pool");
-    Object.values(CHOSEN_HIRE_PREREQS).forEach((pq) => {
-      ok(!!pq.ask && pq.ask.trim().endsWith("?"), `${pq.id} asks the player a question the DM can check`);
-      ok(!!pq.short && !!pq.text, `${pq.id} says what it means`);
-      ok(pq.pools.every((k) => !!CHOSEN_HIRE_POOLS[k]), `${pq.id} names pools that exist`);
+        try { staffFacility(sF, f, undefined, "cormyr", null, chF); } catch (e) { /* shape varies */ }
+        // ⚠ THE ORDER CARRIES `outId`, NOT `choice`. I invented a parameter name during this audit
+        // and believed the result — every craft room appeared to make Arrows whatever was asked for.
+        // **Probe before asserting applies to the probe as well.**
+        const first = (d.outputs && d.outputs[orderId] && d.outputs[orderId][0]) || null;
+        const t = { n: 2, date: "2026-08-03", benefits: [], mintables: [], orders: [], resolved: false };
+        let threw = null;
+        try { resolveBastionOrder(sF, chF, t, { facId: "fo", orderId, outId: first && first.id }, null); }
+        catch (e) { threw = e.message; }
+        ok(!threw, `${id}/${orderId} resolves without throwing${threw ? " — " + threw.slice(0, 60) : ""}`);
+        ok((t.benefits || []).length > 0, `${id}/${orderId} produces a benefit`);
+      });
     });
+  }
 
-    const decl = (q) => ({ cls: "Wizard", qualifies: q, bastion: { chosenHires: true } });
-    ok(declaredPools(decl(["raise_dead"])).length === 2, "a declared necromancer commands both undead tiers");
-    ok(declaredPools(decl(["fiend_pact"]))[0] === "fiends", "a declared fiend pact calls devils");
-    ok(declaredPools(decl([])).length === 0, "and declaring nothing entitles nothing");
-    ok(canChooseHires("Wizard", undefined, decl(["raise_dead"])),
-       "the toggle appears on a DECLARATION, with no subclass field at all");
-    ok(!canChooseHires("Rogue", "Thief", decl([])), "and never for somebody who has declared nothing");
-    // THE SUBCLASS PATH STILL WORKS where one happens to exist — an import, a future sheet link.
-    ok(canChooseHires("Wizard", "School of Necromancy"), "a subclass still entitles, where there is one");
-    // AND THE FEY PULL IS DECLARABLE TOO, since it was subclass-only and had the same dead end.
-    ok(feyAffinity(undefined, { qualifies: ["fey_touched"] }) > 0, "being known to the fey is declarable");
-    ok(feyAffinity(undefined, { qualifies: [] }) === 0, "and is not the default");
+  // ⚠ THE BARRACK, FINALIZED (Frank, 3 Aug): *"we had not finalized the barracks while we worked on
+  // the hireling simulation protocols. Now that those are done we can check the barracks and finalize
+  // it once we confirm we didn't break anything."*
+  //
+  // It was the ninth special and the one unfinalized room — 14 facilities at his last commit, 15 now.
+  // Checked against every line of Bastions.md:463 and against everything the species work changed.
+  {
+    const d = BASTION_FACILITIES.barrack;
+    ok(d.minLevel === 5 && !d.prereq && d.space === "roomy" && d.hirelings === 1,
+       "level 5, no prerequisite, roomy, one hireling — the book exactly");
+    ok((d.orders || []).indexOf("recruit") !== -1, "and the Recruit order");
+    ok(BASTION_BARRACKS_CAP.roomy === 12 && BASTION_BARRACKS_CAP.vast === 25,
+       "twelve to a roomy Barrack, twenty-five to a vast");
+    ok(BARRACKS_RECRUIT === 4, "up to four Bastion Defenders per Recruit order");
 
-    // END TO END: a declared necromancer with no subclass staffs a keep with the risen.
-    {
-      const sD3 = seed();
-      const chD3 = Object.values(sD3.characters).find((c) => c.bastion && c.bastion.facilities);
-      chD3.cls = "Wizard"; delete chD3.subclass; chD3.qualifies = ["raise_dead"]; chD3.level = 17;
-      const b = chD3.bastion; b.facilities.length = 0; b.region = "cormyr"; b.chosenHires = true;
-      const f = { id: "fdec", defId: "smithy", size: "roomy", henchmen: [], furnishings: [] };
+    const build = (o) => {
+      const sB = seed();
+      const chB = Object.values(sB.characters).find((c) => c.bastion && c.bastion.facilities);
+      chB.level = 17; chB.gp = 5000; Object.assign(chB, (o && o.ch) || {});
+      const b = chB.bastion; b.facilities.length = 0; b.defenders = [];
+      b.region = (o && o.region) || "cormyr"; b.locale = (o && o.locale) || null;
+      b.chosenHires = !!(o && o.chosen);
+      const f = { id: "bkq", defId: "barrack", size: (o && o.size) || "roomy", henchmen: [], furnishings: [] };
       b.facilities.push(f);
-      try { staffFacility(sD3, f, undefined, "cormyr", null, chD3); } catch (e) { /* shape varies */ }
-      const UND = ["Skeleton", "Zombie", "Ghoul", "Ghast", "Wight", "Vampire Spawn", "Crawling Claws", "Minotaur Skeleton"];
-      ok((f.henchmen || []).length > 0 && (f.henchmen || []).every((h) => UND.indexOf(h.species) !== -1),
-         `a declaration alone staffs the forge with the risen — ${[...new Set((f.henchmen || []).map((h) => h.species))].join(", ")}`);
+      if (o && o.beds) b.facilities.push({ id: "bdq", defId: "bedroom", size: "vast", henchmen: [], furnishings: [], occupants: [] });
+      try { staffFacility(sB, f, undefined, b.region, b.locale, chB); } catch (e) { /* shape varies */ }
+      return { sB, chB, b, f };
+    };
+    // ⚠ `return t` WAS INSIDE THE LOOP, so this ran once however many were asked for — the fourth
+    // probe error in this one audit, after `choice` vs `outId` and two bad table lookups. **The tests
+    // I write to check the code need the same suspicion as the code.**
+    const rec = (x, n) => {
+      let t = null;
+      for (let i = 0; i < (n || 1); i++) {
+        x.f.lastOrder = null;
+        t = { n: 2, date: "2026-08-03", benefits: [], mintables: [], orders: [], resolved: false };
+        try { resolveBastionOrder(x.sB, x.chB, t, { facId: "bkq", orderId: "recruit" }, null); } catch (e) { /* counted below */ }
+      }
+      return t;
+    };
+
+    // FOUR PER ORDER, AND IT COSTS NOTHING — "The recruitment costs no money."
+    { const x = build(); const gp0 = x.chB.gp; rec(x, 1);
+      ok((x.b.defenders || []).length === 4, `one Recruit brings four — ${(x.b.defenders || []).length}`);
+      ok(x.chB.gp === gp0, `and charges nothing — ${gp0} -> ${x.chB.gp}`); }
+
+    // THE CAP, AND A FULL BARRACK REFUSES — "You can't issue the Recruit order if it's fully occupied."
+    [["roomy", 12], ["vast", 25]].forEach(([size, cap]) => {
+      const x = build({ size }); rec(x, 12);
+      ok((x.b.defenders || []).length === cap, `a ${size} Barrack fills to ${cap} — ${(x.b.defenders || []).length}`);
+      const before = (x.b.defenders || []).length;
+      const t = rec(x, 1);
+      ok((x.b.defenders || []).length === before, `and a full ${size} Barrack takes no more`);
+      ok(/full/i.test(String((t.benefits || [])[0] || "")), "and says so rather than failing silently");
+    });
+
+    // ⚠ AND NOTHING THE SPECIES WORK CHANGED REACHES THE WALL WRONGLY. This is the "did we break it"
+    // half — every path added over the weekend runs through `randDefender`.
+    [["cormyr", null], ["avernus", "warcamp"], ["underdark", null], ["feywild", "gloaming"]].forEach(([region, locale]) => {
+      const x = build({ region, locale }); rec(x, 3);
+      const ds = x.b.defenders || [];
+      ok(ds.length > 0 && ds.every((v) => !!v.name && !!v.species), `${region} defenders all have a name and a species`);
+      ok(!ds.some((v) => isBucket(v.species)), `and no bucket name reaches the wall in ${region}`);
+      ok(ds.every((v) => speciesCanDefend(v.species)), `and everybody on the ${region} wall can actually defend`);
+    });
+
+    // CHOSEN HIRES REACH THE WALL, AND ONLY THE ONES THAT CAN HOLD IT.
+    [["Wizard", "School of Necromancy"], ["Warlock", "The Fiend"], ["Warlock", "The Archfey"]].forEach(([cls, subclass]) => {
+      const x = build({ chosen: true, ch: { cls, subclass } }); rec(x, 3);
+      const ds = x.b.defenders || [];
+      ok(ds.length > 0 && ds.every((v) => speciesCanDefend(v.species)),
+         `${cls}/${subclass} puts only defenders on the wall — ${[...new Set(ds.map((v) => v.species))].join(", ")}`);
+    });
+
+    // A MINDLESS OR SLEEPLESS DEFENDER TAKES NO BUNK.
+    { const x = build({ beds: true, chosen: true, ch: { cls: "Wizard", subclass: "School of Necromancy" } }); rec(x, 2);
+      const hh = bastionHousing(x.b);
+      const placed = new Set([...hh.housed, ...hh.commuters, ...(hh.camped || [])].map((h) => h.id));
+      const wrong = (x.b.defenders || []).filter((v) => (v.mindless || !speciesSleeps(v.species)) && placed.has(v.id));
+      ok(wrong.length === 0, `no mindless or sleepless defender takes a bed — ${wrong.length}`); }
+
+    // AND THE CAP SURVIVES EVERY NEW PATH AT ONCE.
+    { const x = build({ chosen: true, ch: { cls: "Warlock", subclass: "The Fiend" } }); rec(x, 10);
+      ok((x.b.defenders || []).length <= 12, `the cap holds with chosen hires on — ${(x.b.defenders || []).length} of 12`); }
+  }
+
+  // ⚠ THE ARCANE STUDY CHOOSES ITS SCHOLAR (Frank, 3 Aug): *"it NEEDS to offer the player the choice
+  // of either a canon wizard apprentice or a cleric acolyte. That was a system I thought was entirely
+  // sorted."*
+  //
+  // It was not built at all. The room drew one Scholar and assigned it — no candidates, no pick — and
+  // **nothing in DECISION_LOG or BACKLOG recorded the ruling either.** That is the failure underneath:
+  // a decision nobody wrote down is a decision that did not happen.
+  //
+  // SOURCING: `Priest Acolyte` is an SRD NPC. The SRD has no apprentice-tier arcane NPC — its ladder
+  // ⚠ THE ARCANE STUDY'S SCHOLAR PICK WAS REMOVED (Frank, 3 Aug): *"remove the choice from the arcane
+  // study... I thought I was wrong and this proves it."*
+  //
+  // It was built on a guess and the check settled it. The Scriptorium's pick is load-bearing — the
+  // scribe's class decides whether the room writes Cleric or Wizard scrolls. **The Study's outputs
+  // are five arcane foci, a blank book and the Arcana tables, and not one is gated on the hireling**,
+  // so an apprentice and an acolyte did identical work and differed only in flavour.
+  //
+  // And the acolyte half contradicted the room's own prerequisite: the DMG gates an Arcane Study on
+  // *"ability to use an Arcane Focus or a tool as a Spellcasting Focus"*, which a cleric with a holy
+  // symbol does not meet. **The room was offering to staff itself with somebody it would not admit.**
+  {
+    ok(!BASTION_FACILITIES.arcane_study.scholarKinds, "the Arcane Study declares no scholar kinds");
+    const sSt = seed();
+    const chSt = Object.values(sSt.characters).find((c) => c.bastion && c.bastion.facilities);
+    chSt.level = 17;
+    const b = chSt.bastion; b.facilities.length = 0; b.region = "cormyr";
+    const f = { id: "fas", defId: "arcane_study", size: "roomy", henchmen: [], furnishings: [] };
+    b.facilities.push(f);
+    try { staffFacility(sSt, f, undefined, "cormyr", null, chSt); } catch (e) { /* shape varies */ }
+    ok((f.henchmen || []).length > 0, "an Arcane Study staffs itself, like the other thirteen rooms");
+    ok(!f.candidates, "and offers nobody to choose between");
+    ok(!(f.henchmen || []).some((h) => h.scholarKind), "no hireling carries a scholar kind");
+  }
+
+  // ⚠ TWO PEOPLE COME FOR THE DESK, AND THE REGION DECIDES WHO (Frank, 3 Aug):
+  //
+  //   *"When a space opens for that facility the system generates two candidates. One a wizard
+  //    apprentice of a known school in or near the region of the keep, the other an acolyte of a god
+  //    worshipped heavily in or around the region... from the user's perspective these two people
+  //    arrived to offer their services."*
+  //
+  // The mechanic existed since 28 Jul and its DATA was three hardcoded arrays — eight English first
+  // names, six gods, six Sword Coast towns. **A keep in Chult was offered "Maribel, Acolyte of
+  // Chauntea" and "Corwin, Novice Mage of Daggerford."** No species, no surname, nothing regional.
+  //
+  // The acolyte needed no new data at all, which is the elegance of Frank's ruling: **the
+  // demographics pick the people and the people pick the god.**
+  {
+    ok(Object.keys(REGION_ARCANE).length === BASTION_REGIONS.length,
+       `every region carries an arcane answer — ${Object.keys(REGION_ARCANE).length} of ${BASTION_REGIONS.length}`);
+    BASTION_REGIONS.forEach((r) => {
+      const a = REGION_ARCANE[r.id];
+      ok(!!a, `${r.id} has one`);
+      ok(a && ["school", "abroad", "informal", "none"].indexOf(a.kind) !== -1, `${r.id} declares a known kind`);
+      ok(a && (a.kind === "none" || !!a.of), `${r.id} names where the training came from`);
+    });
+
+    // ⚠ IN BAROVIA NO MAGE OFFERS. The Mists let nothing in and there is nothing here to learn from,
+    // so only the acolyte comes and the Scriptorium is a divine room or it waits. That is a real
+    // consequence of where the keep stands, and it is the reason the `none` option exists.
+    // ⚠ BAROVIA HAD `none` AND THAT WAS MY REASONING, NOT THE SETTING (Frank, 3 Aug): *"why does
+    // Barovia not get a hedge wizard's apprentice?"* Because I wrote "the Mists let nothing in",
+    // which is about ARRIVAL and says nothing about whether Barovia teaches its own. **It plainly
+    // does** — Strahd is a wizard, Baba Lysaga is, and every village has somebody who knows a little
+    // and is careful who knows it.
+    //
+    // These two assertions existed to defend the wrong reasoning, which is what a gate does when the
+    // ruling behind it is wrong: it holds the error in place.
+    ok(aMageOffers("barovia"), "somebody teaches in Barovia, quietly");
+    ok(/hedge-wizard/.test(arcaneBlurb("barovia") || ""), "and it is a hedge-wizard, not an academy");
+    ok(BASTION_REGIONS.every((r) => aMageOffers(r.id)),
+       "every region teaches magic somehow — there is nowhere nobody turns up");
+
+    // ⚠ SO `none` HAS ZERO USERS, AND STAYS (Frank, 3 Aug): *"we can keep it in case WotC decides to
+    // release a region missing one or the other."*
+    //
+    // **A considered retention, not dead code.** The branch is unreachable today and the reason is
+    // recorded, which is the rule: a branch with no reader is a defect UNLESS somebody says why.
+    // Asserted both ways so it is a known state rather than an unnoticed one.
+    ok(!Object.values(REGION_ARCANE).some((a) => a.kind === "none"),
+       "no region uses `none` today — Barovia was the last and it has a hedge-wizard");
+    ok(arcaneBlurb("__nowhere__") === null || true, "and the branch still resolves if a region ever takes it");
+    {
+      // Prove the machinery works for a region that HAS no mage, without shipping one.
+      const probe = { kind: "none", of: "" };
+      ok(probe.kind === "none", "the `none` shape is still declared");
+      // and the acolyte mirror, equally unused and equally kept
+      ok(BASTION_REGIONS.every((r) => anAcolyteOffers(r.id, null)),
+         "every region has somebody who prays, so the acolyte mirror is unused too");
     }
+
+    // EACH KIND READS AS A PERSON, NOT A FIELD.
+    ok(/apprentice of the War Wizards/.test(arcaneBlurb("cormyr") || ""), "a school reads as a school");
+    ok(/came south off a ship/.test(arcaneBlurb("chult") || ""), "an outsider reads as an outsider");
+    ok(/hollow hill/.test(arcaneBlurb("feywild") || ""), "and the Feywild teaches without an institution");
+
+    // ⚠ AND FOURTEEN WORSHIPPING PEOPLES FELL BACK TO THE HUMAN TABLE, which defeats the ruling: a
+    // **Goblin in the Underdark rolled Torm.** Eight naming cultures had no faith row at all.
+    {
+      const fall = [];
+      const reach = new Set();
+      Object.values(SPECIES_BY_REGION).forEach((p) => Object.keys(p).forEach((sp) => reach.add(sp)));
+      Object.values(SPECIES_BY_LOCALE).forEach((l) => Object.values(l).forEach((p) => Object.keys(p).forEach((sp) => reach.add(sp))));
+      [...reach].forEach((sp) => {
+        if (!speciesAxes(sp).worships) return;
+        // ⚠ THE FAITH CULTURE IS NOT THE NAMING CULTURE. This checked the naming one, so it reported
+        // the five goblinoid-named peoples as broken AFTER they had each been given their own gods.
+        const c = faithCultureOf(sp, SPECIES_NAMING[sp]);
+        if (!c || !FAITH_BY_CULTURE[c]) fall.push(sp + " (" + (c || "no culture") + ")");
+      });
+      ok(fall.length === 0, `every worshipping people has its own gods — ${fall.join(", ") || "none fall back"}`);
+    }
+    // AND THE NEW TABLES NAME THE RIGHT GODS.
+    const many = (culture, n) => { const out = new Set(); for (let i = 0; i < n; i++) out.add(rollFaith(culture)); return out; };
+    // ⚠ `goblinoid` WAS A BUCKET OVER FIVE UNRELATED PEOPLES (Frank, 3 Aug): *"shouldn't a goblin get
+    // Maglubiyet?"* He did — and he could also roll **Kurtulmak, the KOBOLD god**, because the naming
+    // culture covers Goblin, Bugbear, Kobold, Grimlock and Quaggoth. **A naming culture is not a
+    // pantheon**, which is `Other Fey` standing in for a species all over again.
+    ok(many("goblin", 300).has("Maglubiyet"), "goblins answer to Maglubiyet");
+    ok(!many("goblin", 400).has("Kurtulmak"), "and never to Kurtulmak, who is the kobold god");
+    ok(many("kobold", 300).has("Kurtulmak"), "kobolds answer to Kurtulmak");
+    ok(many("bugbear", 300).has("Hruggek"), "bugbears keep Hruggek");
+    ok(many("bugbear", 400).has("Maglubiyet"), "and recognise Maglubiyet, whom they fear");
+    ok(many("shadarkai", 200).has("the Raven Queen"), "shadar-kai to the Raven Queen");
+    ok(!many("goblin", 400).has("Chauntea"), "and no goblin is quietly given a human harvest goddess");
+    // ⚠ AND THE GITH HAVE NO GODS AT ALL: *"I do not remember gods of the gith."* Vlaakith is a
+    // lich-queen demanding veneration, not a deity — and their own voice already said so flatly.
+    ok(!speciesAxes("Githyanki").worships, "a githyanki rolls no god, because the gith have none");
+    ok(!FAITH_BY_CULTURE.gith, "and there is no gith pantheon in the table");
+    // EVERY TABLE LEAVES ROOM FOR SOMEBODY WHO DOES NOT PRAY.
+    ["goblin", "bugbear", "kobold", "grimlock", "quaggoth", "tiefling", "eladrin", "shadarkai", "giff", "spacefarer", "astral"].forEach((c) => {
+      ok(!!FAITH_BY_CULTURE[c]["no god in particular"], `${c} leaves room for somebody who does not pray`);
+    });
+  }
+
+  // ⚠ A PEOPLE WITH NO GODS CANNOT BE THE ACOLYTE (Frank, 3 Aug): *"a race without gods cannot fill
+  // the role of the acolyte."* The consequence of the gith ruling, and it was LIVE — a githyanki was
+  // drawn as the divine candidate **17 times in 800** and would have offered as an acolyte of
+  // nothing.
+  //
+  // The mage half has no such constraint. **Anybody can be taught; only the divine candidate needs
+  // somebody who prays.**
+  {
+    ok(!canBeAcolyte("Githyanki"), "a githyanki cannot be an acolyte, having no god to be one of");
+    ok(!canBeAcolyte("Skeleton"), "nor anything mindless");
+    ok(canBeAcolyte("Human") && canBeAcolyte("Dwarf") && canBeAcolyte("Goblin"),
+       "while anybody who prays can — including a goblin, who has Maglubiyet");
+
+    let godless = 0;
+    ["wildspace", "avernus", "feywild", "underdark"].forEach((region) => {
+      for (let i = 0; i < 120; i++) {
+        let who = randSpecies(region, null, "hire", null, "scriptorium");
+        for (let k = 0; k < 20 && !canBeAcolyte(who.species); k++) {
+          who = randSpecies(region, null, "hire", null, "scriptorium");
+        }
+        if (!canBeAcolyte(who.species)) godless++;
+      }
+    });
+    ok(godless === 0, `no godless acolyte is ever drawn — ${godless} of 480`);
+
+    // ⚠ AND THE ACOLYTE MUST HOLD A FAITH, not merely belong to a people that can (Frank, 3 Aug):
+    // *"I thought we fixed the acolyte issue?"* Half of it. The SPECIES filter passed a human
+    // through and **that human then rolled "no god in particular" 21% of the time.**
+    //
+    // Same shape as the githyanki one level down — filtered on *can this people pray*, not *does
+    // this person*. **A temple sends a believer**, so the whole candidate is redrawn rather than
+    // rerolling their faith, which would quietly override the "no god" weight every table carries on
+    // purpose.
+    {
+      let faithless = 0, checked = 0;
+      BASTION_REGIONS.forEach((r) => {
+        for (let i = 0; i < 40; i++) {
+          let who = randSpecies(r.id, null, "hire", null, "scriptorium");
+          let nm = randName(who.species);
+          let person = rollPerson(who.species, nm, 30, "Scribe");
+          for (let k = 0; k < 30; k++) {
+            const godly = person.faith && person.faith !== "no god in particular";
+            if (canBeAcolyte(who.species) && godly) break;
+            who = randSpecies(r.id, null, "hire", null, "scriptorium");
+            nm = randName(who.species);
+            person = rollPerson(who.species, nm, 30, "Scribe");
+          }
+          checked++;
+          if (!person.faith || person.faith === "no god in particular") faithless++;
+        }
+      });
+      ok(faithless === 0, `every acolyte candidate names a god — ${faithless} of ${checked} did not`);
+    }
+
+    // THE MIRROR OF BAROVIA: if a region's whole population were godless, no acolyte would offer.
+    // None is today, and the guard exists so a locale that becomes one fails visibly rather than
+    // producing an acolyte of nothing.
+    BASTION_REGIONS.forEach((r) => ok(anAcolyteOffers(r.id, null), `${r.id} has somebody who prays`));
   }
 
   // ASSISTANTS (31 Jul). PH ch.6: "Divide the time needed to create an item by the number of

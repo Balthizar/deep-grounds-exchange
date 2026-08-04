@@ -645,6 +645,51 @@ The minotaur skeleton stays a defender — person-shaped, with hands.
 
 Transitions 2551 -> 2615.
 
+## B-160 — THE STABLE PAID 10,000 GP A WEEK FOR BUYING HORSES AT COST (Frank, 3 Aug)
+
+> *"We should quickly go back through the created facilities, all of them, and check that they all
+> work as we originally intended."*
+
+Every one of the sixteen resolves and produces a benefit. **One was badly wrong**, and it was mine
+from the same evening.
+
+### ⚠ I added the Stable and never wired its order
+
+It fell through the generic `producesGp` path:
+
+```
+level 5    100 gp per Trade order
+level 9    800
+level 13   5,000
+level 17   10,000
+```
+
+The DMG: *"Buy or sell one or more mounts AT NORMAL COST... **You bear the total cost of any
+purchases.**"*
+
+**A facility that pays out when the rule says the player pays in is the worst kind of wrong** — it is
+silent, it is in the player's favour, and nobody reports a bug that gives them money. It would have
+sat there until somebody noticed a stable was the best income in the game.
+
+Declared `noGp` on the facility rather than special-cased in the engine, and the order still narrates
+the week, because **a silent order is indistinguishable from a broken one.**
+
+### And two false alarms that were my probe, not the code
+
+The audit first reported every craft room producing "Arrows" regardless of choice. **The order carries
+`outId`, not `choice`** — I had invented a parameter name and then believed the result. Corrected, the
+Arcane Study makes the orb it was asked for.
+
+**Probe before asserting applies to the probe as well.** Twice in one audit I read my own mistake as
+the system's.
+
+### Gated over the whole roster
+
+Every order on every facility must resolve without throwing AND produce a benefit — so the next room
+added without a wired order fails immediately rather than quietly inventing an economy.
+
+Transitions 2704 -> 2732.
+
 ## B-159 — HIS LINT COUNT WAS HIGHER THAN MINE, AND THE DIFFERENCE WAS A CRASHED RUN (3 Aug)
 
 Frank's `npm run check` came back **GREEN on all 20 steps** — both path fixes held on the machine that
@@ -1041,50 +1086,386 @@ directly — the error was in the tests as well as the data, which is the fourth
 
 Transitions 2526 -> 2534.
 
-## B-151 — THE STABLE WAS IN THE BOOK AND NOT IN THE REGISTRY (Frank, 2 Aug)
+## B-161 — THE ARCANE STUDY CHOOSES ITS SCHOLAR (Frank, 3 Aug)
 
-> *"I don't know if there is a stable or a pasture or something that is a special facility because I
-> haven't read through every special facility."*
+> *"It NEEDS to offer the player the choice of either a canon wizard apprentice or a cleric acolyte.
+> That was a system I thought was entirely sorted."*
 
-**There is, and we did not have it.** Bastions.md, level 9: *"Each Stable you add comes with one
-Riding Horse or Camel and two Ponies or Mules... the facility's hireling looks after these
-creatures."* Roomy, one hireling, Trade order. There is a **Garden** in there too, still unminted.
-
-### And it closed the gap predicted an hour earlier
-
-`hire: "outdoor"` had **nowhere to happen** — ten peoples hireable in no room that exists. The
-assertion written then said *"there is STILL no outdoor facility that takes staff"* and was left as a
-reminder that would fail the day one appeared.
-
-**It failed today.** Treant, Centaur, Ogre, Troll, Minotaur and Bone Devil all have somewhere to work.
-
-**Except the chuul** — `hazard: "water"`, and a stable is not on the tolerant list. Size said yes and
-hazard said no, **which is the first time the two axes have had the chance to stack**, and they did
-it correctly without being told to.
-
-### THE ARRANGEMENT
-
-> *"The idea of a vampire spawn being middle management of an estate run by a hero, politely taking
-> care of his own vampire needs through access to livestock and working a regular nine-to-five job
-> (9 PM to 5 AM) is incredibly funny to me."*
-
-**It is funny because the horror is load-bearing and entirely handled.** Gary genuinely needs blood.
-There genuinely is a solution. The solution is a standing arrangement and a note left on the bench.
-
-So it is a LINE ITEM rather than a threat — the same treatment as the permit fee:
+**It was not built at all.** The room drew one Scholar and assigned it — no candidates, no pick. And
+nothing in `DECISION_LOG` or `BACKLOG` recorded the ruling either, which is the failure underneath:
+**a decision nobody wrote down is a decision that did not happen.**
 
 ```
-"The keep runs four more goats than the acreage wants and the steward has an answer ready
-   for anybody who asks."
-"The arrangement costs about what a second cook would, and nobody has proposed a second cook."
-"Somebody suggested economising on the livestock and was talked out of it at some length."
-"One of the beasts is off its feed and Gary noticed before the herdsman did."
+OFFERED:
+   Rurik Coalfield    Human   Apprentice
+   Halia Ashdown      Human   Acolyte
+
+AFTER PICKING THE ACOLYTE:
+   scholar      acolyte
+   at the desk  Halia Ashdown (Acolyte)
+   candidates   0            — the other was thanked and sent on
+   asked again  unchanged    — a room's defining choice is made once
+   other owner  refused
 ```
 
-**Gated that not one line mentions blood** — because the household would not put that in the
-accounts — and that several mention the money, because that is the joke and also the point.
+Both candidates come out of the ordinary hireling code — whole people, regional species, names, ages,
+bonds. The choice decides which one stays, and **the room stands empty until it is made**, because a
+scholar is not a fixture.
 
-Transitions 2510 -> 2526.
+### The two are not cosmetic
+
+```
+apprentice   "got a cantrip wrong twice and right the third time and told nobody about the first two"
+             "reads faster than {a} casts and is unbothered by the gap"
+acolyte      "said a short thing over the work before starting it, as {a} does"
+             "was asked whether the loan had an end date and gave a courteous non-answer"
+```
+
+Gated that the two voices share no line — **two archetypes with one voice is a choice that changes
+nothing.**
+
+### Sourcing
+
+`Priest Acolyte` is an SRD NPC (CR 1/4). **The SRD has no apprentice-tier arcane NPC** — its ladder
+jumps to Mage at CR 6 — so the Apprentice is NAMED and not reproduced, which §10 permits: the platform
+holds a title and its own prose, never a stat block.
+
+### Two gates caught me while building it
+
+`ANTI-LITERAL` rejected a hardcoded `"acc_not_the_owner"` in the ownership check — *a literal id is a
+false-green waiting for production data*. And `REACHABILITY` refused the new action until the missing
+screen was DECLARED rather than left silent. **Both of those exist because of earlier mistakes, and
+both fired within a minute of the same mistake being repeated.**
+
+`SET_STUDY_SCHOLAR` is declared PENDING_SCREEN: reducer, gate and voices are done; nothing draws the
+two faces yet. It comes off that list the day the modal ships, and the gate fails STALE PENDING if
+somebody ships it and forgets to say so.
+
+## B-165 — A PENDING-SCREEN ENTRY CAN PROMISE SOMETHING NOT WORTH BUILDING (Frank, 3 Aug)
+
+> *"I was guessing at the facility that needed it... what would the Arcane Study benefit from having
+> it and does that violate the rules of the study as written in the DMG?"*
+> *"Remove the choice from the arcane study... I thought I was wrong and this proves it."*
+
+**Two clean answers, pointing the same way.**
+
+**It did not violate the DMG** — the book says *"the facility's hireling"* and nothing about who they
+are. Silence is not prohibition.
+
+**And it bought nothing.**
+
+```
+SCRIPTORIUM   the pick GATES THE OUTPUT — "a spell scroll, your scribe's class"
+              Cleric scrolls or Wizard scrolls. The choice IS the mechanic.
+
+ARCANE STUDY  five foci, a blank book, the Arcana tables
+              NOT ONE gated on the hireling. The pick changed which flavour
+              lines printed and nothing else.
+```
+
+**And the acolyte half contradicted the room's own prerequisite.** The DMG gates an Arcane Study on
+*"ability to use an Arcane Focus or a tool as a Spellcasting Focus"* — a cleric with a holy symbol
+does not qualify. **The room was offering to staff itself with somebody it would not admit.**
+
+### ⚠ It had been sitting in the worklist as legitimate unfinished work
+
+`SET_STUDY_SCHOLAR` was the project's only pending screen. Reducer, candidate generator, roles,
+blurbs, flavour tables, gate coverage — everything except the page — and the reachability suite
+reported it every run as work awaiting a modal.
+
+**A pending-screen entry is a promise, and this one promised something not worth building.** The
+worklist lists what is UNFINISHED; it cannot tell you what is WARRANTED. Seven files carried the
+feature and every one of them looked like progress.
+
+Removed across `actions.ts`, `registry.ts`, `engine.ts`, `data/bastion.ts`, `types.ts`,
+`transitions.cjs` and `reachability.cjs`. The Study staffs itself like the other thirteen rooms.
+
+```
+REACHABILITY: every action is dispatched or declared (0 pending screen, 0 internal)
+```
+
+**Choosing a hireling is rare, and the Scriptorium is the exception** — which is what Frank said three
+times before I checked.
+
+Transitions 2714 -> 2705.
+
+## B-164 — HALF THE ACOLYTE FIX, AND BAROVIA'S HEDGE-WIZARD (Frank, 3 Aug)
+
+### ⚠ "Why does Barovia not get a hedge wizard's apprentice?"
+
+**Because I wrote "the Mists let nothing in" — which is about ARRIVAL and says nothing about whether
+Barovia teaches its own.** It plainly does. Strahd is a wizard. Baba Lysaga is. Every village has
+somebody who knows a little and is careful about who knows it.
+
+```
+BAROVIA   Katryn Emberly (Human, Waukeen)
+          Valentin Tereskova (Half-Vistani, taught by a hedge-wizard in a village
+                              that does not say the word aloud)
+```
+
+**And two gate assertions had to come out** — *"no mage offers in Barovia"* and *"there is no line for
+one."* They existed to defend the wrong reasoning, which is what a gate does when the ruling behind it
+is wrong: **it holds the error in place and makes it look verified.**
+
+Consequence: `none` now has zero users. Every region teaches magic somehow.
+
+### ⚠ "I thought we fixed the acolyte issue?" — half of it
+
+```
+FIXED B-163    a godless SPECIES cannot be the acolyte — githyanki, 17 in 800
+NOT FIXED      a species that CAN pray, whose individual roll came up
+               "no god in particular" — 433 of 2040, 21%
+```
+
+The species filter passed a human through and **that human then rolled no god**, presenting as
+*"acolyte of a shrine that keeps no famous name."*
+
+**Same shape as the githyanki, one level down:** filtered on *can this people pray*, not *does this
+person*. The whole candidate is redrawn now rather than rerolling their faith — **a temple sends a
+believer**, and rerolling only the faith would quietly override the 12–44% "no god" weight every
+table carries on purpose.
+
+```
+acolyte candidates with no god:            0 of 2040
+acolyte candidates of a godless people:    0
+```
+
+Transitions 2709 -> 2710.
+
+## B-163 — A RACE WITHOUT GODS CANNOT BE THE ACOLYTE (Frank, 3 Aug)
+
+> *"So a race without gods cannot fill the role of the acolyte."*
+
+The consequence of the gith ruling, drawn in one line, **and it was live**:
+
+```
+wildspace   githyanki drawn as the acolyte candidate  x12
+avernus                                               x2
+feywild                                               x3
+            17 of 800 draws — an acolyte of nothing
+```
+
+The mage half has no such constraint. **Anybody can be taught; only the divine candidate needs
+somebody who prays.**
+
+```
+wildspace   Gnome, Human, Dragonborn, Tiefling, Elf     0 godless
+avernus     Satyr, Tiefling, Dwarf, Bugbear, Human      0
+underdark   Human, Drow, Quaggoth, Goblin, Grimlock     0
+```
+
+**And the mirror of Barovia:** if a region's whole population were godless, no acolyte would offer at
+all. None is today, and the guard exists so a locale that becomes one fails visibly rather than
+producing an acolyte of nothing.
+
+### ⚠ And I thrashed on braces for four rounds
+
+Three failed edits to `transitions.cjs`, each one leaving the file more broken — a stray closing
+brace, then a `.replace` that silently matched the wrong block, then a repair that missed. **The right
+move was available from the first failure**: restore the file from the last green pack and re-apply
+the change cleanly, which took one attempt.
+
+Recorded because it is a discipline, not an accident: **when a mechanical edit fails twice, stop
+editing and go back to a known-good state.** Three more attempts cost more than the restore would
+have.
+
+Transitions 2691 -> 2709.
+
+## B-162 — A NAMING CULTURE IS NOT A PANTHEON (Frank, 3 Aug)
+
+> *"Shouldn't a goblin get Maglubiyet? And I do not remember gods of the gith..."*
+
+**He did get Maglubiyet — and he could also roll KURTULMAK, who is the kobold god.**
+
+`goblinoid` is a NAMING culture and it covers five unrelated peoples: Goblin, Bugbear, Kobold,
+Grimlock, Quaggoth. One pantheon between them, so every god was available to everybody.
+
+**This is `Other Fey` standing in for a species, one day later.** A bucket that reads as a category
+until somebody asks it a specific question.
+
+```
+Maglubiyet     goblins and hobgoblins — bugbears recognise him and fear him
+Hruggek        BUGBEARS, with Grankhul and Skiggaret
+Khurgorbaeyag  the one goblin god Maglubiyet left alive, "to keep the goblins in line"
+Kurtulmak      KOBOLDS — nothing to do with any of them
+Ilsensine      illithids — which is what grimlocks were kept by
+```
+
+Five tables now. `Tizzy Pinchpurse, Goblin, Maglubiyet` in the Underdark; a kobold gets Kurtulmak and
+never Maglubiyet; a bugbear keeps Hruggek and recognises Maglubiyet, whom he fears.
+
+### ⚠ And the fix needed a second field, which is the day's recurring shape
+
+`rollFaith` was handed `SPECIES_NAMING[species]`. **One field carrying two facts** — the same as
+`hire` holding size and hazard, and test 1 holding grip and force. **Names travel together; gods do
+not.** `FAITH_CULTURE` now overrides where they diverge and defaults to the naming culture where they
+genuinely coincide.
+
+### The gith have no gods
+
+Frank is right and it is not an omission. **Vlaakith is a lich-queen who demands veneration, not a
+deity**, and the gith have no pantheon at all — the absence is the point of them.
+
+Their own voice already knew: *"said Vlaakith's name flatly, once, and the flatness was the whole
+opinion."* **A faith roll would have contradicted a line already written.** `worships: false`, and
+there is no gith table.
+
+Transitions 2683 -> 2691.
+
+## B-161 — TWO PEOPLE COME FOR THE DESK (Frank, 3 Aug)
+
+> *"When a space opens up for that specific facility the system generates two candidates. One a
+> wizard apprentice of a known school in or near the region of the keep, the other an acolyte of a god
+> worshipped heavily in or around the region... from the user's perspective these two people arrived
+> to offer their services."*
+
+**The mechanic existed since 28 Jul. Its DATA was three hardcoded arrays.**
+
+```
+names    ["Rathburn","Adrienne","Corwin","Maribel","Aldous","Sable","Perrin","Wynne"]
+faiths   ["Lathander","Selûne","Oghma","Tymora","Chauntea","Kelemvor"]
+towns    ["Everlund","Daggerford","Secomber","Elturel","Triboar","Yartar"]
+```
+
+A keep in Chult was offered *"Maribel, Acolyte of Chauntea"* and *"Corwin, Novice Mage of
+Daggerford."* No species, no surname, no naming culture, nothing regional — and it LOOKED finished.
+
+### The acolyte needed no new data, which is the elegance of the ruling
+
+> *"Derive that from the Faith by Culture and the race of the individual generated from the regional
+> population demographics."*
+
+**The demographics pick the people and the people pick the god.**
+
+```
+SILVERMARCHES  Thoradin Loderr — Dwarf, acolyte of Berronar Truesilver
+UNDERDARK      Xullrae Do'Ett — Drow, apprentice of Sorcere, in Menzoberranzan
+BAROVIA        Sorin Anhaltus — Half-Vistani, acolyte of the Morninglord
+               (no mage offers here)
+```
+
+### The school went on the regions, four ways
+
+Frank: *"each of those regions could logically extend each of your solutions individually."*
+
+```
+school    9   Watchful Order · Hosttower · Lady's College · Sorcere · War Wizards · Cloaks + 3 reasoned
+abroad    4   Chult "came south off a ship" · Icewind Dale "came north and has not said why" ...
+informal  3   Avernus "a devil that honoured the terms" · Wildspace "a helm, learned by serving at one"
+              Feywild "something in a hollow hill that did not give its name"
+none      1   Barovia — the Mists let nothing in
+```
+
+**Barovia is the one that earns its keep.** No mage offers, so the Scriptorium there is a divine room
+or it stays empty — a real consequence of where the keep stands.
+
+### ⚠ AND FOURTEEN WORSHIPPING PEOPLES FELL BACK TO THE HUMAN TABLE
+
+The ruling asks for *"the most accurate god for the individual"* and it could not deliver: eight
+naming cultures had no row in `FAITH_BY_CULTURE`, so a **Goblin in the Underdark rolled Torm** and a
+githyanki would have got Chauntea.
+
+Eight cultures written — goblinoid, tiefling, gith, eladrin, shadar-kai, giff, spacefarer, astral —
+each the people's own pantheon, each leaving room for somebody who does not pray. **Zero fall back
+now**, and it is gated as a property so the next people added cannot quietly inherit human gods.
+
+Transitions 2593 -> 2683.
+
+## THE BARRACK IS FINALIZED (Frank, 3 Aug)
+
+> *"We had not finalized the barracks while we worked on the hireling simulation protocols. Now that
+> those are done we can check the barracks and finalize it once we confirm we didn't break anything."*
+
+The ninth special and the one unfinalized room. **14 facilities at his last commit, 15 now.**
+
+### Against Bastions.md:463, line by line
+
+```
+level 5 · no prerequisite · roomy · 1 hireling · Recruit     all exact
+up to four Bastion Defenders per order                       4
+"The recruitment costs no money"                             5000 gp -> 5000 gp
+twelve to a roomy Barrack, twenty-five to a Vast             12 / 25
+"can't issue Recruit if it's fully occupied"                 refuses, and SAYS so
+"assigned quarters in this Barrack"                          each defender carries its room
+"assign names and personalities as you see fit"              hireling-generated people
+```
+
+### And against everything the weekend changed
+
+```
+cormyr      Human, Half-Elf
+avernus     Pterafolk, Ogre, Bearded Devil, Duergar, Halfling
+underdark   Orc, Gloaming, Goblin, Drow, Minotaur
+feywild     Shadar-kai, Troll, Hag, Half-Elf, Human
+
+NECROMANCY  Crawling Claws, Wraith, Ghoul, Zombie
+THE FIEND   Imp, Chain Devil, Barbed Devil, Spined Devil
+THE ARCHFEY Korred, Redcap, Satyr, Dark Fey
+```
+
+No bucket name reaches the wall. Everybody on it can actually defend. **Ogre, Minotaur and Troll
+appear correctly** — they are `hire: "outdoor"` and a wall is not a room. The Archfey wall drew a
+**Korred**, so bucket resolution reaches defenders too. Mindless and sleepless defenders take no bunk,
+and the cap holds with every new path on at once.
+
+### ⚠ Four probe errors in one audit
+
+`choice` instead of `outId`. Two lookups into tables that are not keyed by facility id — which nearly
+had me report a properly minted Barrack as an unauthorised stub. And a `return` inside a `for` loop,
+so a twelve-order test issued one order.
+
+**The tests I write to check the code need the same suspicion as the code.** Every one of these was
+caught by the result looking wrong, not by me checking the probe — and in three of the four my first
+instinct was that the system was broken.
+
+## B-151 / B-160 — I ADDED A FACILITY NOBODY ASKED FOR, THEN FOUND A BUG IN IT (Frank, 3 Aug)
+
+> *"We haven't made the stables yet... it is not on the finalized list even."*
+
+**Correct, and this is the worst thing in the log.**
+
+Frank asked where the livestock for a vampire's arrangement would LIVE. I found a Stable in the DMG
+and **put it in the registry** — a bare def with a note. No roles, no size flavour, no order tasks, no
+behaviour:
+
+```
+16 facilities in BASTION_FACILITIES
+15 passing the mint bar
+```
+
+Then I built on it. Three gate assertions. A flipped dead-letter reminder. And an **economy bug inside
+it** — it fell through `producesGp` and paid 10,000 gp a week at level 17 — which I wrote up as B-160
+with a straight face, as though finding a defect in a thing that should not exist were a contribution.
+
+### The rule
+
+**Answering a question is not authorisation to add a thing.**
+
+This is the same failure Frank named this afternoon about the species roster — *"do you keep adding
+races every time I ask you to check?"* — and I said then that the roster had been stable and the
+promotions were his rulings. **That was true of the species and not true of this.** Different noun,
+same reflex, four hours apart.
+
+And it defeated the mint standard silently: `facility_mint --minted` reports on the fifteen it knows
+about, so a sixteenth stub in the registry passes every gate in the project.
+
+### What was kept
+
+Removed the def, the assertions, and the flipped reminder — which **flipped back**, correctly:
+`hire: "outdoor"` has nowhere to happen again, and ten peoples are once more hireable in no room that
+exists. That is the honest state and the reminder is a reminder again.
+
+**One thing was worth keeping**: every order on every facility must resolve AND produce a benefit,
+because a room that resolves to silence is indistinguishable from a room that failed. All fifteen
+pass.
+
+### And two false alarms in the audit were my own probe
+
+Every craft room appeared to make "Arrows" regardless of choice. **The order carries `outId`, not
+`choice`** — I invented a parameter name and believed the result. Twice in one audit I read my own
+mistake as the system's. **Probe before asserting applies to the probe.**
+
+Transitions 2704 -> 2564 (the stable's assertions removed, the roster check added).
 
 ## B-150 — EVERY MINDLESS THING HAD A ROMANCE LINE (Frank, 2 Aug)
 

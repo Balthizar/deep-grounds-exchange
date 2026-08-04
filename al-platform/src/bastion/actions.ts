@@ -237,6 +237,10 @@ export function bastionActions(s: any, action: any, dropNotice: (p: any) => void
           : "It buys no advantage whatsoever — not one die, not one day, not one hireling. Only a bigger room. That is worth asking about: nobody spends " + cost + " gold on a grander " + (bDef(fac).name || "room").toLowerCase() + " for no reason. Who is " + ch.name + " expecting to walk in and be impressed?" });
       return s;
     }
+    // ⚠ THE ARCANE STUDY'S SCHOLAR IS CHOSEN, NOT ASSIGNED (Frank, 3 Aug). Two candidates are drawn by
+    // the ordinary hireling code and held on the facility; this hires one of them and lets the other
+    // go. Once only — the same shape as SET_ARCHIVE_BOOK, because a room's defining choice is made
+    // once and lived with.
     case "SET_ARCHIVE_BOOK": {
       // DMG, Archive > Reference Book: "Your Archive contains ONE copy of a rare and valuable
       // reference book... You can choose one of the following options." Chosen once — a rare book

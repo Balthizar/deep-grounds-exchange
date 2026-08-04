@@ -37,6 +37,18 @@ process.chdir(root);
 const INTERNAL = new Set([]);
 
 const PENDING_SCREEN = {
+  // ⚠ SET_STUDY_SCHOLAR CAME OFF THIS LIST BY BEING REMOVED, NOT BY SHIPPING (Frank, 3 Aug):
+  // *"Remove the choice from the arcane study... I thought I was wrong and this proves it."*
+  //
+  // It sat here as pending work for a screen that should never have been built, because the mechanic
+  // underneath it did nothing: the Study's outputs are five arcane foci, a blank book and the Arcana
+  // tables, and **not one is gated on the hireling**. An apprentice and an acolyte did identical
+  // work. The Scriptorium's pick decides Cleric or Wizard scrolls; this one decided which flavour
+  // lines printed.
+  //
+  // **A pending-screen entry is a promise, and this one promised something not worth building.**
+  // Worth remembering that the worklist can be wrong in that direction too — it lists what is
+  // unfinished, not what is warranted.
   // Account-status surface: SET_MENTOR, SET_PROVISIONAL, GRANT_ROLE, SET_ORG_MEMBERSHIP shipped
   // 27 Jul via AccountAssociations (src/player/ui.tsx) — removed from the worklist, and the gate
   // confirmed the dispatch is real by failing STALE PENDING until they were removed.

@@ -161,6 +161,18 @@ both hiring paths, and the gate.
 
 ---
 
+## P · THE STABLE — A CANDIDATE, NOT A ROOM (3 Aug)
+
+The DMG has one (level 9, roomy, 1 hireling, Trade: Animals) and **it is not on the finalized list.**
+It was added to the registry on 3 Aug without a ruling and removed the same evening — see FINDINGS
+B-151/B-160.
+
+If it is ever wanted it needs the full mint: roles, size flavour, order tasks, behaviour, and a
+mounts catalogue (there are ZERO mounts in `CATALOG`). Its Trade is a PURCHASE at normal cost, not
+income.
+
+---
+
 ## N · THE GARDEN (2 Aug)
 
 The DMG has one and the registry does not — level 5, roomy, 1 hireling, Harvest order, with a Garden

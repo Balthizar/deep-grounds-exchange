@@ -1,14 +1,14 @@
 {
-  "ranAt": "2026-08-04T03:36:04.692Z",
+  "ranAt": "2026-08-04T05:56:31.070Z",
   "ok": true,
-  "totalMs": 41372,
+  "totalMs": 69945,
   "unreadableVerdicts": [],
   "steps": [
     {
       "suite": "tsc -b",
       "kind": "build",
       "passed": true,
-      "ms": 15232,
+      "ms": 9054,
       "summary": "tsc -b — built clean",
       "verdictRead": true
     },
@@ -16,7 +16,7 @@
       "suite": "test:self",
       "kind": "suite",
       "passed": true,
-      "ms": 143,
+      "ms": 733,
       "summary": "SELF-CHECK: all 21 suites accounted for — every suite is gated or declared, and this suite is in the gate",
       "verdictRead": true
     },
@@ -24,15 +24,15 @@
       "suite": "lint",
       "kind": "suite",
       "passed": true,
-      "ms": 228,
-      "summary": "Found 287 warnings and 0 errors.",
+      "ms": 810,
+      "summary": "Found 294 warnings and 0 errors.",
       "verdictRead": true
     },
     {
       "suite": "check:actions",
       "kind": "suite",
       "passed": true,
-      "ms": 142,
+      "ms": 739,
       "summary": "ACTION CONTRACT: all checks passed",
       "verdictRead": true
     },
@@ -40,7 +40,7 @@
       "suite": "check:generated",
       "kind": "suite",
       "passed": true,
-      "ms": 276,
+      "ms": 818,
       "summary": "GENERATED DATA: in sync with srd-source",
       "verdictRead": true
     },
@@ -48,7 +48,7 @@
       "suite": "check:content",
       "kind": "suite",
       "passed": true,
-      "ms": 956,
+      "ms": 6521,
       "summary": "CONTENT DB: all 11 checks passed — 1965 facts, 1406 names, 752 KB",
       "verdictRead": true
     },
@@ -56,7 +56,7 @@
       "suite": "check:conformance",
       "kind": "suite",
       "passed": true,
-      "ms": 648,
+      "ms": 3305,
       "summary": "CONFORMANCE: every registry entry conforms",
       "verdictRead": true
     },
@@ -64,7 +64,7 @@
       "suite": "check:ledger",
       "kind": "suite",
       "passed": true,
-      "ms": 1121,
+      "ms": 3652,
       "summary": "LEDGER: LIBRARY_SUBJECTS_100.md matches the live registry — 100 rows, 100 sourced, 0 open",
       "verdictRead": true
     },
@@ -72,7 +72,7 @@
       "suite": "test:behaviour",
       "kind": "suite",
       "passed": true,
-      "ms": 634,
+      "ms": 3249,
       "summary": "BEHAVIOUR: all checks passed",
       "verdictRead": true
     },
@@ -80,7 +80,7 @@
       "suite": "test:minified",
       "kind": "suite",
       "passed": true,
-      "ms": 631,
+      "ms": 3324,
       "summary": "BEHAVIOUR (minified): all checks passed",
       "verdictRead": true
     },
@@ -88,7 +88,7 @@
       "suite": "test:immutable",
       "kind": "suite",
       "passed": true,
-      "ms": 766,
+      "ms": 3582,
       "summary": "IMMUTABILITY: all actions clean",
       "verdictRead": true
     },
@@ -96,7 +96,7 @@
       "suite": "test:reachability",
       "kind": "suite",
       "passed": true,
-      "ms": 180,
+      "ms": 787,
       "summary": "REACHABILITY: every action is dispatched or declared (0 pending screen, 0 internal)",
       "verdictRead": true
     },
@@ -104,7 +104,7 @@
       "suite": "test:antiliteral",
       "kind": "suite",
       "passed": true,
-      "ms": 159,
+      "ms": 755,
       "summary": "ANTI-LITERAL: no hardcoded seed ids in assertions — every subject is derived",
       "verdictRead": true
     },
@@ -112,15 +112,15 @@
       "suite": "test:transitions",
       "kind": "suite",
       "passed": true,
-      "ms": 14039,
-      "summary": "TRANSITIONS: all 2707 checks passed (2 skipped)",
+      "ms": 16845,
+      "summary": "TRANSITIONS: all 2702 checks passed (2 skipped)",
       "verdictRead": true
     },
     {
       "suite": "test:people",
       "kind": "suite",
       "passed": true,
-      "ms": 997,
+      "ms": 3131,
       "summary": "PEOPLE: all 206 checks passed — ten improbable people, each coherent",
       "verdictRead": true
     },
@@ -128,7 +128,7 @@
       "suite": "test:sampler",
       "kind": "suite",
       "passed": true,
-      "ms": 732,
+      "ms": 3436,
       "summary": "SAMPLER: all 12 population checks passed across 5 sampled accounts",
       "verdictRead": true
     },
@@ -136,7 +136,7 @@
       "suite": "test:render",
       "kind": "suite",
       "passed": true,
-      "ms": 1164,
+      "ms": 4208,
       "summary": "RENDER: all 117 components mounted",
       "verdictRead": true
     },
@@ -144,7 +144,7 @@
       "suite": "test:facilities",
       "kind": "suite",
       "passed": true,
-      "ms": 547,
+      "ms": 3068,
       "summary": "FACILITY-MINT: all 15 minted facilities hold the strict bar (arcane_study, archive, armory, barrack, library, observatory, scriptorium, smithy, workshop, bedroom, dining, kitchen, courtyard, parlor, storage)",
       "verdictRead": true
     },
@@ -152,7 +152,7 @@
       "suite": "vite build",
       "kind": "build",
       "passed": true,
-      "ms": 2622,
+      "ms": 1148,
       "summary": "vite build — built clean",
       "verdictRead": true
     },
@@ -160,7 +160,7 @@
       "suite": "check:coverage",
       "kind": "suite",
       "passed": true,
-      "ms": 155,
+      "ms": 780,
       "summary": "COVERAGE: all 201 actions are named in a suite",
       "verdictRead": true
     }
