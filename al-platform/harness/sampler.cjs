@@ -45,7 +45,7 @@ process.chdir(root);
 const stamp = "__sampler";
 fs.writeFileSync(`src/${stamp}.tsx`, fs.readFileSync("src/app.tsx", "utf8") + `\nexport const __s = { reducer, seed, ACCOUNTS };`);
 try {
-  execSync(`npx --no-install esbuild src/${stamp}.tsx --bundle --format=cjs --outfile=./${stamp}.cjs --external:react --external:react-dom --loader:.tsx=tsx --loader:.json=json --jsx=automatic`, { stdio: "ignore" });
+  execSync(`npx --no-install esbuild src/"${stamp}".tsx --bundle --format=cjs --outfile=./"${stamp}".cjs --external:react --external:react-dom --loader:.tsx=tsx --loader:.json=json --jsx=automatic`, { stdio: "ignore" });
 } catch (e) { console.log("SAMPLER: build failed"); process.exit(1); }
 const { reducer, seed, ACCOUNTS } = require(path.resolve(`${stamp}.cjs`)).__s;
 // Bridge: the demo carries accounts as a module const; the live export will carry them in

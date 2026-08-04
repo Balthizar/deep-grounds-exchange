@@ -15,7 +15,7 @@
     "test:behaviour": "node harness/behaviour.cjs",
     "test:minified": "node harness/behaviour.cjs --minified",
     "generate": "node scripts/gen-srd.mjs",
-    "check": "tsc -b && npm run test:self && npm run lint && npm run check:actions && npm run check:generated && npm run check:conformance && npm run check:ledger && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:reachability && npm run test:antiliteral && npm run test:transitions && npm run test:sampler && npm run test:render && npm run test:facilities && vite build && npm run check:coverage",
+    "check": "tsc -b && npm run test:self && npm run lint && npm run check:actions && npm run check:generated && npm run check:content && npm run check:conformance && npm run check:ledger && npm run test:behaviour && npm run test:minified && npm run test:immutable && npm run test:reachability && npm run test:antiliteral && npm run test:transitions && npm run test:people && npm run test:sampler && npm run test:render && npm run test:facilities && vite build && npm run check:coverage",
     "test:immutable": "node harness/immutability.cjs",
     "check:generated": "node harness/check_generated.cjs",
     "test:transitions": "node harness/transitions.cjs",
@@ -33,7 +33,10 @@
     "test:self": "node harness/self_check.cjs",
     "report": "node harness/report.cjs",
     "next": "node harness/next.cjs",
-    "check:ledger": "node harness/ledger.cjs"
+    "check:ledger": "node harness/ledger.cjs",
+    "check:content": "node harness/content_db.cjs",
+    "build:content": "node server/build_content.mjs",
+    "test:people": "node harness/people.cjs"
   },
   "dependencies": {
     "react": "^19.2.7",

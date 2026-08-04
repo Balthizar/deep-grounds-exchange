@@ -80,7 +80,7 @@ export function bastionActions(s: any, action: any, dropNotice: (p: any) => void
       [{ defId: cramped, size: "cramped" }, { defId: roomy, size: "roomy" }].forEach((r) => {
         const f = { id: "fac" + s.nextId++, defId: r.defId, size: r.size, lastOrder: null, working: null };
         furnishFacility(s, f, bForm(ch.bastion));   // DMG: "A basic facility comes with nonmagical furnishings and decor appropriate for that facility." Which house it is decides what that looks like.
-        staffFacility(s, f);                        // ...and a basic with a household (a kitchen) arrives staffed, same as one added later
+        staffFacility(s, f, undefined, ch.bastion.region, ch.bastion.locale);   // ...and a basic with a household (a kitchen) arrives staffed, same as one added later
         ch.bastion!.facilities.push(f);
       });
       // DMG, Special Facilities: "A character's Bastion INITIALLY HAS TWO SPECIAL FACILITIES OF THE
@@ -136,7 +136,7 @@ export function bastionActions(s: any, action: any, dropNotice: (p: any) => void
       // one copy" — so I furnish the room with its contents, in this house's voice, and the goat
       // changes it if they care. An empty pub is not a pub; it's a room with a bar in it.
       { const wasB = newFac.building; newFac.building = null; stockFacility(s, ch, newFac); newFac.building = wasB; }
-      staffFacility(s, newFac);                                                 // DMG: "A special facility comes with one or more hirelings." You never hire them.
+      staffFacility(s, newFac, undefined, ch.bastion.region, ch.bastion.locale);                   // DMG: "A special facility comes with one or more hirelings." You never hire them.
       furnishFacility(s, newFac, bForm(ch.bastion));                                               // DMG: "comes with nonmagical furnishings and decor appropriate for that facility." You never buy them.
       // A basic facility's wait is what the allowance didn't cover — a rules figure.
       // A special's wait is the pause, which the allowance has no bearing on: it isn't a cost.
@@ -227,7 +227,7 @@ export function bastionActions(s: any, action: any, dropNotice: (p: any) => void
         logBastionWork(s, ch.bastion, "began enlarging the " + (bDef(fac).name || "room").toLowerCase() + " to " + action.size);
       } else {
         fac.size = action.size;   // covered by the first-build allowance — already done
-        staffFacility(s, fac);    // DMG: a Vast Workshop gains two more hirelings, a Vast Garden one
+        staffFacility(s, fac, undefined, ch.bastion.region, ch.bastion.locale);    // DMG: a Vast Workshop gains two more hirelings, a Vast Garden one
         stockFacility(s, ch, fac);   // ...and a Vast Pub gains a second tap. This branch had nothing.
       }
       if (cost > 0 || daysE > 0) s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: todayLocal(), dtSpent: 0, gpSpent: cost,

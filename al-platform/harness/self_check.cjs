@@ -81,6 +81,40 @@ for (const name of Object.keys(INTENTIONALLY_EXCLUDED)) {
 if (reachedFiles.has("self_check.cjs")) pass("self_check is wired into `check` (the recursion closes)");
 else fail("self_check.cjs is NOT reached by `check` \u2014 a self-verifier that never runs verifies nothing. Add it to the check chain.");
 
+// ⚠ NO SUITE MAY INTERPOLATE AN UNQUOTED PATH INTO A SHELL COMMAND (Frank, 3 Aug).
+//
+// `people.cjs` and `content_db.cjs` both built an esbuild command from ABSOLUTE paths, and Frank's
+// repo lives at `C:\\Users\\user\\Desktop\\Deep Grounds Exchange\\al-platform`. **Two spaces, and the
+// shell split the command into three broken arguments.** Both suites failed on the only machine that
+// actually runs the project, and both passed in the container, which sits at `/home/claude/dge`.
+//
+// The older suites had always used relative paths or quoted the interpolation. **Two suites written
+// in the same week made the same mistake and nothing was watching for it** — so now something is.
+{
+  // ⚠ AND IT MUST WATCH MORE THAN `harness/`. The first version of this guard scanned only this
+  // directory — and the file that actually broke `check:content` was `server/build_content.mjs`,
+  // which the harness SHELLS OUT TO. I fixed two suites, ran the gate, saw green, and shipped,
+  // without asking what the failing step actually calls.
+  const bad = [];
+  const roots = [__dirname, path.join(__dirname, "..", "server"), path.join(__dirname, "..", "..", "tools")];
+  const files = [];
+  roots.forEach((d) => {
+    if (!fs.existsSync(d)) return;
+    fs.readdirSync(d).filter((f) => /\.(cjs|mjs|js)$/.test(f)).forEach((f) => files.push(path.join(d, f)));
+  });
+  files.forEach((full) => {
+    const f = path.relative(path.join(__dirname, ".."), full).replace(/\\/g, "/");
+    const txt = fs.readFileSync(full, "utf8");
+    // ⚠ THE RULE IS "QUOTE IT", not "make it relative". A relative path is safe today and stops
+    // being safe the moment somebody interpolates something else — and quoting is correct for both.
+    const m = txt.match(/execSync\(`[^`]*[^"']\$\{[A-Za-z_$][\w$]*\}[^"']/g);
+    if (m) bad.push(f + " (" + m.length + ")");
+  });
+  if (!files.length) fail("the shell-quoting guard found no files to scan, which means it is watching nothing");
+  if (bad.length) fail(`a suite interpolates an unquoted path into a shell command \u2014 it will break on any repo path containing a space: ${bad.join(", ")}`);
+  else pass("no suite interpolates an unquoted path into a shell command");
+}
+
 // ---------------------------------------------------------------------------------------
 console.log("");
 if (failures) { console.log(`SELF-CHECK: ${failures} problem(s) \u2014 the harness fails its own gate`); process.exit(1); }

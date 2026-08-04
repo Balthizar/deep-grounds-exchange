@@ -8,7 +8,7 @@ import { ARCHIVE_BOOK_SUBJECTS, ARCHIVE_BOOK_SUBJECT_LABEL, ARCHIVE_LORE_BY_REGI
 import { BASTION_SIZE_FLAVOR, FURNISHING_TIER_BY_ID, HIRELING_LOSS, facEstablishment, facilityFormName, furnishingValue, ruinFacilityFlavor, scribeFlavorFor } from "./registry";
 import { EVENT_CAST, FESTIVAL_FEATURES } from "../data/events";
 import { Empty, RARITY, SectionHead, getBlob, defaultEpitaph } from "../lib/ui";
-import { REAL_MIN_PER_GAME_DAY, REGION_WEIGHTS, armoryCost, bDef, bOutputs, bastionDefenderCap, bastionFrozenBy, bastionHas, bastionLeisure, bastionSizeDays, bastionSpecialSlots, bastionTradeIncome, bastionTurnPending, buildBudgetLeft, buildBudgetOpen, buildBudgetTotal, facDisabled, facEnlargeBenefit, facPrereq, facPrereqMet, facPrintedSpace, facQualifies, facResting, facStockedThisTurn, facilityDormant, furnNextTier, furnPrevTier, furnishingSaleValue, regionalEvents } from "./engine";
+import { REAL_MIN_PER_GAME_DAY, REGION_WEIGHTS, armoryCost, bDef, bOutputs, barracksCap, bastionDefenderCap, bastionFrozenBy, bastionHas, bastionLeisure, bastionSizeDays, bastionSpecialSlots, bastionTradeIncome, bastionTurnPending, buildBudgetLeft, buildBudgetOpen, buildBudgetTotal, facDisabled, facEnlargeBenefit, facPrereq, facPrereqMet, facPrintedSpace, facQualifies, facResting, facStockedThisTurn, facilityDormant, furnNextTier, furnPrevTier, furnishingSaleValue, regionalEvents } from "./engine";
 import { accName, evHostility, evIsHostile, itemCat } from "../lib/core";
 import { bastionEligible, callKind, earnedRegions } from "../lib/rules";
 
@@ -1275,10 +1275,31 @@ export function FacilityDetailModal({ modal, state, dispatch, accountId, close, 
         ? <div className="dg-muted sm">{frozen ? "Nobody works here now." : "Nobody is left. Take an active turn and word will get round that there's a post going."}</div>
         : (fac.henchmen || []).map((h) => (
           <div key={h.id} className="dg-admin-row">
-            <span><b>{h.name}</b>{h.role ? <span className="dg-muted sm"> · {h.role}</span> : null}{h.age ? <span className="dg-muted sm"> · {h.age}</span> : null}{h.note ? <span className="dg-muted sm"> — {h.note}</span> : null}</span>
+            <span><b>{h.name}</b>{h.species ? <span className="dg-muted sm"> · {h.species}</span> : null}{h.role ? <span className="dg-muted sm"> · {h.role}</span> : null}{h.age ? <span className="dg-muted sm"> · {h.age}</span> : null}{h.outlander ? <span className="dg-muted sm" title="Not from these parts — they came a long way to take this post"> · came a long way</span> : null}{h.note ? <span className="dg-muted sm"> — {h.note}</span> : null}</span>
             {!frozen && <button className="dg-btn ghost sm" title="Give them a name and a life — the DMG says that part's yours" onClick={() => setModal({ kind: "hireling", charId: ch.id, facId: fac.id, henchId: h.id })}>✎ Name</button>}
           </div>
         ))}
+        {/* THE GARRISON QUARTERED HERE (1 Aug). DMG, Barrack: "Keep track of the Bastion Defenders
+            housed in each of your Barracks." They were being tracked and never shown — named, aged,
+            traited, walking a patrol every week, and visible to the player only as a number. Each
+            defender records the Barrack that quartered them, so this reads that rather than
+            splitting the roster by guesswork. */}
+        {fac.defId === "barrack" && (() => {
+          const here = (((ch.bastion && ch.bastion.defenders) || []).filter((d) => d.facId === fac.id));
+          const cap = barracksCap(fac.size);
+          return (
+            <div style={{ marginTop: 6 }}>
+              <div className="dg-muted sm"><b>Quartered here:</b> {here.length} of {cap}</div>
+              {here.map((d) => (
+                <div key={d.id} className="dg-admin-row">
+                  <span><b>{d.name}</b>{d.species ? <span className="dg-muted sm"> · {d.species}</span> : null}{d.role ? <span className="dg-muted sm"> · {d.role}</span> : null}{d.age ? <span className="dg-muted sm"> · {d.age}</span> : null}{d.outlander ? <span className="dg-muted sm" title="Not from these parts — they came a long way to take this post"> · came a long way</span> : null}
+                    {(d.traits || []).length ? <span className="dg-muted sm"> — {(d.traits || []).join(", ")}</span> : null}</span>
+                </div>
+              ))}
+              {here.length === 0 && <div className="dg-muted sm">The bunks are empty. Issue the Recruit order to muster up to four.</div>}
+            </div>
+          );
+        })()}
       {!frozen && (fac.henchmen || []).length < facEstablishment(fac) && (
         <div className="dg-muted sm" style={{ marginTop: 4, color: "var(--maroon)" }}>Short-handed. Each turn you actually take, one more post gets filled.</div>
       )}

@@ -87,6 +87,12 @@ on purpose — that's the granularity pass, Frank's call whether to per-form the
 
 ## 2) THE VOYAGE / MEDIUM / REGION-GRAPH SUBSYSTEM (design, this session)
 
+> **GRADUATED 1 Aug 2026 → `al-platform/VOYAGE.md`.** This section plus §3 (the region node tree) are
+> consolidated there, with the 1 Aug scheduling-as-navigation material added. **Edit `VOYAGE.md`.**
+> Reason for the move, recorded because it cost real time: this design was searched for on 1 Aug,
+> not found because the filename says "prev_session", and partially rebuilt worse before the owner
+> pointed at it. A live design under a name meaning "superseded" is a design that gets rewritten.
+
 This is a large new design Frank developed conversationally. It is **paper** (nothing wired to the engine
 yet) except the region graph data below. The catalyst was **ship movement**.
 

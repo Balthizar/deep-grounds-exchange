@@ -243,6 +243,50 @@ found the explanation and called it the bug. **Strip comments first.**
 
 ## 8 · THE ARCHITECTURE, AND THE REASONS THAT ARE NOT OBVIOUS
 
+- **GENERATED DATA IS A DATA FILE. REASONED DATA IS SOURCE.** (ruled 1 Aug, after Frank asked why the
+  monolith-to-modules refactor left the tables as TypeScript.) The split looked arbitrary because
+  nobody had written it down: SRD material is JSON (`spells.json`, `mundane_gear.json`) and authored
+  content is `.ts`.
+
+  **The rule that actually governs it:** if a table is produced by a generator from an external
+  source, it is a data file and may be regenerated at will. **If a table carries the REASONING for
+  its own values, it is source, and moving it to JSON or SQLite destroys the thing that makes it
+  worth having.** Measured on 1 Aug:
+
+  ```
+  bastion.ts           3,020 lines   959 comment   31%
+  library_subjects.ts  4,021 lines   674 comment   16%
+  registry.ts          1,774 lines   248 comment   13%
+
+  embedded: 30 DMG citations · 7 ALPG · 12 `cited-3e` provenance markers · 55 recorded rulings
+  ```
+
+  Nearly a third of `bastion.ts` is reasoning, and it is load-bearing rather than decorative: the
+  Chult row says why it is `cited-3e` and what the earlier guess got wrong; the Underdark row carries
+  the escapee ruling; `MORALE_CAMPED_WEEKLY` explains why the rates are asymmetric and what broke
+  when they were not. **JSON has no comments and neither does a SQLite row.** A migration either
+  strips all of it or exiles it to a document that goes stale — which is the exact failure the
+  backlog demonstrated three separate times on 31 Jul.
+
+  **The practical split:**
+
+  | | |
+  |---|---|
+  | **may move to a data file** | pure lists with no per-row reasoning — names, patrol lines, arrival beats |
+  | **stays source** | anything carrying a citation, a provenance tag, or a ruling |
+
+  **And a rule about WHEN.** The app is client-only; there is no server wired to `src/`, so a table
+  moved to JSON today is a table Vite bundles anyway — the same megabyte with less type safety.
+  **Move content when there is something to serve it from, not before.** The tables are already
+  row-shaped (`nameRows()` emits `(culture, kind, value)`; `SPECIES_BY_REGION` is
+  `(region, species, weight)`), so the migration is a copy whenever it happens.
+
+  **What SQLite is actually for, since this keeps being misremembered:** `server/schema.sql` holds
+  eleven tables and every one is MUTABLE STATE — accounts, characters, items, log_entries,
+  organizations, org_members, stores, sessions, notices, rollups, meta. **No content table, and
+  `src/` does not import from `server/` at all.** The SQLite work was the ledger architecture proven
+  to a million characters; content was never in its scope.
+
 - **The draft is a lazy Proxy, not `structuredClone`.** Shallow at the top; each RECORD clones on
   first touch. **The bucket matters and getting it wrong is silent** — `logEntries` was in the
   "one big value" bucket for a morning, so any action writing a log line deep-cloned 200,000 entries.
@@ -367,3 +411,86 @@ country's line` (which caught the author reusing a closer across all eight aid t
 
 *End of Standard. Companion to `HANDOFF.md`. The Codex governs doctrine; the Directive governs
 remaster documents; this governs the software. Revise as new standing rulings are codified.*
+
+## §9 · THE LORE AUTHORITY HIERARCHY (Frank, 2 Aug)
+
+> *"We always work in a hierarchy. The base authoritative source is 5e-5.5e, but where it is silent
+> or where it is vague we dig deeper into 3e, 2e, 1e to fill those gaps. As a 2e guy I appreciate 2e
+> content a lot, but it is good to pull from all references to fill gaps."*
+
+**This governs every lore decision in the platform**, the same way ALPG > DMG > house governs every
+rules decision. It is the same shape and it is not the same list, so it is written separately.
+
+```
+1 · 5e / 5.5e      AUTHORITATIVE. Where it speaks, it wins outright.
+2 · 3e             where 5e is silent or vague
+3 · 2e             where 3e is also silent — and 2e is the deepest well the Realms has
+4 · 1e             last resort, and often the origin of a thing 2e merely restated
+5 · Exchange house LABELLED AS SUCH, always. Never dressed as canon.
+```
+
+**"Silent or vague" is doing real work in that sentence.** 5e is deliberately sparse about a great
+deal — it describes Chult's Port Nyanzaru at length and says almost nothing about Mezro's barae,
+which 2e detailed exhaustively. Going to 2e THERE is filling a gap. Going to 2e where 5e has
+*revised* something is overriding the authority, and is wrong.
+
+### What this means for what is already written
+
+The demographic tables carry a `SPECIES_SOURCE` provenance per region, and **ten of them are marked
+`cited-3e`**: waterdeep, silvermarches, cormyr, dalelands, heartlands, moonsea, swordcoast,
+neverwinter, dessarin, chult. Those were extracted from the 3e *Forgotten Realms Campaign Setting*,
+which publishes population breakdowns that 5e simply does not.
+
+**Under this hierarchy that is CORRECT and not a defect** — 5e is silent on regional demographics, so
+3e is the right well. It is worth recording explicitly, because "3e-sourced" looks like a violation
+of a 5e-first rule until you know 5e never spoke.
+
+**Where it WOULD be a defect:** any place 5e states a figure and a 3e table disagrees. None found so
+far; the check is worth running whenever a region is revisited.
+
+### And for the species and regional flavour tables
+
+Same rule, and it has already bitten once: the first pass at the species lines was generic fantasy
+with no edition behind it at all, which is not a hierarchy failure but an absence of sourcing
+entirely. Every regional overlay written since is grounded in a named source, and the gate asserts
+that the canon is present in the text.
+
+## §10 · NAMING IS NOT REPRODUCING (Frank, 2 Aug)
+
+Raised over `BUCKET_RESOLVES`, which names eight peoples that are not SRD-licensed — Boggle,
+Darkling, Meenlock, Korred, Merregon, Abishai, Amnizu, Orthon.
+
+> *"They are safe to name because we are not reproducing them or any of their presentation."*
+
+**That is the line, and it is the same one §9 already implies.** What the Exchange must not do is
+reproduce somebody else's expression. A creature's NAME is not their expression; the stat block, the
+ability scores, the challenge rating, the art and the descriptive prose are.
+
+Checked against what the platform actually holds for a boggle:
+
+```
+species name   Boggle
+role reason    "small, quick, greasy, and perfectly able to hold a thing"   <- written here
+voice          inherited from Other Fey                                     <- written here
+biology        lifespan, dimorphism, working years                          <- derived here
+
+no stat block · no ability scores · no CR · no art · no descriptive text
+```
+
+**A name and the Exchange's own writing about somebody with that name.** Nothing lifted.
+
+### The test to apply going forward
+
+> Could a reader reconstruct the published entry from what we hold? If no, the name is a reference.
+> If yes, it is a reproduction, whatever it is called.
+
+This is why the demographic tables can say *"Duergar 1%"* and why a household can employ a Korred —
+and equally why the FACILITY tables quote the DMG's own wording only where a rule is being cited
+rather than copied, and why `SPECIES_SOURCE` labels house content as the Exchange's own instead of
+letting it pass as canon.
+
+**It also settles the direction of travel for the remaining unbuilt work.** After Dark's simulated
+combat would need real stat blocks; that is reproduction, and it is one of the several reasons that
+feature lives outside the AL-legal side.
+
+

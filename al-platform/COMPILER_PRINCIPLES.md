@@ -225,3 +225,143 @@ the cost of omitting one that did is a green gate that is lying.
 COROLLARY, and the reason the rule is worth its false positives: `self_check.cjs` caught B-44 in one
 run. A guard that makes the gate audit its own completeness is worth more than any individual suite,
 because it is the only kind of test that fails when a test is *missing* rather than wrong.
+
+## A CONSIDERED OMISSION IS NOT A GAP — intersex representation (Frank, 2 Aug)
+
+The social model represents sex, gender, incongruence, orientation, relationship orientation and
+attraction across 23 written peoples. **It does not represent intersex variation, and that is a
+decision rather than an oversight.**
+
+### Frank's reasoning, which is the ruling
+
+> *"We lack proper in-depth research for broad-spectrum species analysis, so I don't want to include
+> it on just humans, or just humans and Minotaurs and Dragonborn — because then the species that
+> don't have any analogs feel strange. We don't have an intersex rate for ants, which would be the
+> closest to a thri-kreen. Dwarf and elf biology are hypothetical and based on my own theory rather
+> than canon anyway. Having it representative in only one species, or a very small subset, means it
+> is likely more problematic to include than to leave out."*
+
+And the second half, which is the sharper argument:
+
+> *"Externally visible is a big factor. It would immediately adjust people's reactions to that
+> individual, and if that doesn't exist then it's not something that would be useful."*
+
+**Most intersex variation is not externally apparent.** The household narration only ever surfaces
+what somebody could observe — that is the rule the glimpse tables, the reaction tables and the whole
+Layer 2 register are built on. A field nobody could see is a field nobody reads, which is the
+write-and-never-read defect arrived at by good intentions.
+
+### And one theory tested and dropped
+
+Frank proposed that intersex conditions might occur less often in species with stronger endocrine
+systems, and that dimorphism could stand in for endocrine strength — and asked to be told if that was
+wrong. **It probably is.** Most intersex conditions are genetic rather than endocrine-strength
+failures: CAH is an autosomal recessive enzyme deficiency, Klinefelter and Turner are chromosomal
+nondisjunction, AIS is a receptor mutation. None of those become rarer with more androgen. And a
+strongly dimorphic species needs MORE androgen-driven differentiation steps to produce that
+dimorphism, which is more machinery to disrupt rather than less — goats' polled intersex syndrome is
+genetically linked to hornlessness, and freemartinism runs to ~90% of heifers twinned with a bull in
+a strongly dimorphic species.
+
+**But the decisive point is not that the theory is wrong — it is that there is no comparative study
+of intersex rates across species by dimorphism**, because equivalent diagnostic criteria across taxa
+do not exist. Any per-people number would be **house-invented and dressed as biology**, which is
+exactly what §9 of the production standard exists to prevent.
+
+### The principle this generalises to
+
+**A model may decline a subject for lack of evidence, and must say so where the subject would
+otherwise look forgotten.** The failure mode is not omission; it is silent omission, which reads to
+the next person as an oversight and invites somebody to fill it in badly.
+
+### Noted in passing, and left open
+
+Frank: *"lizards and reptiles both have some percentage of two-headedness, but I've never seen it
+represented in dragonborn, or in dragons for that matter, other than the famous ones like Tiamat."*
+Recorded because it is the same shape of question — a real biological fact about the analog animal,
+with no canon basis in the fantasy people, and no evidence base for a rate. **The same reasoning
+applies and the same answer follows.**
+
+## A FLAG IS ONLY TRUE WHERE SOMEBODY REMEMBERED IT (Frank, 2 Aug)
+
+> *"They're mindless. They don't investigate things, they do exactly what they were programmed for
+> and literally nothing else. They don't require bunks, they don't require food, they don't require
+> anything."*
+
+A clean rule, and the code obeyed it in **four places out of six** — which is the worst possible
+score, because the four made it look implemented.
+
+```
+bonds, romance, cliques      correct from the start: 0 across three years
+morale                       correct: pinned at 0 while the living climbed to the ceiling
+household narration          WRONG — a skeleton "sat up late over a letter"          (fixed earlier)
+Lost Hirelings               WRONG — a skeleton "was owed better and knew it"        (fixed earlier)
+Criminal Hireling            WRONG — a warrant served on a skeleton                  (fixed earlier)
+housing                      WRONG — five skeletons took both beds and one commuted  (fixed now)
+```
+
+**Every one of those was written before `mindless` had a reader**, and each author reasonably
+believed the flag was handled because the flag existed and other code used it.
+
+### The principle
+
+**A capability flag is not a property of the data; it is a claim about every consumer.** Adding one
+does not make the system obey it — it creates an obligation on every piece of code written
+afterwards, and that obligation is invisible to the person writing the code, because the flag looks
+like it is already doing its job somewhere else.
+
+The `mindless` comment in `rollPerson` said outright that *"every downstream system already reads
+`mindless` to know that."* **It was true when written.** Four systems written afterwards did not.
+
+### What to do about it
+
+The check that would have caught all four is not a code review; it is **running the improbable case
+and reading the output**. A household of skeletons is a two-line probe, and it exposed a letter-writing
+skeleton, an arrest warrant, a grievance and a stolen bed — none of which any assertion had noticed,
+because every one of them produced correct, well-formed, entirely plausible English.
+
+## AN EXAMPLE IS A DEMONSTRATION OF A RULE, NOT A CORRECTION TO ONE ENTRY (Frank, 2 Aug)
+
+> *"Whenever I point out a case example where your decision-making has failed, I am providing an
+> example of a potential solution, not the only solution. Look at these examples, evaluate why I
+> might be saying that, determine my logic from that statement, and apply universally. If I say a
+> grimlock is good at housekeeping — why would I say a grimlock is good at housekeeping?"*
+
+**This is a correction to the METHOD, and it is the most valuable one in the project so far**, because
+every previous ruling had been applied as a patch to the thing named.
+
+### Why a grimlock is good at housekeeping
+
+Because **blindness is not a disability in a house.** It navigates by hearing and smell, works in
+full dark without a lamp, and notices what nobody else does. **The trait that makes it a poor soldier
+in daylight makes it an excellent housekeeper.**
+
+### The rule that generalises
+
+> **A stat block describes how a creature fights an adventuring party.** It says nothing about
+> whether it can keep a house. Role assignment must follow from what the traits ENABLE in THIS
+> context — not from what the creature's reputation is for.
+
+### What it caught when applied universally
+
+Five peoples were barred from posts for being FRIGHTENING rather than incapable, and their own
+reasons said so out loud:
+
+```
+Barbed Devil   "a soldier of the Blood War, and nothing else"      never sleeps, misses nothing
+Spined Devil   "a skirmisher; useless indoors"                      flies, carries — a MESSENGER
+Chain Devil    "a torturer — the one post no keep is offering"      expert with every lock
+Redcap         "murderous by nature; useful only pointed outward"   malice is not incapacity
+Gargoyle       (defend only)                                        needs no food, sleep or shelter
+```
+
+Every one is a statement about REPUTATION. The ones that stayed defend-only stayed for reasons of
+BODY: Large will not fit a workroom, incorporeal cannot lift, no hands cannot hold a tool, and a
+magmin sets fire to what it touches.
+
+### Gated as the principle rather than the instances
+
+A `why` that bars a people from a post may not disqualify on CHARACTER — no "murderous", no "evil",
+no "and nothing else". **If it cannot hold a post, the reason has to be something about the body.**
+
+

@@ -1,4 +1,4 @@
-import { HENCH_TRAITS } from "../data/bastion";
+import { wasAliveOnce, isBucket, resolveBucket, DRYAD_TREES_WALL, facilityIsOutdoor, DRYAD_TREES, speciesCanHireAt, feyAffinity, FEY_DRIFTERS, chosenHireSpecies, canCross, formExcludes, rollParentsUnsexed, speciesAxes, rollRelOrientation, SPECIES_PREF_OWN, SPECIES_PREF_BROAD, AGE_PREF_WEIGHTS, registerNamingLookup, concealChance, BOND_EVENTS, BOND_DIMS, postLean, postMaleShare, POST_KIND, pairingOf, opennessOf, incongruenceFactor, orientationFactor, ATTRACTION_BASE, GENDER_IDENTITY, INTERSPECIES_FLOOR, INTERSPECIES_CEIL, poolDiversity, COUPLE_CHANCE, SPOUSE_SAME_SPECIES, SPOUSE_AGE_SPREAD, rollProfile, traitsOf, rollFaith, rollMarital, rollParents, CLASS_BY_ROLE, GENDER_MATCHES_SEX, HENCH_TRAITS, SPECIES_BY_REGION, SPECIES_BY_LOCALE, ALL_SPECIES, outlanderChance, poolFor, speciesCanHire, speciesCanDefend, speciesMindless } from "../data/bastion";
 // ============================================================================
 // MY BASTION REGISTRY - the facilities system, as one self-contained unit.
 //
@@ -74,7 +74,639 @@ export const HENCH_LAST = ["Ashdown", "Brightwood", "Coalfield", "Duskwater", "E
 
 export const HENCH_ROLES = ["Steward", "Guard", "Cook", "Scribe", "Apprentice", "Groundskeeper", "Porter", "Hostler", "Herbalist", "Smith's mate", "Quartermaster", "Runner", "Watchman", "Housekeeper", "Clerk"];
 
-export const randHench = () => ({ name: pick(HENCH_FIRST) + " " + pick(HENCH_LAST), age: 22 + Math.floor(Math.random() * 43), role: pick(HENCH_ROLES), traits: pickN(HENCH_TRAITS, 3) });
+// Draw a people for somebody hired at a keep standing in `regionId`. Weighted by who actually lives
+// there, with OUTLANDER_CHANCE that they came from somewhere with no presence here at all.
+//
+// The outlander draw deliberately excludes the local pool: an "outlander" who turns out to be the
+// commonest people in the region is not a story, it is a wasted roll. So it draws from everybody the
+// app knows MINUS whoever is already at home here.
+export function randSpecies(regionId?: string | null, localeId?: string | null, job?: "hire" | "defend", form?: string | null, defId?: string | null) {
+  // A LOCALE WINS OVER ITS REGION where one is named (Frank, 1 Aug): a plane has no single
+  // demographic, so Avernus, the Feywild and Wildspace answer by locale instead. Falls through to
+  // the region, and then to the baseline — the same whitelist discipline everything else uses, so an
+  // unknown locale never throws and never returns nothing.
+  const byLocale = regionId && localeId && SPECIES_BY_LOCALE[regionId] && SPECIES_BY_LOCALE[regionId][localeId];
+  const raw = byLocale || (regionId && SPECIES_BY_REGION[regionId]) || SPECIES_BY_REGION.swordcoast;
+  // A POPULATION IS NOT A HIRING POOL (Frank, 1 Aug). Who is HERE and who can hold a post are two
+  // questions, and an Avernus war camp is where they come apart: 45% of it is lemures, and a lemure
+  // cannot cook. `poolFor` keeps the demographics honest and asks the second question separately.
+  // ⚠ AND WHAT WILL NOT FIT ON A DECK (Frank, 2 Aug): *"you can't put one on a ship, so a vessel form
+  // cannot pick up trees at all."* A probe found zero treants aboard — and the reason was an ACCIDENT
+  // rather than a rule: treants live in two Feywild LOCALES and a vessel sets `b.region`. **A thing
+  // that is unreachable by accident stops being unreachable the moment somebody sets a locale.**
+  const byJob = job ? poolFor(raw, job, defId) : raw;
+  const excluded = Object.keys(byJob).filter((sp) => formExcludes(form, sp));
+  const pool = excluded.length
+    ? Object.fromEntries(Object.entries(byJob).filter(([sp]) => !formExcludes(form, sp)))
+    : byJob;
+  if (Math.random() < outlanderChance(regionId, localeId, job)) {
+    // THE OUTLANDER DRAW MUST RESPECT THE JOB TOO (bug, 1 Aug). It filtered only on "not local" and
+    // ignored `poolFor` entirely — so an Avernus keep recruiting a cook from off-plane could land a
+    // QUAGGOTH, which is flagged `hire: false` precisely because it cannot hold a post. The
+    // capability rule was being enforced on locals and silently skipped for everybody else, which is
+    // the worst possible split: the constraint held exactly where it was least likely to matter.
+    //
+    // Found by a gate assertion about arrival lines, not by the capability tests — those only ever
+    // exercised the local path, because that is the path an ordinary region takes.
+    // ⚠ AND THE SAME BUG AGAIN, ONE TEST LATER (limit-break, 2 Aug). The fix above taught this branch
+    // about `hire: false`. It was never taught about the ROOM — so once "can hold a post" became
+    // "can hold a post HERE", the outlander draw went back to being the hole: a **minotaur arriving
+    // from off-plane to work a smithy**, an **ogre in a kitchen**.
+    //
+    // Five in 765 placements, and the note above says it in its own words: *"the capability rule was
+    // being enforced on locals and silently skipped for everybody else."* **A comment describing a
+    // fixed bug is not a guarantee the bug stays fixed** — this one came back because the rule it
+    // enforced acquired a new argument and nobody came back here.
+    const canDo = job === "hire"
+      ? (sp: string) => (defId === undefined ? speciesCanHire(sp) : speciesCanHireAt(sp, defId))
+      : job === "defend" ? speciesCanDefend : () => true;
+    const away = ALL_SPECIES.filter((sp) => !raw[sp] && canDo(sp));
+    if (away.length) return { species: away[Math.floor(Math.random() * away.length)], outlander: true };
+  }
+  const total = Object.values(pool).reduce((n, w) => n + w, 0);
+  let r = Math.random() * total;
+  for (const [sp, w] of Object.entries(pool)) { r -= w; if (r <= 0) return { species: sp, outlander: false }; }
+  return { species: "Human", outlander: false };
+}
+
+// ---- NAMES BY PEOPLE ---------------------------------------------------------------------------
+// Frank, 1 Aug: names should suit the people, "and I'd like a couple of funny names in the mix on
+// each racial name generator just to catch people off guard."
+//
+// Before this there was ONE pool — twenty firsts and twenty lasts — so a drow, a dwarf and a plasmoid
+// all drew from "Bree Ashdown". Four hundred combinations for the whole multiverse, which the
+// repetition analysis had already flagged as thin even for one culture.
+//
+// CULTURES, NOT SPECIES. Twenty-one naming traditions covering sixty peoples, because a Dwarf, a
+// Duergar and a Wild Dwarf name their children the same way, and writing three identical tables is
+// how two of them go stale. A people with no entry falls through to `human` — the same whitelist
+// discipline the region weights use, so a people added tomorrow gets sensible names for free.
+//
+// THE ODDITIES are Frank's ask, drawn RARELY (see NAME_ODDITY_CHANCE), and my first pass got the
+// JOKE WRONG. I wrote commentary ABOUT names — "Zzzzzt'quilth'aaaaargh, Which Is Not How It Is
+// Spelled" — which is a caption, not a name, and it explains itself, which is the death of it.
+//
+// Frank's correction, and it is much funnier: **a real, ordinary name that feels like it does not
+// belong to the creature carrying it.** An elf called Randy. A bone devil called Stuart. A minotaur
+// called Bob. The joke is the COLLISION and it is completely deadpan — nobody in the fiction remarks
+// on it, the roster just says "Stuart" where you expected Nezzeret the Fleshcarver.
+//
+// Two shapes qualify:
+//   the mundane   Barry, Denise, Colin Mudd, Rupert Featherstonehaugh
+//   the ironic    an ogre called Tiny, a halfling called Bloodreaver \u2014 "because why not"
+//
+// Each culture's set is aimed at ITS own register: dwarves get languid aristocratic names because
+// they are the opposite of a dwarf; orcs get Poppy and Daphne; devils get the beige middle-management
+// names of a man who has worked in the same office for thirty years. A gag that fires every time is
+// not a gag, which is what NAME_ODDITY_CHANCE is for.
+export const NAME_CULTURES: Record<string, { male: string[]; female: string[]; last: string[]; odd: string[] }> = {
+  human: {
+    male: ["Aldric", "Bertram", "Corvin", "Darrow", "Emory", "Fenn", "Garrick", "Halbert", "Iven", "Jory", "Kesh", "Lorric", "Mabon", "Nathric", "Orin", "Perrin", "Quill", "Rurik", "Symon", "Tobin", "Ulric", "Wesley", "Weslan"],
+    female: ["Alys", "Bree", "Ceriwyn", "Dagna", "Elsbeth", "Fiora", "Gwenna", "Halia", "Ilsa", "Jenna", "Katryn", "Lorra", "Marta", "Nessa", "Orlaith", "Pella", "Rowena", "Senna", "Tavia", "Ysolde", "Wilha"],
+    last: ["Ashdown", "Brightwood", "Carrick", "Coalfield", "Duskwater", "Emberly", "Fairwind", "Greenbottle", "Hollowick", "Ironwright", "Kettle", "Lightfoot", "Marsh", "Nettle", "Oakhale", "Pyre", "Quarry", "Rushmoor", "Stoutmantle", "Thornhill", "Underbough", "Vance", "Weatherall", "Yarrow"],
+    odd: ["Chad", "Kayleigh", "Dwayne"],
+  },
+  elf: {
+    male: ["Aelrindel", "Caladrel", "Elaith", "Faelar", "Galinndan", "Heian", "Ivellios", "Keryth", "Laucian", "Mindartis", "Naal", "Paelias", "Quarion", "Rolen", "Soveliss", "Thamior", "Uthemar", "Varis", "Yaeldrin", "Zephyros", "Aravel"],
+    female: ["Adrie", "Birel", "Caelynn", "Drusilia", "Enna", "Felosial", "Ielenia", "Jelenneth", "Keyleth", "Leshanna", "Meriele", "Naivara", "Quelenna", "Rilifane", "Sariel", "Shanairra", "Theirastra", "Valna", "Xanaphia", "Ysanne", "Silaqui"],
+    last: ["Amakiir", "Amarillis", "Caerdonel", "Duskwhisper", "Everstar", "Fenmarel", "Galanodel", "Goldpetal", "Holimion", "Ilphelkiir", "Liadon", "Meliamne", "Moonwhisper", "Nailo", "Nightbreeze", "Siannodel", "Silverfrond", "Starflower", "Xiloscient", "Yeschant", "Leafborne", "Withersnap"],
+    odd: ["Randy", "Doreen", "Keith", "Sharon"],
+  },
+  drow: {
+    male: ["Alton", "Berg'inyon", "Dinin", "Drizzt", "Elkantar", "Ghaunadar", "Houndaer", "Ilphrin", "Jarlaxle", "Krenaste", "Malaggar", "Nadal", "Pharaun", "Quenthel", "Rizzen", "Solaufein", "Tebryn", "Uluyara", "Valas", "Xullrae", "Zaknafein"],
+    female: ["Alaunthe", "Briza", "Charinida", "Drisinil", "Eclavdra", "Filraen", "Ghilanna", "Halisstra", "Ilivarra", "Jhaelryna", "Kelnozz", "Laele", "Maya", "Nedylene", "Pellanistra", "Qilue", "Rilrae", "Sabryn", "T'risstree", "Vierna", "Zarra"],
+    last: ["Argith", "Baenre", "Barrison", "Despana", "Do'Ett", "Do'Urden", "Freth", "Hun'ett", "Kenafin", "Mizzrym", "Nasadra", "Oblodra", "Shobalar", "Srune'lett", "Symryvvin", "Teken'duis", "Tuin'Tarl", "Vandree", "Xorlarrin", "Zauvirr", "Helviiryn"],
+    odd: ["Bob", "Sandra", "Gary", "Trevor"],
+  },
+  eladrin: {
+    male: ["Aurelian", "Bramblewick", "Cyrus", "Dawnthistle", "Evanwyn", "Fallowmere", "Greenbriar", "Hollyn", "Ivorn", "Larkspur", "Mirthlen", "Oakenshade", "Peregrin", "Quillon", "Rowanwyn", "Solvane", "Thistledown", "Verdant", "Wren", "Yarrowmere", "Frostwyn"],
+    female: ["Aubrienne", "Blossom", "Celandine", "Dewbright", "Elowen", "Faelivrin", "Glimmer", "Hazelmere", "Iris", "Juniper", "Lumine", "Marigold", "Nyssa", "Ondine", "Primrose", "Solenne", "Thalia", "Verity", "Willowmere", "Yolanthe", "Sablewyn"],
+    last: ["Autumnwane", "Brightsummer", "Dawnbreak", "Eversolstice", "Frostbloom", "Gladelight", "Hearthglow", "Leafturn", "Mistvale", "Nightbloom", "Openhand", "Petalfall", "Quietgrove", "Springfall", "Summershade", "Thawmere", "Umbershade", "Vernalight", "Wintermourn", "Yieldgreen", "Duskpetal"],
+    odd: ["Wayne", "Bev", "Nigel"],
+  },
+  astral: {
+    male: ["Aeloryn", "Belthyr", "Cassilorn", "Duviel", "Elandriel", "Faerothil", "Gwynlar", "Ithuriel", "Jorvael", "Kalthiel", "Lysandor", "Meliorn", "Nythiel", "Ophirion", "Perisel", "Quorian", "Serathiel", "Thalioren", "Vandreal", "Xanthiel", "Zephiryn"],
+    female: ["Aelinor", "Berylle", "Ceriphine", "Dalyra", "Elunara", "Faelith", "Gwennaeth", "Ilithyia", "Jesalyn", "Kaellyth", "Lirienne", "Meliora", "Nuriel", "Oriane", "Phaedra", "Quorelle", "Selunara", "Thessaly", "Vaelira", "Xiomara", "Zaltheia"],
+    last: ["Astralwake", "Brightcalm", "Cloudless", "Dreamsailer", "Everwaking", "Farhaven", "Goldsilence", "Hollowlight", "Idlestar", "Longslumber", "Mistkeeper", "Nevernight", "Onwardstar", "Palewatch", "Quietsail", "Sablestar", "Silverwake", "Timeless", "Voidwatch", "Wanderling", "Yearlong"],
+    odd: ["Graham", "Sue", "Malcolm"],
+  },
+  dwarf: {
+    male: ["Adrik", "Baern", "Brottor", "Dain", "Eberk", "Fargrim", "Gardain", "Harbek", "Kildrak", "Morgran", "Nordri", "Orsik", "Rangrim", "Rurik", "Thoradin", "Thorin", "Tordek", "Ulfgar", "Veit", "Vondal", "Balin"],
+    female: ["Amber", "Artin", "Audhild", "Bardryn", "Dagnal", "Diesa", "Eldeth", "Falkrunn", "Gunnloda", "Gurdis", "Helja", "Hlin", "Kathra", "Kristryd", "Ilde", "Liftrasa", "Mardred", "Riswynn", "Sannl", "Torbera", "Torgga", "Vistra"],
+    last: ["Balderk", "Battlehammer", "Brawnanvil", "Coalhewer", "Dankil", "Deepdelve", "Emberforge", "Fireforge", "Flintmantle", "Frostbeard", "Gorunn", "Holderhek", "Ironfist", "Loderr", "Lutgehr", "Rockseeker", "Rumnaheim", "Strakeln", "Stoneshield", "Thunderbrand", "Torunn", "Ungart"],
+    odd: ["Tarquin", "Jocasta", "Rupert", "Araminta"],
+  },
+  halfling: {
+    male: ["Alton", "Ander", "Beau", "Cade", "Corrin", "Eldon", "Errich", "Finnan", "Garret", "Lindal", "Lyle", "Merric", "Milo", "Osborn", "Perrin", "Reed", "Roscoe", "Shardon", "Wellby", "Wenner", "Bramble"],
+    female: ["Andry", "Bree", "Callie", "Cora", "Euphemia", "Jillian", "Kithri", "Lavinia", "Lidda", "Merla", "Nedda", "Paela", "Portia", "Rosie", "Seraphina", "Shaena", "Trym", "Vani", "Verna", "Willow", "Tilda"],
+    last: ["Appleblossom", "Applebough", "Brushgather", "Chubb", "Cherrycheeks", "Goodbarrel", "Greenbottle", "High-hill", "Hilltopple", "Leagallow", "Nimblefinger", "Quickstep", "Stoutbridge", "Sunmeadow", "Tealeaf", "Thorngage", "Tosscobble", "Underbough", "Warmwater", "Whispermouse", "Brambleburr"],
+    odd: ["Bloodreaver", "Vlad", "Grendel"],
+  },
+  gnome: {
+    male: ["Alston", "Alvyn", "Boddynock", "Brocc", "Burgell", "Dimble", "Eldon", "Erky", "Fonkin", "Frug", "Gerbo", "Gimble", "Glim", "Jebeddo", "Kellen", "Namfoodle", "Orryn", "Roondar", "Seebo", "Sindri", "Warryn", "Zook"],
+    female: ["Bimpnottin", "Breena", "Caramip", "Carlin", "Donella", "Duvamil", "Ella", "Ellyjobell", "Ellywick", "Lilli", "Loopmottin", "Lorilla", "Mardnab", "Nissa", "Nyx", "Oda", "Orla", "Roywyn", "Shamil", "Tana", "Waywocket", "Zanna"],
+    last: ["Beren", "Daergel", "Folkor", "Garrick", "Nackle", "Murnig", "Ningel", "Raulnor", "Scheppen", "Timbers", "Turen", "Fapplestamp", "Gimlen", "Highhill", "Ironhide", "Kettlewhistle", "Loopmottin", "Ningelbottom", "Sparkgear", "Tinkertop", "Whistlecog", "Zookleberry"],
+    odd: ["Chuck", "Brenda", "Duane"],
+  },
+  orc: {
+    male: ["Dench", "Feng", "Gell", "Henk", "Holg", "Imsh", "Keth", "Krusk", "Mhurren", "Ront", "Shump", "Thokk", "Ubash", "Ugarth", "Zed", "Grumsh", "Rakk", "Durth", "Yurk", "Braag", "Morg"],
+    female: ["Baggi", "Emen", "Engong", "Kansif", "Myev", "Neega", "Ovak", "Ownka", "Shautha", "Sutha", "Vola", "Volen", "Yevelda", "Ghorza", "Urzoth", "Snaga", "Barul", "Ghamorz", "Ushat", "Yagra", "Dushnamub"],
+    last: ["Bonesnapper", "Bloodmaw", "Cragtooth", "Elktooth", "Gorehowl", "Grimtusk", "Ironjaw", "Killspite", "Oxbreaker", "Redfang", "Ripgut", "Scarhide", "Skullcleave", "Sourbelly", "Stonefist", "Thickneck", "Tuskgrind", "Warbrand", "Wolfsbane", "Yellowfang", "Blackmaw"],
+    odd: ["Nigel", "Poppy", "Julian", "Daphne"],
+  },
+  goblinoid: {
+    male: ["Blix", "Crag", "Drix", "Fizzik", "Gnash", "Grub", "Hobb", "Jek", "Krek", "Mux", "Nix", "Pox", "Rikk", "Skiv", "Snag", "Tarn", "Vrek", "Wick", "Yeek", "Zib", "Grot"],
+    female: ["Brakka", "Chit", "Dree", "Fenn", "Gilka", "Hix", "Ivvy", "Jinx", "Krellik", "Lurra", "Mip", "Nubb", "Ogga", "Prixi", "Quib", "Ratcha", "Sneela", "Tizzy", "Vex", "Wrenna", "Yizza"],
+    last: ["Bittertongue", "Cragbelly", "Ditchwater", "Filchpocket", "Gutrot", "Hollowtooth", "Knucklebone", "Longshank", "Mudcrawl", "Nailbiter", "Offal", "Pinchpurse", "Quickfinger", "Ratcatcher", "Scabhand", "Splinter", "Toadwallow", "Underboot", "Wormfeast", "Yellowgrin", "Bilgewater"],
+    odd: ["Reginald", "Hyacinth", "Clive", "Prudence"],
+  },
+  giant: {
+    male: ["Bruk", "Dorn", "Grommash", "Harl", "Karn", "Molgar", "Nurm", "Orgul", "Ruggan", "Skarn", "Thrun", "Umbrak", "Vargas", "Wodan", "Yorick", "Brand", "Gorm", "Halgar", "Torvald", "Ulfr", "Rangvald"],
+    female: ["Bryna", "Dagra", "Eldra", "Freya", "Gerd", "Hargra", "Ingrid", "Jorva", "Kelda", "Ludda", "Maerga", "Nissa", "Orna", "Runa", "Saga", "Thora", "Ulga", "Vigdis", "Wynn", "Yorna", "Hilde"],
+    last: ["Boulderfall", "Cragmaw", "Deepstride", "Frostmane", "Grimhold", "Hillbreaker", "Ironhide", "Kelvinsson", "Longstride", "Mountainheart", "Northwind", "Oxbrand", "Pinefell", "Ridgewalker", "Skyreach", "Stonecrusher", "Thunderstep", "Undermount", "Wintersbane", "Yarrowgard", "Snowmantle"],
+    odd: ["Tiny", "Bob", "Colin", "Squeak"],
+  },
+  fiend: {
+    male: ["Azkarion", "Belphegar", "Caiphon", "Dretchmar", "Erebus", "Faltarax", "Ghorvax", "Hutijin", "Ithkarax", "Jarraxus", "Kholzar", "Malphas", "Nezzeret", "Orbaxis", "Phexis", "Quorlath", "Skarnavel", "Tharzul", "Vexthul", "Xaphan", "Zarvoth"],
+    female: ["Ashkeris", "Bellzeth", "Corvinth", "Dysia", "Erinneth", "Falorath", "Glasyra", "Herithel", "Ixzara", "Jezzeril", "Kaltheris", "Lilisara", "Morvexa", "Nyxeris", "Ozrith", "Phaerra", "Quessith", "Sarnavel", "Tyrexis", "Velzareth", "Zyrantha"],
+    last: ["Ashbinder", "Bloodledger", "Cinderquill", "Dutybound", "Emberchain", "Fleshcarver", "Gravetally", "Hookhand", "Ironvow", "Judgeflame", "Knifewriter", "Lashkeeper", "Mercywanting", "Nightaudit", "Oathbreak", "Pactseal", "Quillbrand", "Soulbrand", "Tallyburn", "Vowcarver", "Wormtongue"],
+    odd: ["Stuart", "Barry", "Denise", "Ian", "Sheila"],
+  },
+  tiefling: {
+    male: ["Akmenos", "Amnon", "Barakas", "Damakos", "Ekemon", "Euron", "Iados", "Kairon", "Leucis", "Melech", "Mordai", "Morthos", "Pelaios", "Skamos", "Therai", "Zeal", "Ordeal", "Reverence", "Torment", "Vengeance", "Excellence"],
+    female: ["Akta", "Anakis", "Bryseis", "Criella", "Damaia", "Ea", "Kallista", "Lerissa", "Makaria", "Nemeia", "Orianna", "Phelaia", "Rieta", "Seraphine", "Anguish", "Creed", "Despair", "Glory", "Hope", "Prudence", "Temerity"],
+    last: ["Ashvale", "Blackhorn", "Cindermark", "Duskbrand", "Emberlin", "Farhorn", "Grimsoul", "Hellsworn", "Ironpact", "Kindly", "Lastlight", "Mourncrest", "Nightsong", "Onyxfell", "Pridewell", "Redhorn", "Sootfall", "Truename", "Vowkeep", "Wormwood", "Bittergrace"],
+    odd: ["Dave", "Karen", "Neil"],
+  },
+  dragonborn: {
+    male: ["Arjhan", "Balasar", "Bharash", "Donaar", "Ghesh", "Heskan", "Kriv", "Medrash", "Mehen", "Nadarr", "Pandjed", "Patrin", "Rhogar", "Shamash", "Shedinn", "Tarhun", "Torinn", "Kalvaz", "Regath", "Zedaar", "Vorel"],
+    female: ["Akra", "Aasathra", "Antrara", "Arava", "Biri", "Blendaeth", "Daar", "Farideh", "Harann", "Havilar", "Jheri", "Kava", "Korinn", "Mishann", "Nala", "Perra", "Raiann", "Sora", "Surina", "Thava", "Uadjit"],
+    last: ["Clethtinthiallor", "Daardendrian", "Delmirev", "Drachedandion", "Fenkenkabradon", "Kepeshkmolik", "Kerrhylon", "Kimbatuul", "Linxakasendalor", "Myastan", "Nemmonis", "Norixius", "Ophinshtalajiir", "Prexijandilin", "Shestendeliath", "Turnuroth", "Verthisathurgiesh", "Yarjerit", "Zibrolathakus", "Kimmalasar", "Haerinvureem"],
+    odd: ["Terry", "Janet", "Roy"],
+  },
+  lizardfolk: {
+    male: ["Achuak", "Aryte", "Darastrix", "Garurt", "Irhtos", "Jhank", "Kepesk", "Kethend", "Litrix", "Miirik", "Nusk", "Othokent", "Rhyaex", "Sauriv", "Thurkear", "Usk", "Valignat", "Wux", "Zyak", "Ghaurin", "Sarrith"],
+    female: ["Aurix", "Baeshra", "Charir", "Denthik", "Ekess", "Ghekk", "Hesjing", "Irlym", "Jaacil", "Kosj", "Levex", "Mrith", "Naceur", "Ossalur", "Persvek", "Rilaen", "Sthyr", "Thevis", "Vutha", "Yrev", "Zelis"],
+    last: ["Bogwader", "Cragnest", "Deepmire", "Fangmarsh", "Greenscale", "Hollowreed", "Ironsilt", "Jaggedtooth", "Kelpbinder", "Longwade", "Mudstalker", "Nightcoil", "Oxbowfen", "Reedcutter", "Silttooth", "Swiftcurrent", "Thornbank", "Underfen", "Watersnare", "Yellowmarsh", "Coldblood"],
+    odd: ["Trevor", "Maureen", "Dennis"],
+  },
+  gith: {
+    male: ["Duulgrin", "Elirdain", "Ferzth", "Gaath", "Ir'vek", "Jerrith", "Kar'i", "Kirsh", "Menyar", "Nrak", "Om'gar", "Quith", "Rrakkma", "Sarath", "Tl'kir", "Uthrak", "Vaarl", "Wrath", "Xamvyre", "Zurr", "Ghustil"],
+    female: ["Adaka", "Bhyrn", "Cirath", "Duurth", "Ezhelya", "Faenzil", "Gaath'ra", "Immilzin", "Jarleth", "Kalla", "Lyzerra", "Menyra", "Nal'aa", "Ophal", "Quarra", "Sarielle", "Turlan", "Uveth", "Vasha", "Yrl'aa", "Zeliya"],
+    last: ["Dhrizzarn", "Ezhelvir", "Ghaal'draa", "Hlurr", "Ir'kath", "Jhaan", "Kith'rak", "Lyth'kar", "Mlar", "Nrak'ash", "Ompt", "Qorrath", "Rrak'thul", "Sha'sal", "Tl'a'ikith", "Uth'zar", "Vlaakith", "Wrath'kar", "Xarr", "Zetch'r'r", "Cha'kar"],
+    odd: ["Kevin", "Pauline", "Barry"],
+  },
+  spacefarer: {
+    male: ["Bex", "Corr", "Dorn", "Fitz", "Grix", "Hask", "Jarn", "Kell", "Lom", "Mox", "Ovo", "Pell", "Quin", "Rask", "Tuck", "Vem", "Wick", "Yost", "Zev", "Brannt", "Sarn"],
+    female: ["Ashka", "Brill", "Cyra", "Delve", "Emsa", "Fen", "Gilla", "Hextia", "Ivo", "Jesk", "Kessa", "Lyre", "Mirr", "Nera", "Orla", "Pim", "Rilla", "Sable", "Tavi", "Wisp", "Zinn"],
+    last: ["Airlock", "Bilgewater", "Cargohold", "Driftmark", "Farhold", "Gunwale", "Halyard", "Ironkeel", "Jettison", "Keelson", "Lodestar", "Mainmast", "Nightwatch", "Overboard", "Portside", "Quarterdeck", "Sextant", "Sternway", "Topgallant", "Wildspace", "Yardarm"],
+    odd: ["Dave", "Linda", "Norman"],
+  },
+  giff: {
+    male: ["Barrelmore", "Cadwallader", "Duffleton", "Elphinstone", "Fotheringay", "Grimsby", "Harkness", "Ironsides", "Jeffcott", "Kembleford", "Mortimer", "Nethersole", "Ormsby", "Percival", "Quartermaine", "Ramrod", "Sackville", "Thistlewaite", "Vandermere", "Wellington", "Blunderbuss"],
+    female: ["Augusta", "Beatrix", "Clementine", "Drusilla", "Euphemia", "Flavia", "Georgiana", "Henrietta", "Iphigenia", "Josephine", "Katharine", "Lavinia", "Millicent", "Ottoline", "Philippa", "Rosalind", "Sybil", "Theodosia", "Ursula", "Winifred", "Cordelia"],
+    last: ["Bombardier", "Cannonbrace", "Doublecharge", "Emplacement", "Fusilier", "Grapeshot", "Halberdier", "Ironmuzzle", "Kegwright", "Linstock", "Musketon", "Nineteen-Pounder", "Ordnance", "Powderhorn", "Quickmatch", "Ramrod", "Shotmarsh", "Touchhole", "Volley", "Wadding", "Breechwell"],
+    odd: ["Steve", "Shazza", "Kyle"],
+  },
+  fey: {
+    male: ["Bramble", "Cobweb", "Dewdrop", "Elderbloom", "Fernwhistle", "Gorse", "Hawthorn", "Inkcap", "Juniper", "Knotgrass", "Mothlight", "Nettlecap", "Oakapple", "Pennyroyal", "Quillfeather", "Rushlight", "Sorrel", "Thistleburr", "Vervain", "Wisproot", "Yarrowstem"],
+    female: ["Aster", "Bindweed", "Cowslip", "Daisychain", "Eglantine", "Foxglove", "Gossamer", "Hollyhock", "Ivyleaf", "Jessamine", "Larkspur", "Mallow", "Nightshade", "Orchid", "Peaseblossom", "Quickthorn", "Ragwort", "Speedwell", "Tansy", "Violet", "Woodruff"],
+    last: ["Amberfall", "Briarhollow", "Coppicewood", "Dandelion", "Everdusk", "Foxglove", "Greenmantle", "Honeysuckle", "Ivywhistle", "Jackinthegreen", "Kingcup", "Longshadow", "Mosscreep", "Nightbloom", "Owlflight", "Pipewort", "Quietfern", "Rimefrost", "Thornwick", "Willowisp", "Sundapple"],
+    odd: ["Brian", "Susan", "Alan", "Beryl"],
+  },
+  vistani: {
+    male: ["Andrei", "Bogdan", "Cosmin", "Dragan", "Emil", "Florin", "Grigore", "Horia", "Ionut", "Kasimir", "Luvash", "Mircea", "Nikolai", "Ovidiu", "Petru", "Radu", "Sorin", "Tomescu", "Valentin", "Zoltan", "Vasile"],
+    female: ["Adriana", "Arabelle", "Bianca", "Camelia", "Daniela", "Elena", "Florica", "Gabriela", "Ileana", "Ilyana", "Katrina", "Larisa", "Mirabel", "Natalia", "Oana", "Petra", "Ruxandra", "Sorina", "Tereza", "Viorica", "Yelena"],
+    last: ["Anhaltus", "Barthos", "Cojacaru", "Diavolakis", "Dilisnya", "Enescu", "Florescu", "Gheorghiu", "Hadrian", "Iliescu", "Krezkov", "Lupescu", "Martikov", "Nicolescu", "Ovidiu", "Petrovich", "Radanavich", "Stanoiu", "Tereskova", "Vallakovich", "Zarovich"],
+    odd: ["Nigel", "Tracy", "Gordon"],
+  },
+  shadarkai: {
+    male: ["Ashen", "Corvex", "Dusk", "Ember", "Gloam", "Hollow", "Ives", "Kestrel", "Lorn", "Mourn", "Nocturne", "Orrin", "Pallid", "Quench", "Rook", "Shade", "Thren", "Umbra", "Vesper", "Wane", "Cinder"],
+    female: ["Ashlin", "Briar", "Cinder", "Dolour", "Ephemera", "Fable", "Grieve", "Hush", "Iris", "Kessa", "Lament", "Mireille", "Nyx", "Ossuary", "Plaint", "Quiet", "Requiem", "Sable", "Threnody", "Vespera", "Willow"],
+    last: ["Blackfeather", "Coldvigil", "Dimmerpath", "Endless", "Fadewalk", "Gravewatch", "Hushfall", "Ironmourn", "Keening", "Lastbreath", "Mistgrieve", "Nightreach", "Ossuar", "Palewake", "Quietgrave", "Shadefall", "Sorrowdeep", "Thornveil", "Umbrous", "Wastewalk", "Coldhearth"],
+    odd: ["Colin", "Sunny", "Bev"],
+  },
+};
+
+export const SPECIES_NAMING: Record<string, string> = {
+  "Animals": "fey",
+  "Astral Elf": "astral",
+  "Autognome": "gnome",
+  "Barbed Devil": "fiend",
+  "Bearded Devil": "fiend",
+  "Bone Devil": "fiend",
+  "Bugbear": "goblinoid",
+  "Caliban": "tiefling",
+  "Centaur": "giant",
+  "Chain Devil": "fiend",
+  "Dark Fey": "fey",
+  "Dragonborn": "dragonborn",
+  "Drow": "drow",
+  "Dryad": "fey",
+  "Duergar": "dwarf",
+  "Dwarf": "dwarf",
+  "Eladrin": "eladrin",
+  "Elf": "elf",
+  "Erinyes": "fiend",
+  "Firbolg": "giant",
+  "Giff": "giff",
+  "Githyanki": "gith",
+  "Gloaming": "fey",
+  "Gnome": "gnome",
+  "Goblin": "goblinoid",
+  "Goliath": "giant",
+  "Grimlock": "goblinoid",
+  "Hag": "fey",
+  "Half-Drow": "drow",
+  "Half-Elf": "elf",
+  "Half-Orc": "orc",
+  "Half-Vistani": "vistani",
+  "Halfling": "halfling",
+  "Horned Devil": "fiend",
+  "Human": "human",
+  "Imp": "fiend",
+  "Kobold": "goblinoid",
+  "Lemure": "fiend",
+  "Lizardfolk": "lizardfolk",
+  "Minotaur": "giant",
+  "Ogre": "giant",
+  "Orc": "orc",
+  "Other Devil": "fiend",
+  "Other Fey": "fey",
+  "Pixie": "fey",
+  "Plasmoid": "spacefarer",
+  "Pterafolk": "lizardfolk",
+  "Quaggoth": "goblinoid",
+  "Quickling": "fey",
+  "Redcap": "fey",
+  "Satyr": "fey",
+  "Shadar-kai": "shadarkai",
+  "Spined Devil": "fiend",
+  "Sprite": "fey",
+  "Svirfneblin": "gnome",
+  "Thri-kreen": "spacefarer",
+  "Tiefling": "tiefling",
+  "Treant": "fey",
+  "Troll": "giant",
+  "Wild Dwarf": "dwarf",
+};
+
+// Rare enough to be a surprise and common enough to happen. At 2%, a keep with a dozen staff sees
+// one about half the time — which is the right frequency for something a player should tell somebody
+// about rather than come to expect.
+registerNamingLookup(SPECIES_NAMING);   // one mapping, late-bound so data/bastion need not import this file
+
+export const NAME_ODDITY_CHANCE = 0.02;
+
+// One door for every name in the app. Returns { name, odd } so a caller can know it drew a joke —
+// nothing uses that yet, but a UI that wanted to let a player re-roll an unwanted gag would need it,
+// and adding the field later means touching every call site.
+export function randName(species?: string | null, sex?: "m" | "f" | null): { name: string; sex: "m" | "f"; odd: boolean } {
+  const cult = NAME_CULTURES[(species && SPECIES_NAMING[species]) || "human"] || NAME_CULTURES.human;
+  const sx: "m" | "f" = sex || (Math.random() < 0.5 ? "m" : "f");
+  if (cult.odd.length && Math.random() < NAME_ODDITY_CHANCE) {
+    return { name: cult.odd[Math.floor(Math.random() * cult.odd.length)], sex: sx, odd: true };
+  }
+  return { name: pick(sx === "m" ? cult.male : cult.female) + " " + pick(cult.last), sex: sx, odd: false };
+}
+
+// FORMAT RULING, 1 Aug (EXCHANGE_PRODUCTION_STANDARD §8): **generated data is a data file, reasoned
+// data is source.** These name lists are PURE LISTS with no per-row reasoning, so they are the
+// clearest candidate in the project to live outside source — unlike SPECIES_BY_REGION, whose rows
+// carry citations, or the facility specs, whose comments are the artifact.
+//
+// They stay here FOR NOW because the app is client-only: a JSON file today is a file Vite bundles
+// anyway, so it would cost type safety and buy nothing. `nameRows()` exists so that the day there is
+// a server to serve them from, the migration is a copy.
+//
+// ---- THE SAME DATA AS ROWS ---------------------------------------------------------------------
+// Frank, 1 Aug: "I want to be able to expand the database of names, especially since we're using
+// SQLite as our database code. We very easily could use SQLite to store all of these databases."
+//
+// So the table above is shaped to map 1:1 onto rows — `(culture, kind, value)` and nothing else. No
+// nesting, no derived fields, no ordering that matters. Migrating it is a COPY rather than a
+// rewrite, and adding a name is one INSERT rather than an edit to a source file and a rebuild.
+//
+// The same shape works for every other table this session produced (SPECIES_BY_REGION as
+// `(region, species, weight)`, SPECIES_ROLES as `(species, hire, defend, mindless)`), which is worth
+// noticing: they were all authored as flat weighted lists because that is what the draw functions
+// want, and that happens to be exactly what a table wants too.
+export function nameRows(): Array<{ culture: string; kind: "male" | "female" | "last" | "odd"; value: string }> {
+  const out: Array<{ culture: string; kind: "male" | "female" | "last" | "odd"; value: string }> = [];
+  Object.entries(NAME_CULTURES).forEach(([culture, c]) => {
+    (["male", "female", "last", "odd"] as const).forEach((kind) => (c[kind] || []).forEach((value) => out.push({ culture, kind, value })));
+  });
+  return out;
+}
+
+// LAYER 1 · a person, rolled whole. Note what is DERIVED rather than drawn: `traits` come from the
+// profile, `socialClass` from the post, `faith` from the naming culture. Rolling any of those
+// independently would let a Steward be labouring class or a sixty-year-old be `green`, which is what
+// the old three-from-sixteen system did.
+export const randHench = (regionId?: string | null, localeId?: string | null, form?: string | null, ch?: any, defId?: string | null) => {
+  // ⚠ A CHOSEN HIRE IS CALLED, NOT FOUND (Frank, 2 Aug). When the bastion toggle is on AND the
+  // character actually has an entitlement, the region is not consulted at all: a necromancer in
+  // Cormyr raises hers, and Cormyr's demographics have nothing to say about it.
+  const called = chosenHireSpecies(ch, "hire", Math.random, defId);
+  // ⚠ AND A FEY PULL, WHICH IS NOT A CHOICE (Frank, 2 Aug). A character with a fey affinity decides
+  // nothing: the region still supplies everybody, and the fey who were already nearby — or who came
+  // over the boundary and are looking about — turn up more often, because word has got round that
+  // this house is friendly. **A pull rather than a pool**, which is why it needs no toggle.
+  //
+  // They arrive as OUTLANDERS, because that is exactly what they are: somebody who travelled to get
+  // here. A called thing is not, because it did not travel — it was summoned to the spot.
+  // ⚠ AND THE FEY PULL WAS THE FOURTH ENTRANCE (limit-break, 2 Aug). It filtered on `speciesCanHire`
+  // — "can hold a post at all" — and put a **dryad in a library**, an **archive** and an **arcane
+  // study**. She works open ground; a reading room is not open ground.
+  //
+  // Four separate doors into hiring, and the room test had reached two of them. The chosen path, the
+  // outlander draw and this one each had to be found by a different probe.
+  const drift = (!called && ch && feyAffinity(ch.subclass, ch) > 0 && Math.random() < feyAffinity(ch.subclass, ch))
+    ? FEY_DRIFTERS.filter((x) => speciesCanHireAt(x, defId)) : null;
+  const sp: { species: string; outlander?: boolean } = called
+    ? { species: called, outlander: false }
+    : (drift && drift.length)
+      ? { species: drift[Math.floor(Math.random() * drift.length)], outlander: true }
+      : randSpecies(regionId, localeId, "hire", form, defId);
+  // ⚠ A BUCKET RESOLVES TO A NAME AT HIRE (Frank, 2 Aug). `Other Fey` and `Other Devil` are how the
+  // demographic tables say "and some other fey" — they are not species anybody could say aloud, and
+  // nearly a fifth of Feywild hires were arriving with a CATEGORY on the roster.
+  if (isBucket(sp.species)) (sp as any).species = resolveBucket(sp.species, Math.random, defId, "hire");
+  // ⚠ AN UNDEAD CARRIES THE NAME OF WHOEVER IT WAS (Frank, 2 Aug), and that person was a LOCAL. Name
+  // it as a living person of this region — the corpse was somebody, and somebody was from here.
+  const nm = wasAliveOnce(sp.species)
+    ? randName(randSpecies(regionId, localeId, "hire", form, defId).species)
+    : randName(sp.species);
+  const age = 22 + Math.floor(Math.random() * 43);
+  const role = pick(HENCH_ROLES);
+  return { ...rollPerson(sp.species, nm, age, role), species: sp.species, outlander: sp.outlander };
+};
+
+// The whole Layer 1 record, shared by hirelings and defenders so the two cannot drift apart — which
+// is exactly what happened before today, when defenders had no traits and no bonds because they were
+// built by a different function that nobody updated.
+// ---- HIRED AS A COUPLE --------------------------------------------------------------------------
+// Turn two people who happen to be in the same room into two people who arrived together. Called by
+// `staffFacility` when it is filling two or more posts, which is the ONLY way anybody becomes
+// `married` — see the note at `rollMarital`.
+//
+// The second is rewritten to MATCH the first rather than being drawn independently: within a few
+// years of age, usually the same people, the same faith, and a shared surname if their culture uses
+// one. Two strangers who both happen to be married is not a couple; it is a bug that reads like one.
+// Would these two actually pair? Reads the attraction weights BOTH ways, which `pairUp` never did —
+// it married whoever was standing next to whom, and the weights existed and were ignored. A pairing
+// needs mutual interest, and the threshold is deliberately low: people marry for many reasons and
+// this is a household, not a matching service.
+export function mutuallyDrawn(a: any, b: any): boolean {
+  if (!a || !b || !a.attracted || !b.attracted) return true;         // no weights (old save) — do not block
+  const toward = (x: any, y: any) => (x.attracted[y.gender || "woman"] || 0);
+  return toward(a, b) >= 30 && toward(b, a) >= 30;
+}
+
+export function pairUp(a: any, b: any) {
+  // ⚠ A TREE CROSSES WITH A TREE (Frank, 2 Aug). The interspecies model was a single rate — anybody
+  // with anybody, at a probability set by the region — which is right for the mammals and wrong for
+  // a treant. *"Trees obviously do not breed with non-plant-based organisms, but I could imagine a
+  // cross between a dryad and a tree being successful, because they both derive from trees."*
+  //
+  // Enforced at the door rather than in the caller, because **a rule enforced at some of its
+  // entrances is a rule with a back way in** — which has cost this project four separate bugs.
+  if (!canCross(a && a.species, b && b.species)) return false;
+  if (!a || !b || a.mindless || b.mindless) return false;
+  // A PEOPLE THAT DOES NOT MARRY DOES NOT MARRY, checked HERE and not only in `pairHousehold`. Found
+  // by the improbable-people suite: an autognome was safe by the ordinary route and marriageable by
+  // a direct call, because the pairing model was consulted by the caller rather than by the door.
+  // **A rule enforced at one of two entrances is a rule with a back way in.**
+  if (pairingOf(a.species).couples <= 0 || pairingOf(b.species).couples <= 0) return false;
+  if (!mutuallyDrawn(a, b)) return false;
+  // ⚠ THIS USED TO REWRITE THE SECOND PERSON, and Frank's lizardfolk guard found it: it set
+  // `b.species = a.species`, redrew the name, and overwrote the age and faith — turning a lizardfolk
+  // sentry into an orc called Ghamorz Tuskgrind at the moment of marriage.
+  //
+  // That was harmless when both halves were FRESHLY DRAWN inside one room, which is where pairUp
+  // used to be called from. Against `pairHousehold` it is destructive: these are people who already
+  // exist, have already been hired, and may already hold bonds. **A marriage does not edit either
+  // party.**
+  //
+  // What survives is the SURNAME, and only where it is not a lie: two people of the same people may
+  // take a shared name, which is the cheapest signal on a roster that they arrived together. A
+  // cross-species couple simply keeps both names, which is also what happens.
+  if (a.species === b.species && Math.random() < SPOUSE_SAME_SPECIES) {
+    const surname = a.name.split(" ").slice(1).join(" ");
+    if (surname && !b.nameOdd && !a.nameOdd) b.name = b.name.split(" ")[0] + " " + surname;
+  }
+  a.marital = "married"; b.marital = "married";
+  a.spouseId = b.id || null; b.spouseId = a.id || null;
+  // A couple has a bond by definition, and it is the deepest thing on the roster. This used to write
+  // a bare weight of 6, which read back as **"friend"** — because Layer 2 arrived after pairUp did,
+  // and nobody came back to it. `married` is a named moment in BOND_EVENTS carrying all six
+  // dimensions, and it is what a marriage should have written all along.
+  bondEventLocal(a, b, "married");
+  // WOULD THIS COUPLE HIDE? Read off the LESS open of the two cultures — it takes only one household
+  // to be difficult about it. Set on BOTH sides, because concealment is a thing the pair does
+  // together and either of them stopping ends it.
+  const hide = concealChance(a, b);
+  if (hide > 0 && Math.random() < hide) { a.concealed = b.id; b.concealed = a.id; a.concealedSince = 0; b.concealedSince = 0; }
+  return true;
+}
+
+// applyBond lives in the engine and the engine imports THIS module, so calling it here would be a
+// cycle. The write is four lines; duplicating those is cheaper and safer than restructuring two
+// modules to share them, and it is commented at both ends so neither drifts unnoticed.
+function bondEventLocal(a: any, b: any, evId: string) {
+  const ev = (BOND_EVENTS as any)[evId] || {};
+  const wr = (x: any, y: any) => {
+    if (!Array.isArray(x.bonds)) x.bonds = [];
+    let e = x.bonds.find((z: any) => z.id === y.id);
+    if (!e) { e = { id: y.id, weight: 0, note: "" }; BOND_DIMS.forEach((k) => { e[k] = 0; }); x.bonds.push(e); }
+    for (const k in ev) {
+      const floor = (k === "affection" || k === "rivalry") ? -100 : 0;
+      e[k] = Math.max(floor, Math.min(100, (e[k] || 0) + ev[k]));
+    }
+    e.note = evId;
+    e.weight = Math.round(((e.affection || 0) + (e.respect || 0) + (e.loyalty || 0) + (e.trust || 0) - 2 * (e.rivalry || 0)) / 10);
+  };
+  wr(a, b); wr(b, a);
+}
+
+// Roll a person's attraction weights from the population baseline for their gender. Returns WEIGHTS,
+// never a word — `orientationOf` reads the word back out when something needs to display one.
+export function rollAttraction(gender: string, species?: string | null) {
+  const raw = (ATTRACTION_BASE as any)[gender] || ATTRACTION_BASE.woman;
+  // THE SPECIES' OWN DISTRIBUTION (Frank, 1 Aug). Orientation is constitutional, so it is drawn per
+  // people rather than from one human table — an elf's spread is genuinely wider than an orc's, and
+  // that is a fact about elves rather than about elven society.
+  //
+  // The straight share ABSORBS the difference, which is the only way to widen a spread without
+  // inventing anybody: everything else scales by the species factor and `straight` takes the
+  // remainder, so the row still sums to 1 and humans still land exactly on the surveyed figures.
+  const f = orientationFactor(species);
+  const base: any = {};
+  let rest = 0;
+  for (const k of ["gay", "bi", "ace", "other"]) { base[k] = Math.min(0.45, raw[k] * f); rest += base[k]; }
+  base.straight = Math.max(0.2, 1 - rest);
+  let r = Math.random(), pick = "straight";
+  for (const [k, w] of Object.entries(base)) { r -= w as number; if (r <= 0) { pick = k; break; } }
+  // The weights are what the model actually uses; the draw above only decides their SHAPE. Jitter
+  // means two "bisexual" people are not identical, and that somebody at 70/30 exists between the
+  // categories rather than being rounded into one of them — which is the whole reason Frank asked
+  // for weights rather than labels.
+  const j = () => 8 + Math.floor(Math.random() * 18);
+  const hi = () => 74 + Math.floor(Math.random() * 26);
+  const attracted = { man: 0, woman: 0, nonbinary: 0 };
+  const other = gender === "man" ? "woman" : "man";
+  if (pick === "straight") { attracted[other] = hi(); attracted[gender === "nonbinary" ? "woman" : gender] = j() - 6; }
+  else if (pick === "gay") { attracted[gender === "nonbinary" ? "nonbinary" : gender] = hi(); attracted[other] = j() - 6; }
+  else if (pick === "bi") { attracted.man = 45 + Math.floor(Math.random() * 45); attracted.woman = 45 + Math.floor(Math.random() * 45); }
+  else if (pick === "ace") { attracted.man = Math.floor(Math.random() * 8); attracted.woman = Math.floor(Math.random() * 8); }
+  else { attracted.man = j(); attracted.woman = j(); attracted.nonbinary = 30 + Math.floor(Math.random() * 50); }
+  if (Math.random() < 0.06) attracted.nonbinary = Math.max(attracted.nonbinary, 30 + Math.floor(Math.random() * 40));
+  Object.keys(attracted).forEach((k) => { attracted[k] = Math.max(0, Math.min(100, attracted[k])); });
+  // LIBIDO IS ITS OWN AXIS. Separating it from the `romantic` profile axis is what lets the model
+  // hold "romantic without sexual attraction" and "sexual attraction without romance" with no
+  // special case for either — Frank's Layers 3 and 4, kept apart as he specified.
+  const libido = pick === "ace" ? Math.floor(Math.random() * 12) : 25 + Math.floor(Math.random() * 70);
+  // LAYER 4's other two weightings (Frank, 1 Aug). Per person, because a preference is not a fact
+  // about the world — and drawn once and kept, because it is not a mood either.
+  const r2 = Math.random();
+  const speciesPref = r2 < SPECIES_PREF_OWN ? "own" : r2 < SPECIES_PREF_OWN + SPECIES_PREF_BROAD ? "broad" : "other";
+  let r3 = Math.random(), agePref = "near";
+  for (const [k, w] of Object.entries(AGE_PREF_WEIGHTS)) { r3 -= w; if (r3 <= 0) { agePref = k; break; } }
+  return { attracted, libido, speciesPref, agePref };
+}
+
+// THE LABEL IS A VIEW. Read from the weights whenever something needs a word, never stored — the
+// third time this project has applied the same rule, and for the same reason: a stored label drifts.
+export function orientationOf(person: any): string {
+  const a = person && person.attracted;
+  if (!a) return "unknown";
+  const g = person.gender || "woman";
+  const same = g === "man" ? a.man : g === "woman" ? a.woman : a.nonbinary;
+  const opp = g === "man" ? a.woman : g === "woman" ? a.man : Math.max(a.man, a.woman);
+  const top = Math.max(a.man, a.woman, a.nonbinary);
+  if (top < 15) return (person.libido || 0) < 15 ? "asexual" : "largely uninterested";
+  if (a.nonbinary > Math.max(a.man, a.woman)) return "queer";
+  if (same >= 35 && opp >= 35) return "bisexual";
+  if (same > opp) return g === "man" ? "gay" : g === "woman" ? "lesbian" : "queer";
+  return "heterosexual";
+}
+
+// How likely is somebody HERE to pair outside their own people? Derived, not declared — Frank's own
+// point that the surrounding society is what matters, and the demographic tables already encode it.
+// Individual prejudice moves it too: a person high on that axis in a cosmopolitan port is still
+// their own kind of insular.
+export function interspeciesChance(regionId?: string | null, localeId?: string | null, person?: any) {
+  const byLocale = regionId && localeId && SPECIES_BY_LOCALE[regionId] && SPECIES_BY_LOCALE[regionId][localeId];
+  const pool = byLocale || (regionId && SPECIES_BY_REGION[regionId]) || SPECIES_BY_REGION.swordcoast;
+  const d = poolDiversity(pool);
+  const base = INTERSPECIES_FLOOR + (INTERSPECIES_CEIL - INTERSPECIES_FLOOR) * d;
+  const pre = person && person.profile ? person.profile.prejudice : 50;
+  return Math.max(0, Math.min(1, base * (1.5 - pre / 100)));      // 0 prejudice = x1.5, 100 = x0.5
+}
+
+// ---- COUPLES ACROSS THE HOUSEHOLD ---------------------------------------------------------------
+// Found 1 Aug by Frank asking whether an orcish pastry cook could marry a lizardfolk guard. He could
+// not, and neither could anybody else: `pairUp` was only ever called from `staffFacility`, between
+// two people hired into the SAME ROOM in the SAME RUN. Measured over 300 keeps — **zero couples
+// spanning two rooms, and zero defenders with a spouse at all.**
+//
+// That is the same shape as this morning's defender gaps: the garrison is built by a different path
+// and the feature never reached it. Twenty-five people in a vast Barrack could not pair with anybody,
+// including each other.
+//
+// AND IT IS TRUER ACROSS THE HOUSEHOLD ANYWAY. Two people in one room met at work; two who arrived
+// married did not. A sergeant and a cook is a perfectly ordinary marriage.
+//
+// Run AFTER staffing rather than inside it, because the candidate pool is the whole keep and cannot
+// be known while one room is still filling.
+export function pairHousehold(b: any) {
+  if (!b) return 0;
+  const pool = [
+    ...((b.facilities || []).flatMap((f: any) => (f.henchmen || []))),
+    ...((b.defenders) || []),
+  ].filter((h: any) => h && !h.mindless && !h.spouseId && h.marital !== "married");
+  if (pool.length < 2) return 0;
+  // How many couples this household should hold. The people themselves decide how readily — a
+  // dragonborn pairs harder than a minotaur — and it is a share of the household, not a per-room roll.
+  const want = Math.round(pool.length * COUPLE_CHANCE * 0.5);
+  let made = 0;
+  // PEOPLE SEEK; THEY DO NOT COLLIDE. The first version drew two people at random and checked whether
+  // they happened to suit each other — which underrepresents every minority, because a random pair
+  // is overwhelmingly likely to be two majority-oriented people. Measured, same-gender couples came
+  // out at 0.35% against a real-world ~1%, and the cause was the SAMPLING rather than the weights.
+  //
+  // A person looks for somebody who might reciprocate. So: pick one person, then look through the
+  // household for who would actually suit them, and choose among those. That reproduces the
+  // underlying attraction distribution instead of flattening it, and it needed no thumb on the scale.
+  const order = [...pool].sort(() => Math.random() - 0.5);
+  for (const a of order) {
+    if (made >= want) break;
+    if (a.spouseId) continue;
+    const pm = pairingOf(a.species);
+    if (pm.couples <= 0) continue;
+    if (Math.random() > Math.min(1, pm.couples * 0.9)) continue;      // does this one look at all?
+    const suitors = pool.filter((c: any) => c !== a && !c.spouseId && pairingOf(c.species).couples > 0 && mutuallyDrawn(a, c));
+    if (!suitors.length) continue;
+    if (pairUp(a, suitors[Math.floor(Math.random() * suitors.length)])) made++;
+  }
+  return made;
+}
+
+export function rollPerson(species: string, nm: { name: string; sex: "m" | "f"; odd: boolean }, age: number, role: string) {
+  const profile = rollProfile();
+  const marital = rollMarital(age);
+  const mindless = speciesMindless(species);
+  // GENDER IDENTITY, then attraction from it. Frank's figures: ~0.5-1% of adults trans, ~0.5%
+  // nonbinary, and the split by sex assigned at birth is close to even — so this reads off `sex`
+  // rather than assuming a direction.
+  // GENDER INCONGRUENCE IS CONSTITUTIONAL AND PER-PEOPLE (Frank, 1 Aug). Scaled by dimorphism: a
+  // people whose body signals sex sharply produces less of it. Humans are exactly the surveyed rate.
+  const inc = incongruenceFactor(species);
+  const nbR = GENDER_IDENTITY.nonbinary * inc, trR = GENDER_IDENTITY.trans * inc;
+  const gid = Math.random();
+  let gender = gid < nbR ? "nonbinary"
+               : gid < nbR + trR ? (nm.sex === "m" ? "woman" : "man")
+               : (nm.sex === "m" ? "man" : "woman");
+  // A people that does not desire has no attraction weights to have — and `libido` scaling a thing
+  // that is not there was producing an autognome with a sex drive.
+  const attAx = speciesAxes(species);
+  // ⚠ A PEOPLE THAT CARRIES BOTH DOES NOT INHERIT ITS PRESENTATION FROM A NAME DRAW. `gender` is
+  // computed from `nm.sex`, which is right for a people with one sex and meaningless for a plasmoid
+  // — it produced 98% presenting as man, because the name pool was asked a question that only makes
+  // sense for somebody who has a sex to be congruent or incongruent WITH.
+  if (!mindless && attAx.sexed === "both") {
+    const g = Math.random();
+    gender = g < 0.42 ? "woman" : g < 0.84 ? "man" : "nonbinary";
+  }
+  const att = (mindless || !attAx.desires) ? null : rollAttraction(gender, species);
+  // ⚠ WHICH AXES THIS PEOPLE EVEN HAS (Frank, 2 Aug). Everything below was applied to anything not
+  // `mindless`, which produced a widowed AUTOGNOME with two living parents and a libido of 85 — a
+  // machine with a sex drive and a god. `SPECIES_ROLES` asks three questions (post, wall, thinks)
+  // and the model then assumed anything that thinks does everything else a human does.
+  const ax = speciesAxes(species);
+  return {
+    name: nm.name, nameOdd: nm.odd, age, role,
+    // A mindless worker has no inner life: no profile, no traits, no faith, no family. It is a pair
+    // of hands and a name, and every downstream system already reads `mindless` to know that.
+    sex: (mindless || ax.sexed === 'none') ? undefined : (ax.sexed === 'both' ? 'both' : nm.sex),
+    gender: (mindless || !ax.gendered) ? undefined : gender,
+    profile: mindless ? undefined : profile,
+    traits: mindless ? [] : traitsOf(profile, age),
+    socialClass: CLASS_BY_ROLE[role] || "labouring",
+    faith: (mindless || !ax.worships) ? undefined : rollFaith(SPECIES_NAMING[species]),
+    marital: (mindless || !ax.romances) ? undefined : marital,
+    // A people with no sexes has no mother and no father — see PARENT_STATES_UNSEXED.
+    parents: (mindless || !ax.born) ? undefined : (ax.sexed === 'one' ? rollParents(age) : rollParentsUnsexed(age)),
+    attracted: att ? att.attracted : undefined,
+    libido: att ? att.libido : undefined,
+    // Capacity, exclusivity and jealousy are answers to a question a non-romancing people was never
+    // asked. A thri-kreen has clutch-mates; "monogamous" is the wrong shape entirely.
+    ...((mindless || !ax.romances) ? {} : rollRelOrientation(species)),
+    speciesPref: att ? att.speciesPref : undefined,
+    agePref: att ? att.agePref : undefined,
+    bonds: [], morale: 0, note: "", mindless,
+  };
+}
 
 export const FURNISHING_TIER_BY_ID: Record<string, any> = {}; FURNISHING_TIERS.forEach((t) => { FURNISHING_TIER_BY_ID[t.id] = t; });
 
@@ -236,14 +868,125 @@ export function facEstablishment(fac) {
 
 // Fill a facility to its establishment with named, rolled-up people. Called when the room is raised
 // and whenever the household recovers — never by the player.
-export function staffFacility(s: AppState, fac: Facility, count?) {          // count omitted = fill to establishment (see below)
+// Somebody else for a post a dryad cannot take. Draws from the same places the ordinary hire does,
+// and never returns a dryad, because the reason she was turned away has not changed.
+function fallbackSpecies(regionId?: string | null, localeId?: string | null, defId?: string | null, ch?: any): string {
+  for (let i = 0; i < 12; i++) {
+    const called = chosenHireSpecies(ch, "hire", Math.random, defId);
+    const sp = called || randSpecies(regionId, localeId, "hire", ch && ch.bastion && ch.bastion.form, defId).species;
+    if (sp !== "Dryad") return sp;
+  }
+  return "Human";
+}
+
+export function staffFacility(s: AppState, fac: Facility, count?, regionId?: string | null, localeId?: string | null, ch?: any) {   // count omitted = fill to establishment; regionId decides who lives near enough to be hired
   if (!Array.isArray(fac.henchmen)) fac.henchmen = [];
   const want = count == null ? facEstablishment(fac) - fac.henchmen.length : count;
   const roles = FACILITY_ROLES[fac.defId] || null;              // this room's own job titles, filled in order (clamped)
   for (let i = 0; i < want; i++) {
-    const r = randHench();
-    const role = roles ? roles[Math.min(fac.henchmen.length, roles.length - 1)] : r.role;
-    fac.henchmen.push({ id: "h" + s.nextId++, name: r.name, age: r.age, role, traits: r.traits || [], bonds: [], note: "" });
+    const role = roles ? roles[Math.min(fac.henchmen.length, roles.length - 1)] : null;
+    // WHO TAKES WHICH POST (Frank, 1 Aug). Two leanings, applied by REJECTION SAMPLING rather than by
+    // building a second weighted table: draw a person, and if this people is unlikely to take this
+    // kind of work, draw again — a few times only, so the result is a LEANING and never a gate. An
+    // orc scullion stays possible and stays interesting.
+    //
+    // The sex bias is applied the same way and for the same reason: it shifts who is likely to be
+    // standing there without ever making anybody impossible.
+    let r = randHench(regionId, localeId, ch && ch.bastion && ch.bastion.form, ch, fac && fac.defId);
+    if (role) {
+      const wantMale = Math.random() < postMaleShare(SPECIES_NAMING[r.species], role);
+      for (let tries = 0; tries < 4; tries++) {
+        const lean = postLean(r.species, role);
+        const sexOk = (r.sex === "m") === wantMale;
+        if (lean >= 1 && sexOk) break;                       // a natural fit, both ways
+        if (Math.random() < Math.min(1, lean) * (sexOk ? 1 : 0.45)) break;
+        r = randHench(regionId, localeId, ch && ch.bastion && ch.bastion.form, ch, fac && fac.defId);
+      }
+    }
+    // The record is rolled whole by `randHench`; the ROLE is the room's, not the generic pool's, so
+    // it is overwritten here along with the class that follows from it. Everything else is spread —
+    // hand-listing fields is how `sex` and `species` went missing from defenders for a morning.
+    // NO ACCIDENTAL FAMILIES (Frank, 1 Aug). A culture carries ~22 surnames, so a three-post room
+    // collided about 7% of the time and two unrelated people read as siblings. **More names is the
+    // expensive fix and the wrong one** — at three people you would need ~75 surnames per culture to
+    // get the rate to 2%, and it would still never be zero.
+    //
+    // Redrawing the name until the surname is free makes it EXACTLY zero for a handful of tries. A
+    // shared surname in a room now means precisely one thing: `pairUp` put it there.
+    // Surnames are checked within the ROOM (a shared one there reads as family), FULL names across
+    // the WHOLE HOUSEHOLD — because two "Jory Kettle" in one keep is confusing wherever they work.
+    // The room check alone was not enough: at 42 people, 18,888 name combinations still collide about
+    // 4.5% of the time, which the full-household test caught.
+    // The household is found from the STATE, not stashed on it — an earlier attempt wrote a scratch
+    // key onto `s` and the reducer draft's own guard threw: "state collection is in neither DEEP nor
+    // FLAT — classify it before an action touches it." That guard is correct and this is cheaper.
+    const houseNames = new Set<string>();
+    Object.values((s as any).characters || {}).forEach((c: any) => {
+      if (!c || !c.bastion) return;
+      if (!((c.bastion.facilities || []).some((ff: any) => ff.id === fac.id))) return;   // only THIS keep
+      (c.bastion.facilities || []).forEach((ff: any) => (ff.henchmen || []).forEach((h: any) => houseNames.add(h.name)));
+      (c.bastion.defenders || []).forEach((d: any) => houseNames.add(d.name));
+    });
+    (fac.henchmen || []).forEach((h: any) => houseNames.add(h.name));
+    const roomSurnames = new Set((fac.henchmen || []).map((h) => (h.name || "").split(" ").slice(1).join(" ")).filter(Boolean));
+    for (let tries = 0; tries < 12; tries++) {
+      const sur = r.name.split(" ").slice(1).join(" ");
+      if (!roomSurnames.has(sur) && !houseNames.has(r.name)) break;
+      // A people that carries both sexes has no name-sex to redraw with; either pool is right.
+      r.name = randName(r.species, (r.sex === "m" || r.sex === "f") ? r.sex : undefined).name;
+    }
+    // ⚠ WHERE SOMEBODY WAS HIRED (Frank, 2 Aug). He noticed that *"if a player is strategic about the
+    // adventures they run, or if they run their bastion around the map, a ship could pick up an
+    // extremely diverse crew"* — and it can: a vessel putting in at six ports gathers **eleven
+    // peoples** where a static keep gathers three or four.
+    //
+    // But nobody remembered WHERE, so the regional overlay keyed on `b.region` — where the bastion
+    // is NOW. A lizardfolk hired in Chult and sailing in the Feywild spoke with Feywild lines.
+    // **For a keep that never moves the two are the same and the bug is invisible; for a ship they
+    // are never the same.** Recorded here, at the one moment it is known.
+    const finalRole = role || r.role;
+    // ⚠ A DRYAD ARRIVES WITH A TREE (Frank, 2 Aug), and the tree was ALWAYS THERE. It is not planted
+    // and it does not arrive — it has stood in the yard since before anybody thought to mention it,
+    // which is exactly why nobody had. One tree per dryad, recorded on the facility she took a post
+    // at, so the narration can refer to it as furniture rather than as an event.
+    // ⚠ THE TREE GOES OUTDOORS, WHEREVER SHE WORKS (Frank, 2 Aug). She can hold any post in the
+    // building; the tree is her BED and has to stand on open ground. So it is recorded on the
+    // estate's outdoor facility rather than on the room she was hired into — and if there is no open
+    // ground at all, there is nowhere for her to sleep and she does not take the post.
+    if (r.species === "Dryad") {
+      // OPEN GROUND, not a particular room. An outdoor facility if the estate has one; otherwise the
+      // strip inside the wall, which any walled keep has and which nobody has ever thought of as a
+      // place. If there is neither, there is nowhere for her to sleep — and 2e is unambiguous that
+      // she cannot be more than 360 yards from her oak, so she does not take the post.
+      const b2 = ch && ch.bastion;
+      const yard = (b2 && (b2.facilities || []).find((x: any) => facilityIsOutdoor(x.defId) && !x.building)) || null;
+      const where = yard ? ((BASTION_FACILITIES[yard.defId] || {}).name || yard.defId).toLowerCase() : (b2 && b2.walls ? "wall" : null);
+      // ⚠ WAS `return null`, which ABORTED THE WHOLE STAFFING — a keep with no open ground left ten
+      // posts of three hundred simply empty, because a dryad had been drawn and the function gave up
+      // instead of drawing somebody else. **A precondition on ONE candidate is not a reason to stop
+      // hiring**, which is the never-zero rule in a form I had not thought about.
+      //
+      // She is turned away and the post is filled by whoever is next. There is nowhere for her oak,
+      // so there is no post for her — and that is a fact about this keep rather than about the room.
+      if (!where) { r.species = fallbackSpecies(regionId, localeId, fac && fac.defId, ch); }
+      else {
+      const holder = yard || b2;
+      const trees = ((holder as any).trees = (holder as any).trees || []);
+      trees.push({
+        id: "tree" + (s.nextId++),
+        forId: (r as any).id || null,
+        where,
+        desc: where === "wall"
+          ? DRYAD_TREES_WALL[Math.floor(Math.random() * DRYAD_TREES_WALL.length)]
+          : DRYAD_TREES[Math.floor(Math.random() * DRYAD_TREES.length)].replace(/\{where\}/g, where),
+      });
+      }
+    }
+    (r as any).hiredIn = regionId || null;
+    (r as any).hiredAt = localeId || null;
+    fac.henchmen.push({ ...r, id: "h" + s.nextId++, role: finalRole, socialClass: CLASS_BY_ROLE[finalRole] || r.socialClass });
+    // Pairing is no longer done here. It was per-room and per-run, which meant no couple could span
+    // two rooms and the garrison could not pair at all. See `pairHousehold`, called after staffing.
   }
   return fac.henchmen;
 }
@@ -385,6 +1128,65 @@ export function registerFacility(spec: FacilitySpec) {
   if (spec.reactions)        FACILITY_REACTIONS[id] = spec.reactions;
   if (spec.lifeTasks)        BASTION_LIFE_TASKS[id] = spec.lifeTasks;
 }
+
+// ═════════════════════════════ BARRACK mint ════════════════════════════════
+// DMG: "A Bastion can have more than one Barrack, each of which is furnished to serve as sleeping
+// quarters for up to twelve Bastion Defenders." Level 5, Roomy, 1 hireling, Recruit.
+//
+// The mechanics live in the def and the engine — the muster of four, the 12/25 cap, the per-Barrack
+// quartering. THIS block is the room: bunks and kit-chests and a stove in eight different houses,
+// the sergeant who keeps it, and the week it has when nobody is looking. A barrack is the only room
+// in the keep whose furniture is somebody's HOME, and the writing leans on that.
+registerFacility({
+  id: "barrack",
+  formNames: { "barrack@keep": "The Garrison Hall", "barrack@tower": "The Watch-Room", "barrack@manor": "The Guard House", "barrack@cavern": "The Warren Bunks", "barrack@ruin": "The Old Garrison", "barrack@grove": "The Wardens' Lodge", "barrack@vessel": "The Fo'c's'le", "barrack@hamlet": "The Muster Hall" },
+  roles: ["Sergeant"],
+  furnishings: [{ slot: "bunks", name: "ranked bunks", plural: true }, { slot: "kitchests", name: "kit-chests at the foot of each bunk", plural: true }, { slot: "barrackstove", name: "a stove and a drying-rail" }],
+  furnishingWeight: { bunks: 4, kitchests: 3 },
+  furnishingLadder: {
+  bunks:          ["straw pallets in rows on a plank floor","good rope-strung bunks, two high, each with a blanket","joined bunks with boarded sides and a shelf at the head","fitted bunks of seasoned oak, curtained, each with its own lamp-hook","a barrack-range a joiner signed, every berth panelled and private, that a soldier would re-enlist to sleep in"],
+  "bunks@keep":   ["pallets down the hall wall where the watch drops after a turn","good bunks the garrison built themselves one winter","joined bunks ranked by watch, the night-watch nearest the door","fitted oak bunks, curtained, the sergeant's by the stove","the garrison's own range, four generations deep, every berth cut with the initials of who slept there"],
+  "bunks@tower":  ["pallets on the landing where the stair widens","good bunks fitted to the curve of the wall","joined bunks stacked up the tower, a ladder to the top berth","fitted bunks spiralling the shaft, each with a lamp-hook and a window-slit","a tower-range a joiner fitted to the stone, that sleeps twelve up a wall nobody thought would hold a bed"],
+  "bunks@manor":  ["pallets over the stable, warm from below","good bunks in the guard house, boarded and dry","joined bunks with proper linen, the house's mark on it","fitted bunks of waxed pine, curtained, better than most cottages","a guard-range that a duke's joiner built to shame the neighbours, and did"],
+  "bunks@cavern": ["pallets on cut ledges, a blanket against the rock","good bunks framed off the stone, up out of the damp","joined bunks in dry-cut alcoves, each with its own niche","fitted bunks of rot-proof timber, curtained against the drip","a warren-range cut into the living rock, warm and dry a hundred feet down, that the deep has kept sound for a century"],
+  "bunks@ruin":   ["pallets in the corner the roof still covers","good bunks knocked together from what the hall gave up","joined bunks rebuilt in the old garrison's own pattern","fitted bunks restored from the ruin's own barrack-range","the old garrison's range brought back whole, sleeping soldiers in the berths that stood empty three hundred years"],
+  "bunks@grove":  ["pallets under a lean-to of green branches","good bunks of grown wood, roofed in leaf","joined bunks the grove closed a canopy over, dry in the rain","fitted bunks of living heartwood, each grown to its sleeper","a wardens' range the wood itself keeps, that has never let rain reach a sleeping ranger"],
+  "bunks@vessel": ["hammocks slung wherever there is a beam","good hammocks properly hooked, and a chest to sit on","joined standing bunks with lee-boards against the roll","fitted berths, curtained and gimballed, dry in any sea","a fo'c's'le a shipwright signed, every berth snug and lee-boarded, that has kept a watch asleep through three gales"],
+  "bunks@hamlet": ["pallets in the loft above the hall","good bunks the village carpenter made for the muster","joined bunks ranked along the muster hall wall","fitted bunks of scrubbed pine, curtained, the best beds on the green","the hamlet's own muster-range, that has slept every man of the district on the nights it mattered"],
+  kitchests:          ["a shelf and a nail apiece","good kit-chests, one to a bunk, each with a hasp","joined chests with a lock and a name burnt in the lid","fitted kit-chests of banded oak, each keyed to its owner","a rank of chests a coffer-maker signed, that a soldier's whole life fits in and nothing gets out of"],
+  "kitchests@keep":   ["a nail and a shelf for what the watch owns","good chests with hasps, one to a bunk","joined chests, name burnt in each lid by the sergeant","fitted banded chests, each keyed, the keys on the sergeant's ring","the garrison's own chests, some with three names burnt over each other and the oldest barely readable"],
+  "kitchests@vessel": ["a canvas ditty-bag hung from the beam","good sea-chests, one to a berth, lashed against the roll","joined chests with beckets and a becket-lanyard each","fitted sea-chests, dovetailed and cleated, dry through any weather","a rank of sea-chests a shipwright signed, that have crossed three oceans and never shipped a drop"],
+  "kitchests@grove": ["a hollow in the wood and a leaf over it","good chests of grown wood, the grain closed against wet","joined chests the wood keeps dry without a lid","fitted living chests, each grown to what it holds","chests the grove itself made, that no rain has ever reached inside"],
+  barrackstove:          ["a brazier and a line to hang wet things on","a good iron stove and a proper drying-rail","a banked stove that holds through the night, rails either side","a fitted range with a boiler, and rails enough for the whole watch's kit","a barrack-stove a smith signed, that has not gone out in eleven years"],
+  "barrackstove@vessel": ["a charcoal box in a sand-tray, watched","a good galley-stove, bolted and railed","a bolted stove with a fiddled rail, safe on any heel","a fitted range gimballed against the roll, rails all round","a fo'c's'le stove a shipwright bolted down, that has stayed lit through weather that put the galley out"],
+  "barrackstove@cavern": ["a fire in a cut niche, the smoke finding its own way","a good stove with a flue cut up through the rock","a banked stove, the flue drawing clean to the surface","a fitted range with a stone flue and rails, warm all night","a stove set into the rock that warms the whole warren and has burned since before anyone here was born"],
+  },
+  sizeFlavor: { cramped: "barely a room \u2014 bunks head to foot and nowhere to stand between them", roomy: "a proper barrack \u2014 twelve berths, chests, and room to dress between the ranks", vast: "a garrison range \u2014 twenty-five berths, a stove at either end, and space to drill in the aisle" },
+  ruin: { empty: "The bunks are stripped and the chests stand open. Nobody has slept here in a while, and the stove is cold enough to prove it.", stripped: "Somebody took the bunks. The bolt-holes are still in the floor in ranks, which is somehow worse than an empty room.", neglected: "Damp has got into the bedding and nobody has aired it. It smells of a room that people left in a hurry." },
+  reactions: {
+    why: { slovenly: "left as {d} leaves a berth", idle: "which {d} had meant to see to before muster", green: "{d} not yet knowing how a barrack is kept", sly: "or so {d} told the sergeant", proud: "and {d} would not be told of it by anyone" },
+    to: [
+      { tag: "quarrelsome", d: -2, say: "and {r} made an inspection of it in front of the whole watch" },
+      { tag: "sharp-tongued", d: -1, say: "and {r} said what a berth like that says about a soldier" },
+      { tag: "proud", d: -1, say: "and {r} squared it away without a word and remembered who had not" },
+      { tag: "forgiving", d: 1, say: "and {r} squared it away before the sergeant came through" },
+      { tag: "patient", d: 1, say: "and {r} showed them how, again, and did not sigh" },
+      { tag: "soft-hearted", d: 1, say: "and {r} covered for them at inspection" },
+    ],
+    generic: { d: 0, say: "and {r} let it pass" },
+  },
+  lifeTasks: {
+  keep: ["turned the pallets and aired the bedding along the wall","drilled the new ones in the yard until the sergeant was satisfied, which took most of the morning","scrubbed the barrack floor because somebody had failed an inspection","stood the night watch and came in grey and wordless at dawn","mended kit \u2014 a strap, a buckle, a boot that had given out on the road","settled an argument about a bunk that had been going on for three days","counted the watch in and found the tally right for once","banked the stove and hung the whole watch's wet things to dry"],
+  tower: ["turned the pallets on the landing and swept the stair below","drilled on the roof for want of a yard, which nobody enjoys","scrubbed a floor that curves, badly, the way it always goes","stood a watch that is mostly stairs and looked out a great deal","mended kit by lamplight with the wind at the slits","argued about which berth is worst \u2014 top for the climb, bottom for the draught","counted the watch in and found somebody still up top, asleep","banked the stove and hung wet cloaks up the shaft where the warm goes"],
+  manor: ["turned the bedding over the stable, warm from the horses below","drilled in the paddock where the house cannot see, by arrangement","scrubbed the guard house because the steward is coming through","stood the gate watch and was civil to people who were not","mended kit that is better than most soldiers ever own and knows it","argued about who has the berth by the window, which is the only one worth having","counted the watch in and found them all present, which the sergeant distrusts","banked the stove and dried the livery, which must not be seen to be damp"],
+  cavern: ["turned the bedding on the ledges and let the dry air at it","drilled in a gallery where the echo makes every command twice","scrubbed rock, which does not scrub, and did it anyway","stood a watch in the dark where the sound carries further than the lamp","mended kit against the damp \u2014 oil on everything, twice over","argued about which alcove drips, and everyone knows which one","counted the watch in and heard the last one coming a long way off","banked the stove and hung the whole warren's wet things in the warm"],
+  ruin: ["turned bedding that is newer than anything else in the room","drilled where a parade-ground used to be, under the ivy","scrubbed a floor that was somebody's barrack three centuries back","stood a watch on a wall with a gap in it, and watched the gap","mended kit and salvaged buckles from what the ruin still gives up","argued about the bunk under the sound bit of roof","counted the watch in through a gate that has no gate","banked the stove in a hearth that was cold longer than it has been warm"],
+  grove: ["turned the bedding and let the green light at it","drilled in a clearing, quietly, because the wood does not like shouting","swept the lodge out with a besom of its own branches","stood a watch that is mostly listening, and heard nothing worth reporting","mended kit with waxed cord and green-ash mending pegs","argued about a berth the wood keeps growing a branch into","counted the wardens in and found one still out, unhurried","banked the stove and hung wet leathers where the canopy is thickest"],
+  vessel: ["turned out the hammocks and lashed them up along the rail","drilled at the sweeps and the boarding-pikes till the mate was satisfied","holystoned the fo'c's'le deck, which is a punishment and a chore both","stood the middle watch and came below soaked to the waist","mended kit with palm and needle, sitting on a sea-chest","argued about a hammock hook that has been contested since Luskan","counted the watch below and found the tally right, sea or no sea","banked the stove and hung a whole watch's oilskins to drip"],
+  hamlet: ["turned the loft bedding and shook it out over the green","drilled on the green with half the village watching and commenting","swept the muster hall out, which doubles as the dance floor","stood a watch on a road nobody comes down, and was glad of it","mended kit at the door in the light, with the village going past","argued about a bunk with somebody they have known since they were six","counted the muster in and found them all in the alehouse","banked the stove and hung the whole muster's wet things across the hall"],
+  },
+});
+
 // ═════════════════════════════ ARMORY mint ═════════════════════════════════
 // DMG: "An Armory contains mannequins for displaying armor, hooks for holding
 // Shields, racks for storing weapons, and chests for holding ammunition."

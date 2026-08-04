@@ -84,7 +84,7 @@ Current fronts, in the order they'd close fastest:
 
 ---
 
-## D · FACILITY MINTS — 21 remaining of 29 (derived, 31 Jul)
+## D · FACILITY MINTS — 20 remaining of 29 (derived, 1 Aug)
 
 **Counts are DERIVED from `node harness/facility_mint.cjs --status`, never hand-typed** — the old
 line here read "25 remaining · 4/29" and had drifted four mints and one total behind the code.
@@ -106,13 +106,169 @@ MAGIC_TABLES roller that returns a slot for the player to fill from their own bo
 the facilities that would roll on those tables. Wire it when the first such room is minted; do not
 treat it as a loose end before then.
 
-Not yet started (21): barrack · demiplane · gaming_hall · garden · greenhouse · guildhall ·
+Not yet started (20): demiplane · gaming_hall · garden · greenhouse · guildhall ·
 laboratory · meditation_chamber · menagerie · pub · reliquary · **sacristy** · sanctuary · sanctum ·
 stable · storehouse · teleportation_circle · theater · training_area · trophy_room · war_room
 
 ---
 
-## E · REGION GRAPH — PARKED
+## G · THE CHRONICLE METADATA PASS — ~250 adventures (Frank, 1 Aug)
+
+The owner is authoring per-adventure historical metadata for every published adventure, one at a
+time: canonical date, story beats, rumours, affected regions, and the rest of `CHRONICLE.md`'s
+schema. Handed back as a table when the Chronicle system is built.
+
+**This answers both of `CHRONICLE.md`'s stated blockers.** The founding date is now the completion
+date of the character's last tier-1 adventure — earned, per character, and requiring only that tier-1
+adventures carry dates. The metadata is no longer an unfunded research task; it is being done.
+
+**BEFORE ADVENTURE 1 — build the consumer against a sample of 8–12 first.** The ~13-field schema was
+written 17 Jul from the concept and **has never been read by anything**. An unconsumed schema is a
+guess, and the failure mode costs 250 adventures of rework. Author a deliberately awkward handful
+(firm date / no date / multi-region / generates a Call / affects a bastion that never played it),
+build the Chronicle end-to-end against them, THEN author the rest. Same lesson as the library corpus:
+its schema survived 100 subjects because a working generator consumed it from subject one.
+
+**And gate the rows as they land**, the way `check:ledger` gates library subjects — a structural
+defect should surface at adventure 3, not adventure 200.
+
+---
+
+## L · CHULT 2e DEPTH — the barae and Mezro (2 Aug)
+
+The Chult overlay is **entirely 5e**. Frank asked directly whether any 2e had been used; the answer
+was no, and the source comment had overclaimed it.
+
+Where 2e legitimately applies under §9 and has not been drawn on: the **barae** (Mezro's seven sworn
+protectors — 5e names them and says almost nothing), what **Ubtao's worship** actually consisted of,
+and the Mezro city material. All from *Jungles of Chult* (1993).
+
+---
+
+## M · CHOSEN HIRES — REMAINING (2 Aug)
+
+Built: pools (undead lesser/greater, fiends, fey), `subclass` on the character, the bastion toggle,
+both hiring paths, and the gate.
+
+**Open:**
+- **the UI control** —  are declarations in the same shape as the focus prereqs,
+  so the control is the same control: a checklist beside "What {name} can do". Nothing draws it yet.
+
+- **naming the risen.** A skeleton is currently "Halbert Carrick". Frank has not ruled: ordinary
+  names (they WERE somebody), a number, or whatever the necromancer called it
+- more patrons: Great Old One (aberrations), Celestial, Genie, Fathomless — no pools written
+- Circle of Spores, Oath of Conquest and Hexblade currently get `undead_lesser`, which is a guess
+
+---
+
+## N · THE GARDEN (2 Aug)
+
+The DMG has one and the registry does not — level 5, roomy, 1 hireling, Harvest order, with a Garden
+Types table. `FACILITY_ORDER_TASKS` has carried orphaned **garden harvest** tasks since 1 Aug.
+
+The Stable (added 2 Aug) closed the outdoor-hire half of this gap. **The orphaned harvest table is
+the other half and still waits.**
+
+---
+
+## K · PER-ADVENTURE LOCATION EXTRACTION (2 Aug)
+
+`SEASON_REGION` maps all 250 adventures to a region **by season**, which is honest and coarse: a
+season picks a corner of the Realms and stays there. It is wired into Lost Hirelings so a hireling
+whose homeland the party has been adventuring in is likelier to be called away.
+
+**What it is not:** per-adventure. DDAL05-02 (the Black Road) and DDAL05-10 are both "silvermarches"
+though one runs to Zhentil Keep. The finer extraction is the existing incomplete Season 1 work.
+
+---
+
+## J · THE CONTENT RUN — ~3,100 SENTENCES (Frank, 1 Aug)
+
+**THE MECHANISM IS BUILT AND GATED (1 Aug). What remains is writing.**
+
+| | | |
+|---|---|---|
+| `SPECIES_FLAVOR` | slice / romance / taboo, 20 each | 32 peoples x 60 = **1,920** — **360 written — Orc, Elf, Dwarf, Human, Half-Elf, Halfling COMPLETE. 26 peoples remain. NOTE: Human is common in all 17 regions with no base culture — its overlays are ~1,020 lines on their own.** |
+| `REGIONAL_FLAVOR` | overlay per people PER REGION, only where the combination is its own culture | ~15-20 overlays x 16 = **~300** — **20 overlays, 1,200 lines. Orc/Elf/Dwarf wrapped; **HUMAN COMPLETE: all 17 regions, 1,020 lines.** Base table audited against them and confirmed. Every region they live in is written or explicitly ruled absent (OVERLAY_DELIBERATELY_ABSENT), gated.** |
+| `FACILITY_ORDER_TASKS` | chores / craft / research / harvest / trade | 15 rooms x applicable x 20 = **up to 1,200** |
+
+Three peoples (Orc, Elf, Dwarf) and three facility-order pools are seeded as the PATTERN, so the
+register is fixed before the volume is written. **Every axis falls through cleanly** — an unauthored
+people or order uses the next axis down and nothing breaks, which is what makes this incremental
+rather than a wall.
+
+A facility declares only the order kinds it HAS: a smithy crafts and does not research, a bedroom
+just has chores. Gated.
+
+**Already done and NOT part of this:** the romance tables (covert glimpses in five shapes, overt beats
+in three states) are keyed by taboo kind and relationship state rather than by species, which is the
+right axis for them — an age-gap romance reads the same whoever is in it.
+
+---
+
+## I · HAMLET CHILDREN — designed, not built (Frank, 1 Aug)
+
+Children work in exactly ONE bastion form: the Hamlet, *"a scatter of cottages and sheds about a well
+and a green"*. In a keep or a tower or a vessel they are a complication; in a village their absence is
+the odd thing.
+
+**Frank's shape, and it is the cheap one:** they are HAMLET RESIDENTS, not employees of the lord —
+background dressing that intersects with the staff. The estate employs some of the village; it is not
+the whole village. So they need a name, an age, a parent link and a d20 of village-child beats. No
+occupation, no marital status, no morale, no bonds.
+
+**The "I would have to simulate them" worry does not fire at the timescale of play.** Measured: 1
+Realms year = 52 turns; a 15-session character sees ~21 turns = **0.4 years**. A child aged 6 when you
+arrive is **6.4 when you retire**. Watching one reach sixteen would take ~372 sessions.
+
+**Decide deliberately before building:** a raid on a keep costs defenders; a raid on a hamlet with
+children in it is a different scene, and the system will produce it whether or not that was intended.
+
+---
+
+## H · CONTENT OUT OF THE BUNDLE — DATABASE BUILT 1 Aug; client wiring remains
+
+`vite build` ships **1,028 KB of static content** to the browser in one chunk: library_subjects
+479KB, registry 318KB, bastion 248KB, events 116KB.
+
+**RULED (EXCHANGE_PRODUCTION_STANDARD §8): generated data is a data file, reasoned data is source.**
+Pure lists (names, patrol lines, arrival beats) may move; anything carrying a citation, a provenance
+tag or a ruling stays in source, because ~31% of `bastion.ts` is the reasoning for its own values and
+neither JSON nor a SQLite row can hold a comment.
+
+**BUILT (1 Aug):** `server/content.db` — 100 subjects, 1,965 facts, 1,406 names, 304 prose lines,
+752 KB, generated by `npm run build:content` and verified fact-by-fact by `check:content` (gate step
+6 of 19). `subjectsForRegion()` serves ~8 subjects instead of 100.
+
+**REMAINING: wire the client to it.** The app is client-only — `src/` does not
+import from `server/` at all — so a table moved to JSON today is bundled anyway: the same megabyte
+with less type safety. The tables are already row-shaped, so the migration is a copy whenever it
+happens.
+
+Seam already identified: `librarySubjectFor()` / `anyLibrarySubject()` are the only accessors for
+479KB, and a per-region pull would load ~8 subjects instead of 100. `nameRows()` emits
+`(culture, kind, value)` today.
+
+**Depends on: the server being wired at all**, which is a deployment task rather than a data one.
+
+---
+
+## E · REGION GRAPH — NOT OPTIONAL: a dependency of a form already shipped (1 Aug)
+
+**Reclassified from PARKED.** The vessel is the one bastion form where "where are you" is a decision
+rather than a fact, and the region graph is its movement system — legal routes by medium (skyship
+anywhere, sand ship desert-to-desert, sea vessel coasts only), closest legal stopping point, and the
+region that point sets, which then drives the vessel's event table. See `VOYAGE.md` for the full design and `IDEAS.md` §4 for the cost-basis observation, including the finding that **the base system should compute journey time now even though it
+charges nothing for it** — it makes the Chronicle truthful, and it is the difference between After
+Dark being arithmetic and After Dark needing its own geography engine.
+
+**And `IDEAS.md` §5 widens it past vessels: scheduling for a table IS plotting a course.** Every
+bastion form needs the journey calculation, not just the one that moves — a keep does not travel, so
+the character travels from the keep. The distance goes on the Chronicle ahead of the adventure, and
+the downtime turns a player took in between become the REASON the trip ran long. That makes the
+region graph a dependency of **scheduling**, not only of the vessel form.
+
+Original notes follow.
 
 Complete and self-contained in `research/regions/`. 74 locations, 13 roads, tree untouched at
 28 nodes / 31 edges. Blocked on the ruler repin and on the Black Road mileage, which is **not on

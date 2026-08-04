@@ -39,6 +39,11 @@ export interface ItemRecord {
 }
 export interface CharacterRecord {
   id: string; name: string; ownerId: string; race: string; cls: string;
+  /** The subclass, where the player has chosen one. Optional: a character below 3rd level does not
+   *  have one, and the roster predates the field. Frank, 2 Aug: *"we need to know what pact a
+   *  warlock has"* — the subclass is where a CHOSEN HIRE entitlement lives, and a Fiend pact and an
+   *  Archfey pact are the same class calling completely different things. */
+  subclass?: string;
   level: number; tier: number; faction: string; campaign: string; ddb: string;
   dt: number; wishlist: any[];
   // WORK IN PROGRESS at the workbench (31 Jul). PH ch.6 "Crafting Equipment" prices a Heavy Crossbow
@@ -117,6 +122,11 @@ export interface Bastion {
   facilities: Facility[]; turns: BastionTurn[];
   neglect?: number; abandoned?: boolean;
   defenders?: any[]; defenderGraveyard?: any[];
+  /** Staff this bastion from the character's CHOSEN pool rather than from the region — a
+   *  necromancer's risen, a Fiend-pact warlock's bound, an Archfey warlock's invited.
+   *  Frank, 2 Aug: a bastion-level toggle that *only appears* for a class that has such a pool.
+   *  Setting it without the entitlement does nothing: see `chosenHiresActive`. */
+  chosenHires?: boolean;
   [k: string]: any;
 }
 /* ------------------------------------------------------------------------------------------------

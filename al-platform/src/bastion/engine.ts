@@ -170,7 +170,19 @@ export const FEY_DEPARTURES = [
 export function bleedAbandonedStaff(s: AppState, ch, dateStr) {
   const b = ch.bastion;
   const staff = bastionStaff(b);
-  if (staff.length === 0) {                       // nobody left — the site is looted and the keep is gone
+  // ⚠ AND THE RUIN IS DECIDED BY WHO COULD HAVE LEFT (Frank, 2 Aug): *"that population will remain
+  // WITH the ruins."* This counted EVERYBODY, so the moment the risen were excluded from the bleed
+  // they held the count above zero forever and **a necromancer's keep could never fall.**
+  //
+  // The site is looted and gone when nobody who could go is left. The risen are still there, still
+  // setting out the tools, in a ruin.
+  const mayLeave = staff.filter((x: any) => {
+    const who = x.kind === "defender"
+      ? (b.defenders || []).find((d: any) => d.id === x.id)
+      : ((b.facilities || []).find((f: any) => f.id === x.facId)?.henchmen || []).find((h: any) => h.id === x.id);
+    return !(who && who.mindless);
+  });
+  if (mayLeave.length === 0) {                    // nobody left who could leave — the site is looted and the keep is gone
     if (!b.ruined) {
       b.ruined = true;
       b.ruinedOn = dateStr;
@@ -180,7 +192,15 @@ export function bleedAbandonedStaff(s: AppState, ch, dateStr) {
     }
     return;
   }
-  const gone = staff[Math.floor(Math.random() * staff.length)];
+  // ⚠ A MINDLESS THING NEVER ABANDONS A POST (Frank, 2 Aug): *"undead are programmed to obey a fixed
+  // task and that's all they do, and they will keep doing it well past the point that the building is
+  // still occupied."* This picked ANYBODY at random, including a skeleton — which would have a
+  // skeleton leaving, the one thing already ruled impossible.
+  //
+  // They are excluded from the bleed entirely. **That is what makes a ruin haunted rather than
+  // empty**: the minded ones realise nobody is coming back and revert to what they were; the risen
+  // are still setting out the tools in a workshop with no walls.
+  const gone = mayLeave[Math.floor(Math.random() * mayLeave.length)];
   const fac = gone.kind === "hireling" ? (b.facilities || []).find((f) => f.id === gone.facId) : null;
   const r = hirelingLossReason(fac);                              // even in the long decline, people leave for reasons
   if (gone.kind === "defender") {
@@ -234,13 +254,15 @@ export function bleedAbandonedStaff(s: AppState, ch, dateStr) {
 //     lib/* + data/* + bastion/registry  <-  me  <-  app.tsx
 // ============================================================================
 
-import { pick } from "../lib/util";
+import { pick, pickN } from "../lib/util";
 import { FACILITY_ROLES } from "./registry";
 import { craftItemsFor, craftMaterialsGp, craftDaysWithHelp } from "../lib/rules";   // PH "Crafting Equipment" — one source, shared with the workbench      // master-first job titles; bastionMaker walks them in order
 import { catName, itemCat, itemClassOf, mkItem, verified, d6, d6x100, evHostility, evIsHostile, BATTLE_BEAT_SEC, BATTLE_JITTER } from "../lib/core";
 import { CATALOG } from "../data/catalog";
 import type { AppState, Facility, Bastion } from "../types";
-import { ARCHIVE_BOOK_SUBJECT_LABEL, composeArchiveTitle, composeLibraryTitle, composeLibraryParagraph, librarySubjectFor, anyLibrarySubject, rollLoreTopic, BASTION_ALL_IS_WELL, BASTION_ATTACK_DICE, BASTION_ATTACK_DICE_RAID, BASTION_ATTACK_DICE_WALLED, BASTION_BARRACKS_CAP, BASTION_BEDS_BY_SIZE, BASTION_CRAFT_ITEM, BASTION_EVENTS, BASTION_FACILITIES, BASTION_FACILITY_DAYS, BASTION_FOUND_COIN, BASTION_ORDERS, BASTION_ORDER_FLAVOR, BASTION_PREREQS, BASTION_QUIET_FLAVOR, BASTION_SIZES, BASTION_SIZE_MULT, BASTION_SLICE_OF_LIFE, BASTION_TRADE_INCOME, BASTION_TURN_DT, DEFENDER_ROLES, ARMORY_KIT_BY_FORM, FAC_MAGIC_GROUP, FURNISHING_TIERS } from "../data/bastion";
+import { wasAliveOnce, isBucket, resolveBucket, ARCHIVE_BOOK_SUBJECT_LABEL, composeArchiveTitle, composeLibraryTitle, composeLibraryParagraph, librarySubjectFor, anyLibrarySubject, rollLoreTopic, BASTION_ALL_IS_WELL, BASTION_ATTACK_DICE, BASTION_ATTACK_DICE_RAID, BASTION_ATTACK_DICE_WALLED, BARRACKS_RECRUIT, BASTION_BARRACKS_CAP, BASTION_BEDS_BY_SIZE, HENCH_TRAITS, BASTION_CRAFT_ITEM, BASTION_EVENTS, BASTION_FACILITIES, BASTION_FACILITY_DAYS, BASTION_FOUND_COIN, BASTION_ORDERS, BASTION_ORDER_FLAVOR, BASTION_PREREQS, BASTION_QUIET_FLAVOR, BASTION_SIZES, BASTION_SIZE_MULT, BASTION_SLICE_OF_LIFE, BASTION_TRADE_INCOME, BASTION_TURN_DT, DEFENDER_ROLES, ARMORY_KIT_BY_FORM, FAC_MAGIC_GROUP, FURNISHING_TIERS } from "../data/bastion";
+import { ARRANGEMENT_SAY, LIVESTOCK_WEEKLY_GP, nocturnalOf, NIGHT_SHIFT_SAY, RESTING_PLACE_SAY, speciesSleeps, NO_WITNESS_SAY, PERMIT_FLAVOR, PERMIT_KEPT, PERMIT_LOST, poolOfSpecies, lostCalled, chosenHireSpecies, MINDLESS_SAY, devilRank, speciesAxes, GENDER_FLUID_WEEKLY, PRESENTATION_SAY, rollAttacker, wontFight, STOOD_DOWN_SAY, campSeverity, POLYCULE_SAY, polyStyleOf, TRIANGLE_CHANCE, TRIANGLE_MIN, TRIANGLE_SAY, FACTION_SAY, cliquesOf, factionsOf, historyDampen, eventScaleFor, desireBetween, attractionOf, calledHome, adventureRegion, regionalFlavor, speciesFlavor, facilityOrderTasks, RECEIVING, GLIMPSES, GLIMPSE_SHAPES, GLIMPSE_CHANCE, OVERT_ROMANCE, OVERT_CHANCE, tabooOf, TABOO_KINDS, ROMANCE_DIMS, ROMANCE_STATES, ROMANCE_INTEREST_STEP, ROMANCE_INTIMACY_STEP, ROMANCE_COMMIT_STEP, ROMANCE_COURTSHIP_STEP, ROMANCE_COOL, ROMANCE_ENGAGED_MARRIES, romanceGate, CONCEAL_SLIP_BASE, CONCEAL_SLIP_PER_WEEK, CONCEAL_REVEALED, concealChance, BOND_DIMS, BOND_LABELS, BOND_EVENTS, AXIS_PLASTICITY, DRIFT_CAP, BOND_CEILING, speciesMindless, MORALE_FLOOR, MORALE_ATTACHMENT_MAX, MORALE_BOND_PER_WEEK, MORALE_CAMPED_WEEKLY, MORALE_CAMPED_ESCALATE_EVERY, MORALE_CAMPED_BUILDING, MORALE_KINDNESS, MORALE_CEILING, MORALE_WALKOUT, CAMP_LOCAL, CAMP_OUTLANDER, CAMP_BUILDING, CAMP_ENDED, ARRIVAL_LOCAL, ARRIVAL_OUTLANDER, PATROL_ROUNDS, PATROL_INCIDENTS, PATROL_UNDER, PATROL_SENTIMENT, GARRISON_AFTER } from "../data/bastion";
+import { randSpecies, randName, rollPerson, pairHousehold, mutuallyDrawn, pairUp } from "./registry";
 import { BASTION_LIFE_TASKS, FACILITY_REACTIONS, HENCH_FIRST, HENCH_LAST, facEstablishment, furnTierIndex, furnishFacility, furnishingName, furnishingValue, hirelingLossReason, restockFacilitySlots, staffFacility } from "../bastion/registry";
 import type { BastionOrder, BastionTurn, CharacterRecord } from "../types";
 import { EVENT_CAST } from "../data/events";
@@ -379,7 +401,45 @@ export function spendBuildBudget(b, days) {
   return { fromBudget, owed: days - fromBudget };
 }
 
-export function randDefender(s: AppState) { return { id: "def" + s.nextId++, name: pick(HENCH_FIRST) + " " + pick(HENCH_LAST), age: 18 + Math.floor(Math.random() * 38), role: pick(DEFENDER_ROLES) }; }
+// A DEFENDER IS A PERSON, on the same terms as a hireling (Frank, 1 Aug). This used to hand back a
+// name, an age and a role and nothing else — so a defender could not be liked, disliked, or
+// characterised, and never appeared in the household week at all. Three consequences, all wrong:
+// the garrison was invisible in its own keep; the graveyard buried people nobody had a reason to
+// mourn; and `applyBond` could not reach them, so the one social system in the bastion stopped at
+// the barrack door.
+//
+// Same three traits from the same table the hirelings draw from, and an empty bond list that the
+// week fills. Nothing else about a defender changes — they are still not staff, still do not need a
+// bed in a Bedroom (they have a bunk), and still die on the wall rather than of the coughing sickness.
+export function randDefender(s: AppState, regionId?: string | null, localeId?: string | null, bst?: any) {
+  // The bastion's FORM is passed because a vessel cannot take a treant aboard in any capacity.
+  // A CHOSEN HIRE HOLDS A WALL TOO. `bst` is the bastion; the owner is who the entitlement belongs to.
+  const owner = Object.values((s as any).characters || {}).find((c: any) => c && c.bastion === bst);
+  const called = chosenHireSpecies(owner, "defend");
+  // A bucket is not a name on the wall either.
+  const sp: any = called ? { species: called, outlander: false }
+    : randSpecies(regionId, localeId, "defend", bst && bst.form);   // a defender holds a WALL, a different question
+  if (isBucket(sp.species)) sp.species = resolveBucket(sp.species, Math.random, null, "defend");
+  // A raised defender carries its original name too, drawn as a living local of this region.
+  let nm = wasAliveOnce(sp.species)
+    ? randName(randSpecies(regionId, localeId, "hire", bst && bst.form).species)
+    : randName(sp.species);
+  // NAME DEDUP REACHES THE GARRISON TOO (found 1 Aug by a flaky assertion, which is the good kind of
+  // flake). `staffFacility` redraws a name already in the household; `randDefender` did nothing at
+  // all — so twenty-five defenders were drawn blind and two "Jory Kettle" on one wall was ordinary.
+  // Third time today a feature written for hirelings failed to reach defenders.
+  if (bst) {
+    const taken = new Set<string>();
+    ((bst.facilities) || []).forEach((f: any) => (f.henchmen || []).forEach((h: any) => taken.add(h.name)));
+    ((bst.defenders) || []).forEach((d: any) => taken.add(d.name));
+    for (let tries = 0; tries < 12 && taken.has(nm.name); tries++) nm = randName(sp.species, nm.sex);
+  }
+  const age = 18 + Math.floor(Math.random() * 38);
+  // SAME LAYER-1 RECORD AS A HIRELING. Defenders diverged once already — no traits, no bonds, because
+  // they were built by a different function nobody updated — so they now go through the same door.
+  return { ...rollPerson(sp.species, nm, age, pick(DEFENDER_ROLES)), id: "def" + s.nextId++,
+           species: sp.species, outlander: sp.outlander };
+}
 
 export function bastionSliceOfLife(form) {
   const table = (form && BASTION_SLICE_OF_LIFE[form.id]) || null;
@@ -551,7 +611,15 @@ export function severBastionCombines(s: AppState, charId) {                     
 
 export const barracksCap = (size) => BASTION_BARRACKS_CAP[size] || 0;
 
-export const bastionDefenderCap = (b) => { const caps = ((b && b.facilities) || []).filter((f) => f.defId === "barracks").map((f) => barracksCap(f.size)); return caps.length ? Math.max(...caps) : 0; };
+// FIXED 1 Aug: this read `defId === "barracks"` (plural) while the DMG, the roster and the mint
+// ledger all say `barrack`. It had never fired because no Barrack existed to mismatch — so the cap
+// was silently 0 forever, and the Guest event's wandering mercenary was always turned away at the
+// gate for want of a bunk that no keep could ever have. A latent defect, found by minting the room.
+//
+// And it SUMS rather than taking the max: the DMG allows more than one Barrack ("A Bastion can have
+// more than one Barrack"), each quartering its own twelve. Two Barracks quarter twenty-four; `max`
+// would have said twelve.
+export const bastionDefenderCap = (b) => ((b && b.facilities) || []).filter((f) => f.defId === "barrack" && !f.building).reduce((n, f) => n + barracksCap(f.size), 0);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DESIGN NOTE — how the Armory / Bastion attack SHOULD work (owner: Frank). This is
@@ -763,7 +831,7 @@ export function finishConstruction(s: AppState, ch, now) {
   (ch.bastion.facilities || []).forEach((f) => {
     if (!f.building || f.building.readyAt > now) return;
     if (ch.status === "dead" || ch.bastion.abandoned) return;   // no one finishes a fallen lord's work — it stands half-raised forever
-    if (f.building.what === "enlarge" && f.building.toSize) { f.size = f.building.toSize; staffFacility(s, f); logBastionWork(s, ch.bastion, "the " + (bDef(f).name || "room").toLowerCase() + " was enlarged to " + f.size); }   // a bigger room needs more hands (DMG)
+    if (f.building.what === "enlarge" && f.building.toSize) { f.size = f.building.toSize; staffFacility(s, f, undefined, ch.bastion.region, ch.bastion.locale); logBastionWork(s, ch.bastion, "the " + (bDef(f).name || "room").toLowerCase() + " was enlarged to " + f.size); }   // a bigger room needs more hands (DMG)
     // The room got bigger, so it holds more. DMG: a Vast Pub "can have TWO magical beverages from the
     // Pub Special list on tap at a time"; a Vast Archive "gains TWO ADDITIONAL reference books chosen
     // from the list above". The new slots arrive FILLED, for the same reason the room did when it was
@@ -775,7 +843,7 @@ export function finishConstruction(s: AppState, ch, now) {
       f.defId = f.building.toDefId;
       f.lastOrder = null;                                        // a new room has no last order to repeat
       f.disabledUntil = 0; f.restsUntil = 0;
-      staffFacility(s, f);                                       // DMG: it comes with its own people...
+      staffFacility(s, f, undefined, ch.bastion.region, ch.bastion.locale);          // DMG: it comes with its own people...
       furnishFacility(s, f);                                     // ...and its own furniture
       logBastionWork(s, ch.bastion, "the works were finished — the room is now a " + (bDef(f).name || "facility").toLowerCase());
     }
@@ -930,6 +998,52 @@ export function resolveBastionOrder(s: AppState, ch: CharacterRecord, t: Bastion
     if (fac) fac.lastOrder = o.orderId;
     return;
   }
+  // DMG, Barrack > Recruit: Bastion Defenders. "Each time you issue the Recruit order to this
+  // facility, up to four Bastion Defenders are recruited to your Bastion and assigned quarters in
+  // this Barrack. The recruitment costs no money. You can't issue the Recruit order to this facility
+  // if it's fully occupied."
+  //
+  // "UP TO four" is the load-bearing phrase: a Barrack with two bunks left musters two, not four and
+  // an overflow. The cap is the ROOM's (12 roomy, 25 vast) and the muster is the BOOK's (4), and
+  // neither number is written here — BASTION_BARRACKS_CAP and BARRACKS_RECRUIT own them.
+  //
+  // "Keep track of the Bastion Defenders housed in each of your Barracks" — so each defender records
+  // the room that quartered them. That matters the moment a Barrack is razed or rebuilt, and it is
+  // cheap to record now and impossible to reconstruct later.
+  if (o.orderId === "recruit" && fac && fac.defId === "barrack") {
+    const b = ch.bastion!;
+    if (!Array.isArray(b.defenders)) b.defenders = [];
+    const nm = bastionMaker(fac, ch);
+    const roomCap = barracksCap(fac.size);
+    const here = b.defenders.filter((d: any) => d.facId === fac.id).length;
+    const room = Math.max(0, roomCap - here);
+    if (room <= 0) {
+      // The order gate should have refused this, but a room that is full says so in its own voice
+      // rather than resolving to nothing — a silent no-op is how a player learns to distrust a button.
+      t.benefits.push("\u2694 Recruit \u2014 every bunk in the barrack is full (" + here + " of " + roomCap + "). Nobody was taken on.");
+      t.prompt = "There were people at the gate wanting the work and nowhere to put them. " + nm.split(" at ")[0] + " turned them away, and did not enjoy it.";
+      if (fac) fac.lastOrder = o.orderId;
+      return;
+    }
+    const took = Math.min(BARRACKS_RECRUIT, room);
+    const mustered: any[] = [];
+    for (let i = 0; i < took; i++) { const d: any = randDefender(s, b.region, b.locale, b); d.facId = fac.id; b.defenders.push(d); mustered.push(d); }
+    const names = mustered.map((d) => d.name + " (" + (d.role || "defender") + ", " + d.age + ")");
+    t.benefits.push("\u2694 Recruit \u2014 " + took + (took === 1 ? " sword" : " swords") + " took the oath and a bunk: "
+      + names.join(", ") + ". Quartered in the " + ((bDef(fac).name || "barrack").toLowerCase()) + " ("
+      + (here + took) + " of " + roomCap + "). It cost nothing but the room to sleep in."
+      + (took < BARRACKS_RECRUIT ? " There was space for no more." : ""));
+    s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+      date: t.date, dtSpent: 0, gpSpent: 0,
+      spentOn: b.name + " \u2014 Barrack: mustered " + took + " Bastion Defender" + (took === 1 ? "" : "s") + " (" + (here + took) + "/" + roomCap + " quartered)",
+      flavor: "DMG Barrack (Recruit: Bastion Defenders): up to four each order, at no cost, quartered in this Barrack. Names and ages are the Exchange's own \u2014 the book says to assign them as you see fit." });
+    t.prompt = mustered.length === 1
+      ? mustered[0].name + " came up the road looking for the work and found it. Nobody has asked yet what they did before."
+      : took + " of them took the oath in one morning, and " + nm.split(" at ")[0] + " already knows which one is going to be trouble.";
+    if (fac) fac.lastOrder = o.orderId;
+    return;
+  }
+
   if (o.orderId === "trade" && fac && fac.defId === "armory") {
     // DMG, Armory > Trade: Stock Armory. The generic Trade order SELLS for gold (producesGp); the
     // Armory's Trade STOCKS for gold instead — the same order, a different thing, exactly as the book
@@ -1283,7 +1397,23 @@ export function rollBastionAttack(s: AppState, ch, scale, dice) {
   for (let i = 0; i < waves; i++) ones += rollAttackOnes(walled, armed, dice);
   const roster = b.defenders || [];
   const killedN = Math.min(ones, roster.length);
-  const fallen = roster.slice(0, killedN).map((d) => ({ id: d.id, name: d.name, age: d.age, role: d.role }));
+
+  // ⚠ WHO IS AT THE GATE (Frank, 2 Aug). The DMG rolls dice for HOW MANY defenders fall and **does
+  // not say which** — exactly as Lost Hirelings does not say why somebody left. This took
+  // `roster.slice(0, killedN)`: the first N, arbitrarily. Choosing differently changes no number,
+  // which is what makes it cosmetic and therefore allowed.
+  //
+  // And it lets a canon fact matter. Frank: *"what does that mean if you have giff defenders and you
+  // have giff attackers?"* It means they will not fight — *giff will never fight others of their own
+  // kind* — so a giff on the wall is the LAST to fall when giff are at the gate, and somebody else
+  // bears it. **The same count dies. The Exchange decides whose name is on it.**
+  // `dice` here is a NUMBER (a fixed roll) in some call paths and absent in others — never a
+  // function. Passing it as one threw "dice is not a function" the moment an attack resolved.
+  const attacker = rollAttacker(b.region, Math.random);
+  const standDown = roster.filter((d: any) => wontFight(d.species, attacker.people));
+  const willFight = roster.filter((d: any) => !wontFight(d.species, attacker.people));
+  const ordered = [...willFight, ...standDown];        // those who stood down are taken last, if at all
+  const fallen = ordered.slice(0, killedN).map((d) => ({ id: d.id, name: d.name, age: d.age, role: d.role }));
 
   let overflow = ones - killedN;
   const allies: any[] = [];
@@ -1304,7 +1434,9 @@ export function rollBastionAttack(s: AppState, ch, scale, dice) {
     if (targets.length) victimFacId = targets[Math.floor(Math.random() * targets.length)].id;
   }
   return { waves, walled, armed, ones, fallen, allies, overflow, victimFacId,
-           remain: roster.length - killedN, refugees: (b.refugees || 0) > 0 };
+           remain: roster.length - killedN, refugees: (b.refugees || 0) > 0,
+           attacker, stoodDown: standDown.filter((d: any) => !fallen.some((f) => f.id === d.id))
+             .map((d: any) => ({ name: d.name, species: d.species })) };
 }
 
 // [TABLE] A happening SUPERSEDES the one it interrupts; it does not queue beside it. House rule: after an
@@ -1448,6 +1580,14 @@ export function stageBastionBattle(s: AppState, ch, t, scale, dice) {
   const beats = battleBeats(ch, o);
   ch.bastion.happening = { kind: "attack", lock: "all", turnN: t.n, startedAt: Date.now(), endsAt: beats[beats.length - 1].at, beats, shown: 0, outcome: o };
   holdBastionClocks(ch.bastion, Date.now());   // the week, the wings going up, the ring closing — all of it stops
+  // WHO CAME, AND WHO WOULD NOT MEET THEM. The attacker's identity shapes how the whole event reads —
+  // Frank's "who are they" spec — and the stand-down is the one case where it changes who dies.
+  if (o.attacker) t.benefits.push("⚔ At the gate: " + o.attacker.what + ".");
+  if (o.stoodDown && o.stoodDown.length) {
+    t.benefits.push("\u2014 " + rpick(Math.random, STOOD_DOWN_SAY)
+      .replace(/\{d\}/g, o.stoodDown[0].name)
+      .replace(/\{w\}/g, o.attacker ? o.attacker.what : "the attackers"));
+  }
   t.benefits.push("⚔ Attack — " + (o.waves > 1 ? o.waves + " rooms saw them coming. " : "") + "The keep is fighting. Nothing is decided until it stops.");
 }
 
@@ -1659,7 +1799,7 @@ export function resolveGuest(s: AppState, ch, t) {
         + (cap3 ? "Who is in the bunk they wanted, and are they worth it?" : "What would it take to build somewhere to sleep?");
       return;
     }
-    const d = randDefender(s);
+    const d = randDefender(s, ch.bastion.region, ch.bastion.locale, ch.bastion);
     ch.bastion.defenders.push(d);
     t.benefits.push("⚔ A mercenary took a bunk and stayed — " + d.name + " defends " + ch.bastion.name + " now.");
     t.prompt = d.name + " arrived looking for work and found it. They need no room; they sleep where they fall. They stay until you send them away.";
@@ -1696,6 +1836,14 @@ export function resolveRefugees(s: AppState, ch, t) {
 // only decision in the event: more dice is likelier success, but everyone you send is away if
 // something else comes to the gate — and failure kills one of whoever went. So it raises a CALL and
 // waits. ANSWER_CALL rolls it.
+// ⚠ IS THERE ANYBODY HERE WHO COULD HAVE AN OPINION? (2 Aug.) Two events narrate the household as a
+// social body — closing ranks, being casual — and a household of skeletons is not one. This is the
+// question those sentences should have been asking all along.
+export function householdHasWitnesses(b: any): boolean {
+  const all = [...((b && b.facilities) || []).flatMap((f: any) => f.henchmen || []), ...((b && b.defenders) || [])];
+  return all.some((h: any) => !h.mindless);
+}
+
 export function resolveRequestForAid(s: AppState, ch, t) {
   const roster = ch.bastion.defenders || [];
   if (!roster.length) {
@@ -1733,7 +1881,7 @@ export function resolveMagicalDiscovery(s: AppState, ch, t) {
   const finds = Object.keys(CATALOG).filter((k) => CATALOG[k].consumable && CATALOG[k].rarity === "uncommon");
   if (!finds.length) { t.benefits.push("Magical Discovery — nothing came of it."); return; }
   const cat = bastionMintItem(s, ch, t, pick(finds), "✨ Magical Discovery");
-  t.prompt = "Nobody will say whether they found it or made it. " + (cat ? cat.name : "It") + " was simply on the bench one morning, and the hirelings have closed ranks about it.";
+  t.prompt = "Nobody will say whether they found it or made it. " + (cat ? cat.name : "It") + " was simply on the bench one morning, and " + (householdHasWitnesses(ch.bastion) ? "the hirelings have closed ranks about it." : rpick(Math.random, NO_WITNESS_SAY) + ".");
 }
 
 // DMG "Treasure" (1d100): 01–40 → 25 gp art · 41–63 → 250 gp · 64–73 → 750 gp · 74–75 → 2,500 gp
@@ -1759,7 +1907,7 @@ export function resolveTreasure(s: AppState, ch, t) {
   const pool = Object.keys(CATALOG).filter((k) => CATALOG[k].rarity === rarity && !CATALOG[k].mundane && CATALOG[k].itemClass !== "STORY_ITEM");
   if (!pool.length) { t.benefits.push("Treasure — something arrived, but nothing you could put a name to."); return; }
   const cat = bastionMintItem(s, ch, t, pick(pool), "💎 Treasure");
-  t.prompt = (cat ? cat.name : "Something") + " arrived at " + ch.bastion.name + " with no explanation whatsoever. The household is being extremely casual about it, which is how you know they're curious too.";
+  t.prompt = (cat ? cat.name : "Something") + " arrived at " + ch.bastion.name + " with no explanation whatsoever. " + (householdHasWitnesses(ch.bastion) ? "The household is being extremely casual about it, which is how you know they're curious too." : rpick(Math.random, NO_WITNESS_SAY).replace(/^./, (c) => c.toUpperCase()) + ".")
 }
 
 // Every event resolves through here. If you add a row to the table, you add a case here — and the
@@ -1985,7 +2133,7 @@ export function rehireOne(s: AppState, ch: CharacterRecord, t: BastionTurn) {
   if (!short.length) return;
   const fac = short[Math.floor(Math.random() * short.length)];
   const before = (fac.henchmen || []).length;
-  staffFacility(s, fac, 1);
+  staffFacility(s, fac, 1, ch.bastion!.region, ch.bastion!.locale);
   const who = fac.henchmen![fac.henchmen!.length - 1];
   const def = BASTION_FACILITIES[fac.defId] || {};
   t.benefits.push("👤 " + who.name + " took the post in the " + (def.name || fac.defId).toLowerCase() + " (" + (before + 1) + "/" + facEstablishment(fac) + ").");
@@ -2004,8 +2152,50 @@ export function resolveLostHirelings(s: AppState, ch, t) {
   const def = BASTION_FACILITIES[fac.defId] || {};
   const room = (def.name || fac.defId).toLowerCase();
   const gone = fac.henchmen.slice();
-  const r = hirelingLossReason(fac);                              // { fate, illness, text }
-  const first = gone[0];
+  let r: any = hirelingLossReason(fac);                           // { fate, illness, text, called? }
+  let first = gone[0];
+
+  // CALLED TO SERVICE BY THEIR NATION (Frank, 2 Aug). Once a hireling has a HOME with a war in it,
+  // "the cause of their departure is up to you" acquires an answer the generic table could never
+  // give — and a summons is the commonest reason a good hand walks off a good post.
+  //
+  // Prefer whoever in the room HAS somewhere to be called to: the Starcastle dwarf is recalled by a
+  // navy, the Marches dwarf by a clan, the Many-Arrows orc by a king he may not want to answer. If
+  // nobody in the room has a homeland written, the ordinary table stands.
+  //
+  // STILL COSMETIC. The post empties on the DMG's schedule either way; only the reason changes.
+  {
+    // WHERE HAS THE PARTY BEEN? (Frank, 2 Aug.) A hireling whose homeland the character has been
+    // adventuring in is far likelier to be called away — because the trouble that made an adventure
+    // is the same trouble that makes a summons. **This is the thing that puts the staff INSIDE the
+    // world the party is playing in** rather than beside it.
+    //
+    // The bastion's own region is the default; a region the character has logged an adventure in
+    // recently outranks it.
+    const logged = Object.values((s as any).logEntries || {})
+      .filter((e: any) => e && e.charId === ch.id && e.status === "APPROVED")
+      .slice(-6)
+      .map((e: any) => adventureRegion(e.adventureId))
+      .filter(Boolean);
+    const region = logged.length && Math.random() < 0.5 ? rpick(Math.random, logged) : ch.bastion.region;
+    // A SUMMONS COMES FROM SOMEBODY'S OWN COUNTRY, not from wherever the keep happens to be moored.
+    // ⚠ A CALLED THING DOES NOT QUIT, SICKEN OR FEEL UNDERPAID (2 Aug). Before this, Lost Hirelings
+    // gave the risen the ORDINARY reasons — a skeleton *"was owed better and knew it"*. It stops
+    // being present because the binding failed, the term ran out, or somebody put it down.
+    const calledPool = gone.map((h: any) => poolOfSpecies(h.species)).find(Boolean);
+    if (calledPool && lostCalled(calledPool)) {
+      const who = gone.find((h: any) => poolOfSpecies(h.species) === calledPool) || gone[0];
+      r = { fate: "left", illness: null, called: true,
+            text: rpick(Math.random, lostCalled(calledPool)!) };
+      first = who;
+    }
+    const callable = gone.filter((h: any) => !h.mindless && calledHome(h.species, (h as any).hiredIn || region));
+    if (callable.length && Math.random() < (logged.indexOf(region) !== -1 ? 0.7 : 0.45)) {
+      first = rpick(Math.random, callable);
+      const pool = calledHome(first.species, (first as any).hiredIn || region)!;
+      r = { fate: "left", illness: null, called: true, text: rpick(Math.random, pool).replace(/\{a\}/g, first.name.split(" ")[0]) };
+    }
+  }
 
   // One named cause; the rest follow. If the cause was fatal, that one gets a stone — the others
   // left, they didn't die. A house comes apart in the order people stop believing in it.
@@ -2018,13 +2208,23 @@ export function resolveLostHirelings(s: AppState, ch, t) {
   // rolls {fate, illness, text} and the text IS the cause — it was being computed and dropped, which
   // is how a keep ends up reporting that a man is buried without ever saying what killed him.
   t.benefits.push("⚠ Lost Hirelings — " + first.name + " " + r.text + "."
-                  + (gone.length > 1 ? " " + (gone.length - 1) + " more went with " + (r.fate === "dead" ? "the news" : "them") + "." : "")
+                  // NOBODY FOLLOWS A SUMMONS THAT IS NOT THEIRS. The original phrasing said "N more
+                  // went with them", which is right for a house coming apart and a lie for a
+                  // recall — the others did not answer a muster addressed to one person. The post
+                  // still empties, because the DMG says it does; only the reason is different.
+                  + (gone.length > 1
+                      ? " " + (r.called
+                          ? "The post could not be held short-handed and the rest were let go."
+                          : (gone.length - 1) + " more went with " + (r.fate === "dead" ? "the news" : "them") + ".")
+                      : "")
                   + " The " + room + " stands empty; it can't be used next turn."
                   + (r.fate === "dead" ? " " + first.name + " is buried here." : ""));
   const rest = gone.length - 1;
   t.prompt = first.name + " " + r.text + "." +
     (rest > 0
-      ? " " + (rest === 1 ? "The other followed them out" : "The other " + rest + " followed inside the week") + " — a house comes apart in the order people stop believing in it."
+      ? " " + (r.called
+          ? (rest === 1 ? "The one left could not hold the post alone" : "The " + rest + " left could not hold the post between them")
+          : rest === 1 ? "The other followed them out" : "The other " + rest + " followed inside the week") + " — a house comes apart in the order people stop believing in it."
       : " The " + room + " is quiet for the first time in memory.");
 }
 
@@ -2042,10 +2242,19 @@ export function resolveCriminalHireling(s: AppState, ch, t) {
   const { f, h } = all[Math.floor(Math.random() * all.length)];
   const def = BASTION_FACILITIES[f.defId] || {};
   const bribe = (1 + Math.floor(Math.random() * 6)) * 100;        // 1d6 x 100 GP
-  const flavor = pick(CRIMINAL_HIRELING_FLAVOR);
+  // ⚠ A WARRANT IS FOR A PERSON (Frank, 2 Aug): *"the criminal hirelings event should turn to the
+  // possession of a mindless servant and cost a permitting fee."* You cannot arrest a skeleton. The
+  // officials at a necromancer's gate are not there about a crime it committed — they are there
+  // about the fact that it EXISTS, in this jurisdiction, without paperwork.
+  //
+  // Same event, same roll, same money: pay and keep it, fail to pay and it is impounded. Only the
+  // conversation changes, which is the cosmetic rule doing exactly what it is for.
+  const permit = !!h.mindless;
+  const flavor = permit ? pick(PERMIT_FLAVOR) : pick(CRIMINAL_HIRELING_FLAVOR);
   if ((ch.gp || 0) >= bribe) {
     ch.gp -= bribe;
-    t.benefits.push("⚠ Criminal Hireling — " + h.name + " " + flavor + ". The household paid the " + bribe + " gp and kept them.");
+    t.benefits.push((permit ? "⚠ Permit Required — " : "⚠ Criminal Hireling — ") + h.name + " " + flavor + ". "
+      + (permit ? pick(PERMIT_KEPT).replace("the fee", "the " + bribe + " gp") : "The household paid the " + bribe + " gp and kept them."));
     t.prompt = h.name + " is still at their post in the " + (def.name || f.defId).toLowerCase() + ", and knows exactly what it cost to keep them there. Neither of you has mentioned it.";
     s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED", date: t.date, dtSpent: 0, gpSpent: bribe, spentOn: ch.bastion.name + " — a bribe of " + bribe + " gp, quietly paid, to keep " + h.name + " out of a cell." });
   } else {
@@ -2054,7 +2263,8 @@ export function resolveCriminalHireling(s: AppState, ch, t) {
     // ↑ Not this one. rehireOne is the Exchange's ordinary-attrition rule (B-19, one post a turn) and
     //   it must not paper over an arrest that happened this week — the book has its own timetable for
     //   putting this post back, and it is not today. Invisible until the roll moved to issue-time.
-    t.benefits.push("⚠ Criminal Hireling — " + h.name + " " + flavor + ". There wasn't " + bribe + " gp in the house; they were taken.");
+    t.benefits.push((permit ? "⚠ Permit Required — " : "⚠ Criminal Hireling — ") + h.name + " " + flavor + ". "
+      + (permit ? pick(PERMIT_LOST) : "There wasn't " + bribe + " gp in the house; they were taken."));
     t.prompt = "They didn't struggle. " + h.name + " looked back once from the gate, at a house that couldn't afford them, and then was gone.";
   }
 }
@@ -2233,18 +2443,82 @@ export function grantBastionCharms(s: AppState, ch: CharacterRecord, t: BastionT
 // heads are the whole household; overflow commutes, chosen in a stable order so it never reshuffles.
 export function bastionHousing(b) {
   if (!b) return { beds: 0, heads: 0, housed: [], commuters: [] };
-  const beds = (b.facilities || []).filter((f) => f.defId === "bedroom").reduce((n, f) => n + (BASTION_BEDS_BY_SIZE[f.size] || 2), 0);
+  // A HALF-BUILT BEDROOM HAS NO BEDS IN IT. This counted every bedroom including ones still going
+  // up, so the moment a player STARTED a bedroom everybody was instantly housed — which quietly made
+  // the construction-reprieve rule untestable, because nobody was ever camped long enough to need
+  // it. Found by a probe showing morale RISING while a build was underway. `!f.building` matches
+  // what the barrack-bunk count and every order gate already do.
+  const beds = (b.facilities || []).filter((f) => f.defId === "bedroom" && !f.building).reduce((n, f) => n + (BASTION_BEDS_BY_SIZE[f.size] || 2), 0);
+  // ⚠ `treeBeds` LIVED HERE AND NOTHING READ IT (lint, 3 Aug). I counted the dryads' trees so the
+  // housing total would be "honest" — but the dryads are already excluded from `staff` above, so
+  // there was nothing to add them to. **A computed value with no reader**, which is the same defect
+  // as the orphaned garden table and the treant ruling with nowhere to live, written by me one day
+  // after gating against it.
+  //
+  // A tree is a bed for exactly one person and that person is never in the queue. There is nothing
+  // to count.
   // Heads are the WORKING staff (special facilities). Basic room-folk live in their room, need no bed.
-  const staff: any[] = []; (b.facilities || []).forEach((f) => { if ((BASTION_FACILITIES[f.defId] || {}).kind === "special") (f.henchmen || []).forEach((h) => staff.push(h)); });
+  //
+  // ⚠ AND A MINDLESS THING NEEDS NOTHING (Frank, 2 Aug): *"they're mindless. They don't require bunks,
+  // they don't require food, they don't require anything."* Before this, a household of skeletons
+  // took two of the two beds and sent one home to a village it does not have — it was being HOUSED
+  // and COMMUTED like a person, which is the same defect as the household week narrating it as one.
+  //
+  // They are excluded from the housing question entirely rather than counted and then satisfied: a
+  // bed given to a skeleton is a bed a living hireling does not get, so this is not cosmetic
+  // book-keeping, it is the difference between a keep that can staff itself and one that cannot.
+  // ⚠ A DRYAD SLEEPS IN HER TREE (Frank, 2 Aug): *"the tree acts as her residence — it's her bed,
+  // basically, which means a room that normally does not contain a bed would contain a bed that is
+  // preassigned to the dryad that was hired."*
+  //
+  // So she is housed already and never competes for a bedroom slot — exactly as a mindless worker
+  // never does, and for the opposite reason: not because she needs nothing, but because she brought
+  // her own.
+  const staff: any[] = []; (b.facilities || []).forEach((f) => { if ((BASTION_FACILITIES[f.defId] || {}).kind === "special") (f.henchmen || []).forEach((h) => { if (speciesSleeps(h.species) && !h.mindless && h.species !== "Dryad") staff.push(h); }); });
+  // A BARRACK IS DEFENDER HOUSING (Frank, 1 Aug). It is a bedroom that only defenders may use — the
+  // DMG furnishes it "to serve as sleeping quarters for up to twelve Bastion Defenders" — so a
+  // defender quartered in a live Barrack IS housed, and needs no bed in a Bedroom.
+  //
+  // Defenders were previously INVISIBLE to this function entirely: `staff` only ever collected
+  // facility hirelings, so a garrison of twelve was neither housed nor commuting nor camped. That
+  // was fine while nothing read the result and wrong the moment camping existed — a mercenary who
+  // joined via the Guest event has no Barrack at all, and should be out at the wall like anyone else.
+  const barrackIds = new Set((b.facilities || []).filter((f) => f.defId === "barrack" && !f.building).map((f) => f.id));
+  const quartered: any[] = [], unquartered: any[] = [];
+  // AND A MINDLESS DEFENDER NEEDS NO BUNK EITHER. A skeleton on the wall does not sleep, so a barrack
+  // bunk spent on one is a bunk a living guard does not get.
+  ((b.defenders) || []).forEach((d: any) => {
+    if (d.mindless || !speciesSleeps(d.species)) return;
+    (d.facId && barrackIds.has(d.facId) ? quartered : unquartered).push(d);
+  });
   // Occupants assigned a bedroom claim a bed there — a hireling (housed) OR the hero themselves (whose
   // room it is). The hero is never "staff" and never commutes, but their room still reserves a bed.
   let occupantSlots = 0; const assignedIds = new Set();
   (b.facilities || []).filter((f) => f.defId === "bedroom").forEach((f) => (f.occupants || []).forEach((id) => { occupantSlots++; assignedIds.add(id); }));
-  const ordered = [...staff].sort((x, y) => (x.id < y.id ? -1 : 1));
+  // OUTLANDERS GET THE BEDS FIRST (Frank, 1 Aug). A local without a bed walks in from the village,
+  // as they always did. An outlander without a bed has no village — they were recruited a thousand
+  // miles away or across a plane, and nobody makes that crossing twice a day. So a household with
+  // two beds and four staff houses the two who have nowhere else to go, which is both the humane
+  // reading and the one a steward would actually make.
+  const ordered = [...staff].sort((x, y) => {
+    if (!!x.outlander !== !!y.outlander) return x.outlander ? -1 : 1;    // no home to go to comes first
+    return x.id < y.id ? -1 : 1;                                          // then stable, so nothing reshuffles
+  });
   const assignedHoused = ordered.filter((h) => assignedIds.has(h.id));   // hirelings with a named room
   const rest = ordered.filter((h) => !assignedIds.has(h.id));
   const freeBeds = Math.max(0, beds - occupantSlots);                    // beds left after every occupant, hero included
-  return { beds, heads: staff.length, housed: [...assignedHoused, ...rest.slice(0, freeBeds)], commuters: rest.slice(freeBeds) };
+  const housed = [...assignedHoused, ...rest.slice(0, freeBeds)];
+  const unhoused = rest.slice(freeBeds);
+  // THREE STATES, not two. Camped is what an outlander does when there is no bed: they are living
+  // against the outside of the wall, which is what estates have always accreted and what the
+  // household week now says out loud.
+  // A defender with a bunk is housed. One without goes to the wall with everybody else, and the same
+  // outlander rule decides whether that is a commute or a camp.
+  return { beds, heads: staff.length + (b.defenders || []).length,
+           bunks: (b.facilities || []).filter((f) => f.defId === "barrack" && !f.building).reduce((n, f) => n + barracksCap(f.size), 0),
+           housed: [...housed, ...quartered],
+           commuters: [...unhoused.filter((h) => !h.outlander), ...unquartered.filter((d) => !d.outlander)],
+           camped: [...unhoused.filter((h) => !!h.outlander), ...unquartered.filter((d) => !!d.outlander)] };
 }
 
 export function mkRng(seedStr) {                                          // mulberry32: same week → same story
@@ -2258,16 +2532,99 @@ export const rpick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 export const REACTION_WHY = { slovenly: "left as {d} leaves things", idle: "which {d} had meant to get to", green: "{d} not yet knowing the trick of it", sly: "or so {d} swore", proud: "and {d} would not be told of it" };
 
 // REACTOR trait → the reaction AND the bond delta (its SIGN lives here, not in the activity). First match wins.
+// EVERY DERIVED TAG NEEDS A VOICE HERE, and until 1 Aug ten of sixteen did not — they fired on
+// people and nothing in the household could hear them. `aggrieved` was the worst case: the state was
+// SET on every camped outlander and READ BY NOTHING, because the edit that was meant to add it here
+// targeted the wrong file and the assert did not cover that replacement. A tag with no voice is the
+// same defect as `outlander` written and never read, and it is now gated: `check` fails if a rule in
+// TRAIT_RULES has no entry below.
+//
+// SCORED, NOT ORDERED (1 Aug, Frank). Every row now declares the AXIS it speaks for and which
+// DIRECTION on it. `reactionOf` picks the STRONGEST match rather than the first, and scales the
+// delta by how far out the person actually is.
+//
+// **This is what the tag step was costing.** Somebody at agreeableness 8 and somebody at 36 both
+// derive `quarrelsome`, both hit this same row, and both produced d=-2 and the identical sentence.
+// The scalar knew one of them was four times further out and the tag threw it away.
+//
+// The tags stay — as LABELS, so the 72 per-facility reaction rows keep working and a reader can see
+// at a glance what a row is for. They are no longer the thing being matched on.
 export const REACTION_TO = [
-  { tag: "quarrelsome", d: -2, say: "and {r} made a whole morning of saying so" },
-  { tag: "sharp-tongued", d: -1, say: "and {r} said just what {r} thought of it" },
-  { tag: "proud", d: -1, say: "and {r} said nothing, and forgot nothing" },
-  { tag: "forgiving", d: 1, say: "and {r} only saw to it, the way {r} does" },
-  { tag: "patient", d: 1, say: "and {r} set it right without a word" },
-  { tag: "soft-hearted", d: 1, say: "and {r} covered for them again" },
+  // ---- states, not personality ----
+  { tag: "aggrieved", state: true, d: -2, say: "and {r}, who has been sleeping outside for weeks, had a good deal to say about it" },
+  // ---- temperament ----
+  { tag: "quarrelsome", axis: "agreeableness", dir: -1, d: -2, say: "and {r} made a whole morning of saying so" },
+  { tag: "sharp-tongued", axis: "agreeableness", dir: -1, d: -1, say: "and {r} said just what {r} thought of it" },
+  { tag: "insular", axis: "prejudice", dir: 1, d: -1, say: "and {r} said it was no more than you expect from an outsider, and would not be drawn further" },
+  { tag: "proud", axis: "ambition", dir: 1, d: -1, say: "and {r} said nothing, and forgot nothing" },
+  { tag: "unsentimental", axis: "romantic", dir: -1, d: -1, say: "and {r} pointed out what it had cost, exactly, to the copper" },
+  { tag: "slovenly", axis: "conscientiousness", dir: -1, d: 0, say: "and {r}, who is hardly one to talk, said nothing" },
+  { tag: "idle", axis: "ambition", dir: -1, d: 0, say: "and {r} watched somebody else deal with it" },
+  { tag: "melancholy", axis: "stability", dir: -1, d: 0, say: "and {r} took it harder than it deserved and said less than they felt" },
+  { tag: "solitary", axis: "extroversion", dir: -1, d: 0, say: "and {r} left the room rather than be in a conversation about it" },
+  { tag: "superstitious", axis: "openness", dir: -1, d: 0, say: "and {r} said it was a sign, and would not say of what" },
+  { tag: "sly", axis: "honor", dir: -1, d: 0, say: "and {r} agreed with everyone in turn" },
+  { tag: "devout", axis: "openness", dir: -1, d: 0, say: "and {r} said a word over it, quietly, and got on" },
+  { tag: "curious", axis: "openness", dir: 1, d: 0, say: "and {r} wanted to know exactly how it had happened, twice" },
+  { tag: "green", age: "young", d: 0, say: "and {r} did not yet know whether this was the sort of thing one mentions" },
+  { tag: "old-hand", age: "old", d: 0, say: "and {r} had seen it before and said so, at length" },
+  { tag: "diligent", axis: "conscientiousness", dir: 1, d: 1, say: "and {r} put it right properly, which took longer and was better" },
+  { tag: "straight-dealing", axis: "honor", dir: 1, d: 1, say: "and {r} said plainly whose fault it was, including where it was their own" },
+  { tag: "content", axis: "ambition", dir: -1, d: 1, say: "and {r} could not see what all the trouble was about" },
+  { tag: "cheerful", axis: "extroversion", dir: 1, d: 1, say: "and {r} made a joke of it that was almost funny" },
+  { tag: "gregarious", axis: "extroversion", dir: 1, d: 1, say: "and {r} had the whole room talking about something else inside a minute" },
+  { tag: "open-handed", axis: "prejudice", dir: -1, d: 1, say: "and {r} took their part, having no particular reason not to" },
+  { tag: "soft on people", axis: "romantic", dir: 1, d: 1, say: "and {r} sat with them a while afterwards" },
+  { tag: "forgiving", axis: "agreeableness", dir: 1, d: 1, say: "and {r} only saw to it, the way {r} does" },
+  { tag: "patient", axis: "stability", dir: 1, d: 1, say: "and {r} set it right without a word" },
+  { tag: "soft-hearted", axis: "agreeableness", dir: 1, d: 1, say: "and {r} covered for them again" },
 ];
 
 export const REACTION_GENERIC = { d: 0, say: "and {r} let it be" };
+
+// ---- SCORING A REACTION -------------------------------------------------------------------------
+// How far past the midpoint is this person, on this row's axis, in this row's direction? 0 means
+// "not at all, or the wrong way"; 1 means "as far as it goes". A row only competes at all once the
+// person is meaningfully out — below that they simply are not that sort of person.
+const REACTION_GATE = 0.22;                    // ~ the 39/61 mark, near where the tag thresholds sit
+
+export function reactionStrength(entry: any, person: any): number {
+  if (!entry) return 0;
+  // STATES are not scalar and do not compete on strength — they are true or they are not, and they
+  // outrank temperament outright. Somebody sleeping in a tent for a month is short with you whatever
+  // their disposition.
+  if (entry.state) return (person && (person.traits || []).includes(entry.tag)) ? 2 : 0;
+  if (entry.age) {
+    const yrs = (person && person.age) || 30;
+    return entry.age === "young" ? (yrs < 24 ? 0.5 : 0) : (yrs > 52 ? 0.5 : 0);
+  }
+  // THE EFFECTIVE profile, not the base one — who they are now, including what this household has
+  // made of them. A person ground down by six months of a bad room reacts as the person they have
+  // become, which is the entire point of the drift.
+  const p = person && (person.profile ? effectiveProfile(person) : null);
+  if (!p || !entry.axis) {
+    // NO PROFILE — a hand-built person, an old save, a fixture in a test. Fall back to the tag, so
+    // the whole system degrades to exactly the behaviour it had before scoring existed rather than
+    // going silent. This is the compatibility path and it is deliberate.
+    return (person && (person.traits || []).includes(entry.tag)) ? 0.5 : 0;
+  }
+  const v = p[entry.axis];
+  if (typeof v !== "number") return 0;
+  const out = entry.dir > 0 ? (v - 50) / 50 : (50 - v) / 50;
+  return out < REACTION_GATE ? 0 : out;
+}
+
+// Pick the row this person actually reacts with, and scale its delta by how far out they are. A
+// person at the very edge of an axis reacts about twice as hard as one just past the gate — which is
+// the information the tag was discarding.
+export function reactionOf(table: any[], person: any) {
+  let best: any = null, bestS = 0;
+  (table || []).forEach((e) => { const st = reactionStrength(e, person); if (st > bestS) { best = e; bestS = st; } });
+  if (!best) return { ...REACTION_GENERIC, strength: 0 };
+  const scale = best.state ? 1 : Math.min(1.6, 0.6 + bestS);
+  return { ...best, d: Math.round((best.d || 0) * scale), strength: bestS };
+}
+
 
 export const reactionsFor = (defId) => {
   const f = FACILITY_REACTIONS[defId] || {};
@@ -2342,10 +2699,317 @@ export const MORNING_WAKE = ["The house woke and set to.", "The keep stirred bef
 
 export const ARRIVAL_SAY = [" came up from the village as the work-bell went.", " walked in from the village, a step behind the bell.", " was up the road early, ahead of the others.", " came in from the village with the cold still on them."];
 
+// ---- THE TWO-LEVEL RELATIONSHIP MODEL (Frank, 1 Aug) --------------------------------------------
+//
+// `nudge` writes a stat adjustment ONTO THE BOND — this person, about that person. `driftOf` averages
+// those across everybody somebody knows and hands back how far their core has actually moved.
+// `effectiveProfile` is base + drift, and is what every reaction should read.
+//
+// **The average is the mechanism, not a smoothing detail.** One colleague who grates on you does not
+// make you a less agreeable person; it makes you less agreeable ABOUT THEM, which is what the bond
+// records. It is only when the whole household grates on you that you become somebody who is harder
+// to get on with — which is the thing Frank described and the thing that makes this worth building.
+
+// ---- LAYER 2 · THE SIX DIMENSIONS ---------------------------------------------------------------
+// A bond now carries six independent values. `weight` STAYS, derived, because four systems read it
+// and none of them should have to learn about Layer 2 to keep working: morale's attachment floor,
+// `rememberedByLine` on a gravestone, `pruneBonds`, and the roster UI. Deriving it rather than
+// keeping a parallel number means it can never disagree with the dimensions it summarises.
+export const bondWeight = (r: any) =>
+  Math.round(((r.affection || 0) + (r.respect || 0) + (r.loyalty || 0) + (r.trust || 0) - 2 * (r.rivalry || 0)) / 10);
+
+export function bondOf(a: any, other: any) {
+  if (!Array.isArray(a.bonds)) a.bonds = [];
+  let e = a.bonds.find((z: any) => z.id === other.id);
+  if (!e) {
+    e = { id: other.id, note: "", weight: 0 };
+    BOND_DIMS.forEach((k) => { e[k] = 0; });
+    a.bonds.push(e);
+  }
+  // An OLD bond — a save from before Layer 2, or a hand-built test fixture — has a weight and no
+  // dimensions. Seed them FROM the weight rather than zeroing, or a migration would silently wipe
+  // every relationship in an existing keep. Affection carries most of it because affection is what
+  // the single number was really tracking.
+  if (e.familiarity === undefined) {
+    const w = e.weight || 0;
+    e.familiarity = Math.min(100, Math.abs(w) * 4);
+    e.affection = Math.max(-100, Math.min(100, w * 5));
+    e.trust = Math.max(0, w * 3); e.respect = Math.max(0, w * 3);
+    e.loyalty = Math.max(0, w * 2); e.rivalry = Math.max(0, -w * 4);
+  }
+  return e;
+}
+
+// Apply one named moment to a relationship. Values clamp at ±100, and only RIVALRY and AFFECTION go
+// negative — you cannot have negative trust, you simply have none.
+export function bondEvent(a: any, other: any, evId: string, scale = 1) {
+  if (!a || !other || a.id === other.id) return null;
+  if (speciesMindless(a.species) || speciesMindless(other.species)) return null;
+  // CONCEALMENT (Frank, 1 Aug). **BUILT BACKWARDS FIRST, and a probe caught it.** The first version
+  // froze familiarity between a concealing person and everybody ELSE — so hiding a relationship made
+  // somebody a stranger to the colleagues they worked beside every day, while the hidden pair became
+  // the best-known thing in the keep. Measured: concealed pair at familiarity 45, open colleague at 0.
+  //
+  // The truth is the other way round and simpler. **Concealment costs the PAIR, not the household.**
+  // What a hidden couple loses is time together in front of people — the shared work, the being seen
+  // to laugh, all the ordinary public accumulation that makes two people KNOWN as a pair. They feel
+  // exactly what they feel; they just cannot be seen feeling it.
+  //
+  // So: affection, trust and loyalty accrue normally between them, and FAMILIARITY does not. Third
+  // parties are untouched — you still know the man you share a forge with.
+  //
+  // This is why familiarity was worth its own axis. "We are close and nobody knows" is a sentence
+  // six dimensions can hold and a single weight could not.
+  const hidden = a.concealed === other.id && other.concealed === a.id;
+  const ev = BOND_EVENTS[evId];
+  if (!ev) return null;
+  const wr = (x: any, y: any) => {
+    const r = bondOf(x, y);
+    // LAYER 5 (Frank, 1 Aug), two changes and both were flat before:
+    //
+    //   RESILIENCE — a relationship with history behind it does not break over one bad week. That is
+    //   why an old marriage survives a year that would end a new one, and it is a thing no amount of
+    //   affection can express: affection is how you feel NOW; history is what you would be throwing
+    //   away. Positive events are NOT dampened — history makes you harder to LOSE, not harder to
+    //   please.
+    //
+    //   PERSONALITY — *"each event modifies one or more relationship values according to the
+    //   personalities of BOTH participants."* The same argument used to cost a forgiving person and a
+    //   quarrelsome one exactly the same, which is the one thing Layer 1 exists to prevent. Reads the
+    //   EFFECTIVE profile, so somebody the household has ground down over a year takes a rebuke as
+    //   the person they have become.
+    const dampen = historyDampen(r.history || 0);
+    const prof = x.profile ? effectiveProfile(x) : null;
+    for (const k in ev) {
+      if (k === "familiarity" && hidden) continue;      // they are not learning what is not being shown
+      const raw = (ev as any)[k] * scale;
+      // History itself is never dampened or scaled — what happened, happened.
+      const amt = k === "history" ? raw
+                : raw < 0 ? raw * dampen * eventScaleFor(prof, k, raw)
+                : raw * eventScaleFor(prof, k, raw);
+      const floor = (k === "affection" || k === "rivalry") ? -100 : 0;
+      const ceil = k === "history" ? 400 : 100;         // history accumulates over a life and does not cap at 100
+      r[k] = Math.max(floor, Math.min(ceil, (r[k] || 0) + amt));
+    }
+    r.weight = bondWeight(r);
+    return r;
+  };
+  wr(a, other); wr(other, a);          // both sides feel it; asymmetry comes from what happens NEXT
+  // A KINDNESS LIFTS MORALE, and it must live HERE rather than in `applyBond`. It used to sit in the
+  // wrapper — so the moment the household week started naming moments directly (which it had to, to
+  // make trust reachable at all), **nobody in any keep gained morale ever again** and camped people
+  // hit the walkout floor weeks early. Caught by four camping assertions failing consistently.
+  //
+  // The lesson is the shape: a rule that lives in a WRAPPER rather than in the thing it is about is
+  // a rule that disappears the day somebody calls past the wrapper. Third time today.
+  if ((ev as any).affection > 0) {
+    a.morale = Math.min(MORALE_CEILING, (a.morale || 0) + MORALE_KINDNESS);
+    other.morale = Math.min(MORALE_CEILING, (other.morale || 0) + MORALE_KINDNESS);
+  }
+  pruneBonds(a); pruneBonds(other);
+  return evId;
+}
+
+// ---- WHAT IT COSTS TO SHARE ---------------------------------------------------------------------
+// JEALOUSY IS INDEPENDENT OF ORIENTATION (Frank, 1 Aug), which is the subtlest part of his spec and
+// the part that does the most work. Exclusivity is what somebody WANTS; jealousy is what it COSTS
+// them when it does not happen — and **a person can be miserable about a thing they chose**, which
+// is true of people and which a single "polyamorous" flag cannot say at all.
+//
+// So this runs on everybody with a partner who has another partner, and charges them by how much
+// they mind. At 0 it costs nothing and the household simply has more people in it. At 1 they are
+// happier for it, which is also a real thing.
+export function jealousyTick(a: any, household: any[]) {
+  const j = a && a.jealousy != null ? a.jealousy : 0.5;
+  const partners = (household || []).filter((y) => y && y.id !== a.id
+    && (a.bonds || []).some((r: any) => r.id === y.id && (r.courtship || 0) > 25));
+  if (!partners.length) return 0;
+  let shared = 0;
+  partners.forEach((p: any) => {
+    const theirOthers = (household || []).filter((z: any) => z && z.id !== a.id && z.id !== p.id
+      && (p.bonds || []).some((r: any) => r.id === z.id && (r.courtship || 0) > 25));
+    shared += theirOthers.length;
+  });
+  if (!shared) return 0;
+  // Below 0.5 it hurts, above it does not, and at the top it is actively good — the scale runs from
+  // "exclusive" through "accepts sharing" to "prefers shared relationships".
+  const felt = (0.5 - j) * 2;
+  if (Math.abs(felt) < 0.15) return 0;
+  a.morale = Math.max(-20, Math.min(MORALE_CEILING, (a.morale || 0) - Math.round(felt * shared)));
+  return felt;
+}
+
+// THE LABEL IS A VIEW, NEVER STORED (Frank's rule). Read from ONE side, because a relationship is not
+// symmetrical — a mentor is not a protege, and one person can be devoted to somebody who merely
+// tolerates them. `self` and `other` are optional and only the age-gap labels need them.
+// ---- LAYER 3 · THE WEEKLY TICK ------------------------------------------------------------------
+// Frank: *"Romantic relationships should grow gradually through repeated interactions and shared
+// history."* So this runs once a week over everybody who spent the week near each other, and moves
+// small numbers. A courtship that resolves in three weeks is not a courtship.
+//
+// WHAT FEEDS WHAT, and the dependencies are deliberate rather than convenient:
+//   interest   <- proximity x the romance gate. NOT friendship — that is what makes an unrequited
+//                crush possible, and an unrequited crush is the case a single "romance" number
+//                cannot express at all.
+//   intimacy   <- needs TRUST from Layer 2. The one place romance leans on friendship, and it leans
+//                rather than depends: you can want somebody you do not yet trust, and it will not
+//                deepen until you do.
+//   commitment <- time AND intimacy together. The slowest of the four; this is the one that takes a
+//                year, which is why an engagement means something when it arrives.
+//   courtship  <- only rises when the interest is MUTUAL. A one-sided crush can burn for years and
+//                progress nowhere, which is exactly right and is why it is tracked separately.
+export function romanceTick(a: any, b: any, together: boolean) {
+  if (!a || !b || a.id === b.id) return;
+  // ⚠ DO NOT CREATE A RECORD FOR NOTHING, AND CHECK THE CHEAP THING FIRST. Found by a stress run:
+  // this called `bondOf` for EVERY pair in the household every week, which MINTS a bond — so 278
+  // people produced 77,006 records, nearly all empty, and the week went from 9 ms to 1,206 ms.
+  //
+  // Two separate faults in one line. The record should not exist unless something is happening; and
+  // `romanceGate` — which reads two profiles and an attraction table — was computed BEFORE the test
+  // that discards most pairs outright. **The cheap check goes first**; this is called n² times a
+  // week and everything in front of the early-out is paid for by every pair in the house.
+  const existing = (a.bonds || []).find((z: any) => z.id === b.id);
+  if (!existing && !together) return;
+  const gate = romanceGate(a, b);
+  if (!existing && gate <= 0) return;
+  const rec = bondOf(a, b);
+  if (rec.interest === undefined) ROMANCE_DIMS.forEach((k) => { rec[k] = 0; });
+  // LAYER 4 · DESIRE, ON THE BOND AND ON ITS OWN CLOCK (Frank, 1 Aug). Separate from `interest`
+  // entirely, which is what lets the model hold all four of his combinations with no special case:
+  // romance without desire, desire without romance, friendship without either, and a long marriage
+  // where the romance moves and the commitment does not.
+  //
+  // It rises fast and settles — attraction is mostly a fact about how somebody strikes you, not
+  // something that accumulates the way trust does — and it decays only slowly on absence.
+  if (rec.desire === undefined) rec.desire = 0;
+  const pull = desireBetween(a, b);
+  rec.desire = together ? Math.min(100, rec.desire + (pull - rec.desire) * 0.22)
+                        : Math.max(0, rec.desire - 0.8);
+  if (!together || gate <= 0) {
+    // A THING NOBODY FEEDS FADES. Interest cools first, then the rest — but COMMITMENT does not cool
+    // on absence, because that is what commitment IS.
+    rec.interest = Math.max(0, rec.interest - ROMANCE_COOL);
+    if (rec.interest < 5) rec.courtship = Math.max(0, rec.courtship - ROMANCE_COOL);
+    return;
+  }
+  rec.interest = Math.min(100, rec.interest + ROMANCE_INTEREST_STEP * gate);
+  if ((rec.trust || 0) > 12) rec.intimacy = Math.min(100, rec.intimacy + ROMANCE_INTIMACY_STEP * gate);
+  // MUTUAL means their record wants it too. Read the other side rather than assuming symmetry —
+  // these are two independent records and the whole design rests on their being able to disagree.
+  const theirs = ((b.bonds || []).find((z: any) => z.id === a.id)) || {};
+  // CAPACITY AND EXCLUSIVITY (Frank, 1 Aug). This is what stops everybody courting everybody, and it
+  // does it by being a DISTRIBUTION rather than a rule — the four-year run had every person courting
+  // two others because exclusivity was not a variable at all, so it had no spread.
+  //
+  // A person at capacity does not start another. A person with high exclusivity who already has
+  // somebody does not either, and both of those are read off the PERSON rather than assumed of
+  // everybody. A monogamous person has capacity 1, which is what the word means.
+  const mine = (a.bonds || []).filter((r: any) => (r.courtship || 0) > 25 && r.id !== b.id).length;
+  const cap = a.partnerCapacity || 1;
+  const wantsOnly = (a.exclusivity != null ? a.exclusivity : 0.86) > 0.6;
+  const blocked = mine >= cap || (wantsOnly && mine >= 1 && (rec.courtship || 0) <= 25);
+  if (!blocked && rec.interest > 30 && (theirs.interest || 0) > 30) {
+    rec.courtship = Math.min(100, rec.courtship + ROMANCE_COURTSHIP_STEP);
+    if (rec.courtship > 20 && rec.intimacy > 20) rec.commitment = Math.min(100, rec.commitment + ROMANCE_COMMIT_STEP);
+    if (rec.courtship > 5) rec.wasLovers = 1;                   // so "former lovers" can exist later
+  }
+}
+
+// The romantic state, read from ONE side — the asymmetry is the interesting part, and "secret crush"
+// only exists as a thing one person has.
+export function romanceLabel(a: any, other: any) {
+  const r = (a && (a.bonds || []).find((z: any) => z.id === (other && other.id))) || null;
+  if (!r || r.interest === undefined) return "nothing of the kind";
+  const hit = ROMANCE_STATES.find((L) => L.when(r, a, other));
+  return hit ? hit.label : "nothing of the kind";
+}
+
+export function bondLabel(a: any, other: any) {
+  const r = (a && (a.bonds || []).find((z: any) => z.id === (other && other.id))) || null;
+  if (!r) return "barely known";
+  if (r.familiarity === undefined) bondOf(a, other);       // migrate on read
+  const hit = BOND_LABELS.find((L) => L.when(r, a, other));
+  return hit ? hit.label : "barely known";
+}
+
+// Write a per-relationship adjustment. Small numbers: these accumulate over months of weeks.
+export function nudge(a: any, other: any, axis: string, amount: number) {
+  if (!a || !other || a.id === other.id || !amount) return;
+  if (!Array.isArray(a.bonds)) a.bonds = [];
+  let e = a.bonds.find((z: any) => z.id === other.id);
+  if (!e) { e = { id: other.id, weight: 0, note: "" }; a.bonds.push(e); }
+  if (!e.mods) e.mods = {};
+  e.mods[axis] = (e.mods[axis] || 0) + amount;
+}
+
+// How far this person's core has drifted, averaged across EVERY relationship they hold — including
+// the ones with no mods at all, which is deliberate: ten placid relationships and one poisonous one
+// should barely move you, and dividing only by the relationships that happened to leave a mark would
+// let the poisonous one dominate.
+export function driftOf(a: any): Record<string, number> {
+  const bonds = (a && a.bonds) || [];
+  const out: Record<string, number> = {};
+  if (!bonds.length) return out;
+  const sums: Record<string, number> = {};
+  bonds.forEach((bd: any) => { if (bd.mods) for (const k in bd.mods) sums[k] = (sums[k] || 0) + bd.mods[k]; });
+  for (const k in sums) {
+    const plastic = (AXIS_PLASTICITY as any)[k];
+    if (plastic === undefined || plastic === 0) continue;      // an axis nobody can move is not moved
+    const avg = sums[k] / bonds.length;
+    out[k] = Math.max(-DRIFT_CAP, Math.min(DRIFT_CAP, Math.round(avg * plastic)));
+  }
+  return out;
+}
+
+// Who they are NOW: what they arrived as, plus what this household has made of them.
+export function effectiveProfile(a: any) {
+  const base = a && a.profile;
+  if (!base) return null;
+  const d = driftOf(a);
+  const out: any = {};
+  for (const k in base) out[k] = Math.max(0, Math.min(100, base[k] + (d[k] || 0)));
+  return out;
+}
+
+// DUNBAR. Nobody holds more than ~150 relationships; when somebody would, the WEAKEST go first —
+// you forget the people you barely knew, not the ones you loved or could not stand.
+export function pruneBonds(a: any) {
+  if (!a || !Array.isArray(a.bonds) || a.bonds.length <= BOND_CEILING) return;
+  a.bonds.sort((x: any, y: any) => Math.abs(y.weight || 0) - Math.abs(x.weight || 0));
+  a.bonds.length = BOND_CEILING;
+}
+
 export function applyBond(a, bH, delta, note) {
   if (!a || !bH || a.id === bH.id) return;
-  const wr = (x, y) => { if (!Array.isArray(x.bonds)) x.bonds = []; let e = x.bonds.find((z) => z.id === y.id); if (!e) { e = { id: y.id, weight: 0, note: "" }; x.bonds.push(e); } e.weight += delta; if (note) e.note = note; };
+  if (speciesMindless(a.species) || speciesMindless(bH.species)) return;   // nothing to form a bond with
+  // A KINDNESS LIFTS MORALE (Frank, 1 Aug). The two trackers touch here and nowhere else: a positive
+  // interaction is about a PERSON (the bond) and also about being somewhere worth staying (morale).
+  // So somebody with friends here bears the tent a great deal longer than somebody without — which
+  // is the right shape and falls out of the trackers meeting rather than being designed in.
+  // The morale lift lives in `bondEvent` now (see the note there), and applyBond routes through it —
+  // so doing it here as well would count every kindness twice.
+  // LAYER 2. `applyBond` is still the door every existing caller uses, so it now translates its
+  // single delta into the six dimensions rather than being replaced — thirty-odd call sites did not
+  // need to learn a new vocabulary in one commit. A caller who knows WHAT happened should call
+  // `bondEvent` with a named moment instead and get a much better-shaped result.
+  const mapped = delta >= 3 ? "stood_together" : delta > 0 ? "worked_together"
+               : delta <= -3 ? "quarrelled" : "rebuked";
+  bondEvent(a, bH, mapped, Math.max(1, Math.abs(delta) / 2));
+  const wr = (x, y) => { const e = bondOf(x, y); e.familiarity = Math.min(100, (e.familiarity || 0) + 1); if (note) e.note = note; e.weight = bondWeight(e); };
   wr(a, bH); wr(bH, a);
+  // AND THE STAT ADJUSTMENT (Frank, 1 Aug). A good turn makes you a little easier about that person
+  // and a little less wary of their kind; a bad one does the reverse. Small, because these accumulate
+  // over months, and because the DRIFT is an average — it is the consistency that matters, not any
+  // one week. Prejudice moves the opposite way from agreeableness on purpose: getting on well with
+  // somebody makes you LESS wary, which is a lower number on that axis.
+  const step = delta > 0 ? 1 : -1;
+  [a, bH].forEach((x, i) => {
+    const y = i === 0 ? bH : a;
+    nudge(x, y, "agreeableness", step);
+    nudge(x, y, "prejudice", -step);
+    if (Math.abs(delta) >= 2) nudge(x, y, "stability", step);   // only the things that really landed
+  });
+  pruneBonds(a); pruneBonds(bH);
 }
 
 export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTurn) {
@@ -2354,21 +3018,137 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
   // task table (the facility-class), this keys off CAPABILITY (has beats) rather than CATEGORY (is basic),
   // so a new special joins the story the moment its lifeTasksFor is non-empty. Nothing else to change.
   const rooms = (b.facilities || []).filter((f) => lifeTasksFor(f.defId, b.form).length > 0);
+  // The patrol walks the WHOLE estate, not only the rooms with a task table — a guard passes through
+  // a half-built wing and an empty storehouse the same as a busy smithy. Excludes what is still going
+  // up, because there is no room there yet to walk into.
+  const allRooms = (b.facilities || []).filter((f) => !f.building);
   const staff: any[] = []; (b.facilities || []).forEach((f) => (f.henchmen || []).forEach((h) => staff.push(h)));
-  if (!rooms.length || !staff.length) return;                    // no household, no story
+  if ((!rooms.length || !staff.length) && !((b.defenders || []).length && allRooms.length)) return;   // no household AND no garrison = no story
   const rng = mkRng(b.id + ":" + t.n);
   const hh = bastionHousing(b);
   const housed = new Set(hh.housed.map((h) => h.id));
   const commuters = hh.commuters;
-  const firstReact = (h, rt) => rt.to.find((e) => (h.traits || []).includes(e.tag)) || rt.generic;
+  const camped = hh.camped || [];
+  // Is anywhere to sleep actually going up? A Bedroom or a Barrack under construction both count —
+  // the person outside does not care which roof it is, only that there is going to be one.
+  const housingUnderway = (b.facilities || []).some((f) => f.building && (f.defId === "bedroom" || f.defId === "barrack"));
+  const housedNow = hh.housed || [];
+  // SCORED, not first-match (1 Aug). Was `.find(...)`, which took the first row whose tag the person
+  // held — so the ORDER of the table decided the reaction and everybody who was quarrelsome at all
+  // reacted identically. `reactionOf` picks the strongest and scales the delta by how far out they
+  // actually are.
+  const firstReact = (h, rt) => reactionOf(rt.to, h) || rt.generic;
   const whyOf = (h, rt) => { const tag = (h.traits || []).find((tt) => rt.why[tt]); return tag ? rt.why[tag] : null; };
-  const fill = (str, d, r) => str.replace(/\{d\}/g, d ? d.name : "").replace(/\{r\}/g, r ? r.name : "");
+  // FULL NAME ONCE, THEN THE FIRST NAME (1 Aug). A twelve-week read-through made this obvious and
+  // unreadable: "Wilha Fairwind came on Bertram Fairwind's work in the bedroom half-done again, and
+  // Bertram Fairwind would not be told the corners were wrong, and Wilha Fairwind only finished the
+  // airing, the way Wilha Fairwind does." Four full names in one sentence, two of them the same
+  // person, because every {d} and {r} substituted the whole name every time.
+  //
+  // People are introduced once and then referred to by their first name, which is what a household
+  // does and what any writer would do. The FIRST occurrence of each person in a given line keeps the
+  // full name; every later one shortens.
+  const firstOf = (x) => (x && x.name ? x.name.split(" ")[0] : "");
+  const fill = (str, d, r) => {
+    let dSeen = false, rSeen = false;
+    return str
+      .replace(/\{d\}/g, () => { const out = !d ? "" : dSeen ? firstOf(d) : d.name; dSeen = true; return out; })
+      .replace(/\{r\}/g, () => { const out = !r ? "" : rSeen ? firstOf(r) : r.name; rSeen = true; return out; });
+  };
   const days = t.away ? 7 : 2;                                    // away = the full homecoming; home = a trimmed couple of days
   const cap = t.away ? 5 : 1;                                     // rate-limit connectors so they stay events, not wallpaper
   let conn = 0; const seen: Record<string, any> = {}; const week: any[] = [];
   for (let d = 1; d <= days; d++) {
     const morning: any[] = [];
-    commuters.forEach((h) => morning.push(h.name + rpick(rng, ARRIVAL_SAY)));
+    // HOW SOMEBODY GOT HERE (1 Aug). An outlander did not walk up from the village — they were
+    // recruited, sometimes across a plane, and the line should say so. Everyone else arrives the way
+    // their region's people arrive: up a tunnel in the Underdark, off the tender in Wildspace, by a
+    // path that was not there yesterday in the Feywild.
+    // Somebody who changed presentation this week says so once, on the first day.
+    if (d === 1) [...housedNow, ...commuters, ...camped].forEach((x: any) => {
+      if (!x.shifted) return;
+      x.shifted = false;
+      morning.push(rpick(rng, PRESENTATION_SAY).replace(/\{a\}/g, x.name.split(" ")[0]));
+    });
+    commuters.forEach((h) => {
+      const local = (b.region && ARRIVAL_LOCAL[b.region]) || null;
+      morning.push(h.name + rpick(rng, local || ARRIVAL_SAY));
+      // ⚠ CAMP_LOCAL BELONGS HERE, NOT IN THE CAMPED BRANCH (2 Aug). Found by Frank asking what a
+      // region actually CARRIES — and the answer was ten tables, one of which had never printed a
+      // word.
+      //
+      // `CAMP_LOCAL` was read inside `camped.forEach` behind `if (!h.outlander)` — and `camped` is
+      // built as `unhoused.filter(h => h.outlander)`. **The branch could never be true.** Five
+      // regional tables, unreachable since the day they were written, and I had just added a default
+      // to them, which was decoration on dead code.
+      //
+      // Its own comment says what it is for: *"an imp COMMUTING in from the fiery plain it was
+      // hatched on reads almost like an ordinary walk to work with weather attached."* The content
+      // was written for commuters and wired to campers; the word "camp" in the name misled me and
+      // then misled the wiring. It fires occasionally rather than daily, because it is colour on a
+      // walk somebody makes every day.
+      if (d === 1 && !h.outlander) {
+        const strange = (b.region && CAMP_LOCAL[b.region]) || null;
+        if (strange && rng() < 0.4) morning.push(rpick(rng, strange).replace(/\{who\}/g, h.name));
+      }
+    });
+    // CAMPED AT THE WALL. An outlander with no bed is not commuting from anywhere — they are living
+    // against the outside of the estate, and the beat depends on whether this is their own country.
+    // Somebody native to a fiery plain sleeping on a fiery plain is having an ordinary week with
+    // weather in it. Somebody recruited out of Cormyr and camped on the same plain is not, and will
+    // say so — which is the harassment Frank asked for, aimed at getting a roof built.
+    if (d === 1) camped.forEach((h) => {
+      const nativeHere = !h.outlander;
+      // (The old `nativeHere` branch lived here and was unreachable — `camped` is outlanders only.
+      // See the note in the commuter loop above. Nothing is lost: everybody in this list IS an
+      // outlander, which is what the next line assumes anyway.)
+      // THE FIRST WEEK IS AN ARRIVAL, NOT A COMPLAINT. Nobody grumbles about the accommodation on
+      // the morning they get there — they are still taking the place in. So week one draws
+      // ARRIVAL_OUTLANDER and every week after draws the complaint.
+      //
+      // This also rescues a table I had just orphaned: once outlanders camped instead of commuting,
+      // ARRIVAL_OUTLANDER became unreachable, because arrival lines only ever went to commuters. The
+      // gate caught it as a failing assertion about arrivals, which is the second time today a test
+      // has found dead code by asserting the behaviour rather than the wiring.
+      const firstWeek = !h.campedWeeks;
+      const table = firstWeek ? ARRIVAL_OUTLANDER
+                  : housingUnderway ? CAMP_BUILDING
+                  : ((b.region && CAMP_OUTLANDER[b.region]) || CAMP_OUTLANDER.default);
+      morning.push(rpick(rng, table).replace(/\{who\}/g, h.name));
+      // The grievance is a STATE, not a trait — see REACTION_TO's "aggrieved". It makes them shorter
+      // with the household for as long as the estate leaves them out there, and it clears the week a
+      // bed exists. The keep can fix this, which is what makes it a complaint rather than a mood.
+      // ONCE A WEEK, NOT ONCE A DAY. This loop runs per day — seven times in an away week — so a naive
+      // increment counted 35 weeks of grievance after five. The tell was the number being wrong, and
+      // the number was only visible because the probe printed it; nothing would have failed.
+      if (d === 1) {
+        h.campedWeeks = (h.campedWeeks || 0) + 1;
+        if (h.campedWeeks >= 2 && !(h.traits || []).includes("aggrieved")) h.traits = [...(h.traits || []), "aggrieved"];
+        // GOOD FAITH PAUSES THE COUNTDOWN. Somebody camped outside can see the masons, and a keep
+        // that has started building somewhere for its people is not a keep that has ignored them.
+        const wear = Math.floor((h.campedWeeks - 1) / MORALE_CAMPED_ESCALATE_EVERY);   // patience wears out
+        // ⚠ THE COST OF SLEEPING OUTSIDE DEPENDS ON WHERE OUTSIDE IS (Frank, 2 Aug). This was ONE
+        // FLAT NUMBER — a week camped outside a Cormyrean keep in mild weather cost exactly what a
+        // week on a fiery plain in Avernus cost. The FLAVOUR varied by region and the COST did not,
+        // which is the wrong way round: the words were doing work the numbers should have been doing.
+        //
+        // Everybody still camps everywhere, which is his point — there is no exemption, only a
+        // multiplier. Ordinary regions sit at 1.0 and nothing changes for them.
+        const sev = campSeverity(b.region);
+        h.morale = (h.morale || 0) + (housingUnderway
+          ? MORALE_CAMPED_BUILDING
+          : Math.round((MORALE_CAMPED_WEEKLY - wear) * sev));
+      }
+    });
+    // AND THE RELIEF, once, the week it ends. A keep that finally builds the bedroom should hear
+    // about it — otherwise the only feedback the system gives is complaint, and a system that only
+    // ever complains teaches players to ignore it.
+    if (d === 1) housedNow.forEach((h) => {
+      if (!h.campedWeeks) return;
+      morning.push(rpick(rng, CAMP_ENDED).replace(/\{who\}/g, h.name));
+      h.campedWeeks = 0;
+      h.traits = (h.traits || []).filter((t2) => t2 !== "aggrieved");
+    });
     if (housed.size) morning.push(rpick(rng, MORNING_WAKE));
     const chores: any[] = [];
     rooms.forEach((f) => {
@@ -2380,24 +3160,161 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
       // whole household. That mingling is where cross-facility bonds form.
       const staffed = facEstablishment(f) > 0;
       const room = (bDef(f).name || "the room").toLowerCase();
-      const doerPool = staffed ? (f.henchmen || []) : staff;
-      if (staffed && !doerPool.length) {                          // its people are gone — the room's own work goes undone
+      // ⚠ A GARRISON IS A HOUSEHOLD (2 Aug). `staff` is henchmen ONLY, and the guard twelve hundred
+      // lines up explicitly lets the week run for *"no household AND no garrison"* — that is, it
+      // supports a bastion that is nothing but a barrack and defenders. **And then this line handed
+      // an empty pool to `rpick` and the whole week threw.** The guard anticipated exactly the case
+      // the loop could not survive.
+      //
+      // An unstaffed room — barrack, bedroom, courtyard — is where the household MINGLES, and in a
+      // garrison the household IS the defenders. They belong in that pool on the merits, not just to
+      // stop the crash.
+      const mingle = staff.length ? [...staff, ...(b.defenders || [])] : (b.defenders || []);
+      const doerPool = staffed ? (f.henchmen || []) : mingle;
+      if (!doerPool.length) {                                    // its people are gone — the room's own work goes undone
         chores.push("The " + room + " stood unworked — nobody is posted there now.");
         return;
       }
-      const doer = rpick(rng, doerPool); const task = rpick(rng, pool);
-      chores.push(doer.name + " " + task + ".");
+      const doer = rpick(rng, doerPool);
+      if (!doer) return;                                         // belt and braces: rpick on a pool that emptied mid-week
+      // ⚠ A MINDLESS WORKER IS A PAIR OF HANDS (limit-break run, 2 Aug). A household of lemures was
+      // narrated as people — writing letters, keeping a pot going *"so any hour brought a hot meal
+      // to a cold man"*. `rollPerson` reads `mindless` and withholds a profile, a faith and a
+      // family, and its comment claims **every downstream system already reads it.** This one never
+      // did. The claim was true when written and stopped being true when the narration arrived.
+      // ⚠ A NIGHT HAND IS NOT A DAY HAND (Frank, 2 Aug). A vampire spawn takes 20 radiant damage a
+      // turn in sunlight, so it is not in the yard at noon — it is doing the work at three in the
+      // morning and handing over at dusk. This does not change WHAT it does; it changes when, and
+      // the household notices.
+      if (nocturnalOf(doer.species) === "must" && rng() < 0.4) {
+        // THE ARRANGEMENT is a third of what a vampire's presence produces, alongside the night shift
+        // and the resting place. It is book-keeping, which is the joke and also the point.
+        const pool = rng() < 0.34 ? ARRANGEMENT_SAY : (rng() < 0.5 ? NIGHT_SHIFT_SAY : RESTING_PLACE_SAY);
+        chores.push(rpick(rng, pool)
+          .replace(/\{a\}/g, doer.name.split(" ")[0]).replace(/\{room\}/g, room));
+        return;
+      }
+      if (doer.mindless) {
+        chores.push(rpick(rng, MINDLESS_SAY).replace(/\{a\}/g, doer.name.split(" ")[0]).replace(/\{room\}/g, room));
+        return;
+      }
+      // THREE AXES (Frank, 1 Aug): the FACILITY says what work is done, the ORDER says which kind of
+      // work it was this week, and the SPECIES says how this person goes about it. Before this the
+      // facility was the only axis — so a smithy swept shavings during the week it forged a blade,
+      // and an orc and an elf did it identically. `fac.lastOrder` already recorded which order ran;
+      // nothing read it for flavour.
+      //
+      // Each axis falls through cleanly, so an unauthored people or an unauthored order simply uses
+      // the next one down — which is what makes 3,100 lines of writing an INCREMENTAL job.
+      // THE TASK IS THE MECHANISM; THE LINE IS THE FLAVOUR — and they must be drawn separately.
+      //
+      // A first version had the species and order pools REPLACE the task, which silently broke the
+      // household: `seen[room|task]` is how the week detects somebody doing the same job twice, and
+      // repeats are what generate reactions, bonds and therefore MORALE. Varying the text varied the
+      // key, so repeats stopped firing, kindness dried up, and a camped outlander walked out weeks
+      // early. **Flavour was changing mechanism**, which it must never do.
+      //
+      // So: draw the TASK from the facility as always — that is what the room did, and what the
+      // repeat check keys on — and then choose how to SAY it. The order says which kind of week it
+      // was, the species says how this person goes about it, and the facility's own line is the
+      // fall-through. Each falls through cleanly, which is what makes 3,100 lines incremental.
+      const task = rpick(rng, pool);
+      const byOrder = facilityOrderTasks(f.defId, f.lastOrder);
+      // BASE PLUS REGIONAL OVERLAY (Frank, 2 Aug). The base says what is true of that people
+      // anywhere; the overlay says what is true of them HERE, and they are drawn from together —
+      // so a Silver Marches dwarf speaks of Delzoun AND of ruining a joint, and a Waterdhavian one
+      // only of the joint. Absent overlay, the base stands alone and nothing breaks.
+      const baseSp = speciesFlavor(doer.species, "slice");
+      // A PERSON CARRIES THEIR ORIGIN, NOT THE SHIP'S POSITION. `hiredIn` first, `b.region` as the
+      // fall-back for anybody hired before this was recorded. On a keep the two are identical; on a
+      // vessel they are the whole point.
+      const regSp = regionalFlavor(doer.species, (doer as any).hiredIn || b.region, "slice");
+      // A DEVIL'S RANK COMPOSES LIKE A REGION DOES. The culture table says what every devil is; the
+      // rank says what this one was made for. Same mechanism, same shape, one more axis.
+      const rankSp = devilRank(doer.species);
+      const bySpecies = [baseSp, regSp, rankSp].filter(Boolean).flat();
+      // ⚠ DRAW RATE FOLLOWS TABLE DEPTH. Reading a real maintain-all log showed the elf lines firing
+      // four times in one week and TWICE IN A ROW — because only four are written where the spec
+      // calls for twenty, and a flat rate over a shallow table repeats.
+      //
+      // Scaling the chance by how much is actually written is self-correcting: a four-line table
+      // speaks rarely, a twenty-line table speaks at full rate, and **the fix needs no revisiting as
+      // the authoring run fills them in.** The alternative — a flat rate plus a no-repeat buffer —
+      // would still have shown the same four lines all year.
+      const depth = (t: any) => Math.min(1, ((t && t.length) || 0) / 20);
+      const roll = rng();
+      const orderChance = 0.35 * depth(byOrder);
+      const speciesChance = 0.30 * depth(bySpecies);
+      const say = byOrder && roll < orderChance ? rpick(rng, byOrder)
+                : bySpecies && roll < orderChance + speciesChance ? rpick(rng, bySpecies)
+                : null;
+      // A MINDLESS worker does the task and nothing else — no reaction, no warmth, no bond. Guarded
+      // here rather than inside each branch so there is one place the rule lives.
+      // A species or order line is a WHOLE SENTENCE; a facility task is a bare verb phrase the
+      // doer's name is prefixed to. Which it is, is KNOWN from the pool it came from — a first
+      // version sniffed the text for `{a}` and produced "Perrin Lightfoot There is a shape in the
+      // {room}...", which is inferring something the code already knew.
+      // FIRST NAME AFTER THE FIRST MENTION. The log showed "Garrick Carrick got on with it in the
+      // parlor, the way Garrick Carrick does" — the full name twice in one sentence, which is the
+      // same defect fixed for the chore lines weeks ago and reintroduced the moment a new pool
+      // started substituting {a}.
+      let line;
+      if (say) {
+        const first = doer.name.split(" ")[0];
+        let seenName = false;
+        line = say.replace(/\{a\}/g, () => { const out = seenName ? first : doer.name; seenName = true; return out; })
+                  .replace(/\{room\}/g, room);
+      } else {
+        line = doer.name + " " + task + ".";
+      }
+      // NEVER THE SAME LINE TWICE RUNNING. Depth-scaled draw made the species pools fire more often
+      // once they were filled to 20 — correct, and it brought back the one thing a reader notices
+      // instantly. One redraw is enough: the odds of hitting the same line twice more are nil.
+      if (line === chores[chores.length - 1] && say) {
+        const pool2 = byOrder && byOrder.includes(say) ? byOrder : bySpecies;
+        if (pool2 && pool2.length > 1) {
+          const first = doer.name.split(" ")[0];
+          let seen2 = false;
+          line = rpick(rng, pool2).replace(/\{a\}/g, () => { const out = seen2 ? first : doer.name; seen2 = true; return out; })
+                                  .replace(/\{room\}/g, room);
+        }
+      }
+      chores.push(line);
       const key = f.id + "|" + task;
       // Reactions/warmth draw from OTHERS — for a staffed room, its own crew; for a communal room, the
       // whole household, which is where people from different posts actually cross paths.
       const reactPool = staffed ? (f.henchmen || []) : staff;
+      if (speciesMindless(doer.species)) { seen[key] = true; return; }
       if (seen[key] && conn < cap) {                             // REPEAT → reaction, signed by the reactor
         const others = reactPool.filter((h) => h.id !== doer.id);
         if (others.length) {
           const rt = reactionsFor(f.defId);                     // this room's reaction voice (facility table if it has one, else general)
           const r = rpick(rng, others); const rx = firstReact(r, rt); const why = whyOf(doer, rt);
-          chores.push(fill(r.name + " came on " + doer.name + "'s work in the " + room + " half-done again" + (why ? ", " + why : "") + ", " + rx.say + ".", doer, r));
-          applyBond(doer, r, rx.d, rx.d < 0 ? "the " + room + ", again" : "took it in good part");
+          // PLACEHOLDERS THROUGHOUT, not literal names for the opening and {r} for the reaction. The
+          // opening used `r.name` directly, so `fill` never counted it as the first mention and the
+          // reaction clause then printed the full name AGAIN. One sentence, two full names, same
+          // person. Every occurrence is a token now, so the shortening applies across the whole line.
+          chores.push(fill("{r} came on {d}'s work in the " + room + " half-done again" + (why ? ", " + why : "") + ", " + rx.say + ".", doer, r));
+          // NAME THE MOMENT (1 Aug). This used to call `applyBond` with a bare delta, which mapped
+          // every ordinary week onto `worked_together` or `rebuked` — **and neither of those grants
+          // TRUST.** So Layer 2's trust dimension was structurally unreachable from the only system
+          // that generates relationships, and it had been since the day it was written. Layer 3
+          // depending on trust is what made it visible: a courtship reached 100 and stalled forever
+          // because intimacy could never start.
+          //
+          // The week already KNOWS what happened — the reaction row says whether they let it go,
+          // put it right properly, or made a morning of it. Throwing that away to pass a number was
+          // the defect. A named moment carries all six dimensions.
+          const moment = rx.tag === "forgiving" || rx.tag === "soft-hearted" ? "covered_for_them"
+                       : rx.tag === "patient" || rx.tag === "content" ? "let_it_go"
+                       : rx.tag === "diligent" || rx.tag === "straight-dealing" ? "did_it_properly"
+                       : rx.tag === "sly" ? "caught_them_out"
+                       : rx.d <= -2 ? "quarrelled"
+                       : rx.d < 0 ? "rebuked"
+                       : rx.d > 0 ? "worked_together"
+                       : "noticed";                       // a neutral reaction is not a kindness
+          bondEvent(doer, r, moment, 1);
+          const bd = bondOf(doer, r); bd.note = rx.d < 0 ? "the " + room + ", again" : "took it in good part";
           conn++;
         }
       } else if (!seen[key] && conn < cap && rng() < 0.18) {     // CO-OCCURRENCE → warmth (occasional)
@@ -2405,14 +3322,398 @@ export function runHouseholdWeek(s: AppState, ch: CharacterRecord, t: BastionTur
         if (others.length) {
           const mate = rpick(rng, others);
           chores.push(doer.name + " and " + mate.name + " fell to it together, " + rpick(rng, WARMTH_SAY) + ".");
-          applyBond(doer, mate, 1, "worked well together");
+          // Shared work is the commonest thing that happens in a household and it DOES build trust,
+          // slowly — you learn what somebody is like by working beside them. `worked_together`
+          // granted none, which is why nobody in any keep ever trusted anybody.
+          // ONE MOMENT PER BEAT. An earlier version fired a second `let_it_go` 30% of the time to
+          // speed trust along — which also doubled the morale that beat granted, and a camped
+          // outlander who should walk at four weeks lasted fourteen. **Trust needed a different
+          // source, not more events**: `worked_together` now grants a little trust itself, because
+          // you do learn what somebody is like by working beside them.
+          bondEvent(doer, mate, "worked_together", 1);
+          const bw = bondOf(doer, mate); bw.note = "worked well together";
           conn++;
         }
       }
       seen[key] = true;
     });
+    // THE PATROL (Frank, 1 Aug). The garrison's week is not a post, it is a ROUND — they walk the
+    // estate, room to room, and what they find is the beat. Which rooms they pass is the KEEP's, not
+    // a written list, so a facility joins the round the day it is built.
+    //
+    // It runs AFTER the chores on purpose: the household does the thing, and then somebody walks
+    // through and sees it. That ordering is what makes a patrol read as a patrol rather than as
+    // another worker — a guard is the person who arrives when the work is already happening.
+    //
+    // Bonds form here the same way they do anywhere else, and that is the point of giving defenders
+    // traits at all: a guard who breaks up an argument has an opinion of both parties afterward, and
+    // both of them have one of him.
+    const garrison = b.defenders || [];
+    if (garrison.length && allRooms.length) {
+      const walker = rpick(rng, garrison);
+      const where = rpick(rng, allRooms);
+      const roomNm = (bDef(where).name || "the room").toLowerCase();
+      // THE WEEK'S NEWS CHANGES THE ROUND (Frank, 1 Aug). The household week runs AFTER the event
+      // resolves, so t.events is already known — the garrison can answer the week it is actually in.
+      // An event with no entry falls through to the ordinary round, which is right: most weeks a
+      // guard simply walks. These REPLACE the round rather than stacking beside it — a guard standing
+      // to at the wall is not also putting their head round the kitchen.
+      // SLOT FILL (Frank, 1 Aug). Every patrol line is a d20 row carrying {who}, {room} and {mate},
+      // so one written sentence lands differently in every keep and joins any facility minted later
+      // without a word of new prose. Same principle as the library's drift: portable sentences,
+      // variety from composition rather than from writing every combination out.
+      //
+      // {mate} prefers somebody who actually works in that room and falls back to the household —
+      // a courtyard has no staff of its own, and a line about {mate} in the courtyard should still
+      // name somebody real rather than dropping an empty slot into the middle of a sentence.
+      const mateOf = (roomFac) => {
+        const inRoom = ((roomFac && roomFac.henchmen) || []).filter((h) => h.id !== walker.id);
+        const pool = inRoom.length ? inRoom : staff.concat(garrison).filter((h) => h.id !== walker.id);
+        return pool.length ? rpick(rng, pool) : null;
+      };
+      // RETURNS WHO IT NAMED (Frank, 1 Aug). The filler used to hand back only a string, so the
+      // caller had to pick its own second party for the bond — and picked independently, so a
+      // sentence about {mate} could record a bond against somebody the sentence never mentioned.
+      // The line and the relationship it creates must be about the same two people.
+      const fillPatrol = (line, roomFac, roomName) => {
+        const wantsMate = line.indexOf("{mate}") !== -1;
+        const m = wantsMate ? mateOf(roomFac) : null;
+        // A line that wants a {mate} in a house with nobody else in it would read as a blank. Draw
+        // again rather than print it — the tables are twenty deep precisely so there is always
+        // another row to reach for.
+        if (wantsMate && !m) return null;
+        const key = Object.keys(PATROL_SENTIMENT).find((k) => line.indexOf(k) !== -1);
+        return { text: line.replace(/\{who\}/g, walker.name).replace(/\{room\}/g, "the " + roomName).replace(/\{mate\}/g, m ? m.name : ""),
+                 mate: m, delta: key ? PATROL_SENTIMENT[key] : 0, note: key || null };
+      };
+      const drawPatrol = (table, roomFac, roomName) => {
+        for (let tries = 0; tries < 6; tries++) { const out = fillPatrol(rpick(rng, table), roomFac, roomName); if (out) return out; }
+        return null;
+      };
+      // One bond, from the line that was actually printed, between the two people it actually named.
+      const bondFromLine = (drawn, roomFac) => {
+        if (!drawn || !drawn.mate || drawn.mate.id === walker.id || !drawn.delta) return false;
+        // The note is the LATEST REASON, not a verdict on the relationship — `applyBond` accumulates
+        // `weight` but overwrites `note`, so a verdict-shaped note ("badly") would sit on a +2 bond
+        // after one bad night and read as a contradiction. The weight says where they stand; the
+        // note says what happened last.
+        applyBond(walker, drawn.mate, drawn.delta,
+          drawn.delta > 0 ? "something on the round that went well" : "something on the round that did not");
+        return true;
+      };
+      const newsIds = (t.events || []).map((lbl) => { const e = BASTION_EVENTS.find((x) => x.label === lbl); return e ? e.id : null; }).filter(Boolean);
+      const answering = newsIds.map((id) => PATROL_UNDER[id!]).filter(Boolean);
+      if (answering.length) {
+        const line = drawPatrol(rpick(rng, answering), where, roomNm);
+        if (line) { chores.push(line.text + "."); if (bondFromLine(line, where) && conn < cap) conn++; }
+        // A week that put the garrison on the wall leaves a mark for NEXT week. Recorded now,
+        // consumed once, then gone — see the mark block above.
+        const markable = newsIds.filter((id) => GARRISON_AFTER[id!]);
+        if (markable.length && !b.garrisonMark) b.garrisonMark = { evId: rpick(rng, markable), who: walker.name, setOn: t.n };
+      } else {
+      // ↑ answered the week. The ordinary round is skipped, NOT the day: an earlier version used
+      // `continue` here and silently dropped the whole day from the week — chores, morning and all.
+      // The one line the garrison was supposed to add deleted the eight it was supposed to join.
+      const incident = rng() < 0.22 && conn < cap;
+      if (incident) {
+        // Something happened, and somebody was involved. Prefer the people who actually work there;
+        // fall back to the household, because a courtyard has no staff of its own.
+        const iline = drawPatrol(PATROL_INCIDENTS, where, roomNm);
+        if (iline) chores.push(iline.text + ".");
+        if (iline && iline.mate && iline.mate.id !== walker.id) {
+          // The sentence names somebody. The bond is with THAT somebody, and its sign comes from
+          // what the sentence says happened — not from the other party's trait, which was the old
+          // behaviour and had a guard resenting somebody for being quarrelsome at them off-screen.
+          // The trait still colours it: a proud person takes a rebuke harder than a forgiving one.
+          const rt = reactionsFor(where.defId);
+          const rx = reactionOf(rt.to, iline.mate) || rt.generic;
+          const d = iline.delta || (rx.d < 0 ? -1 : 1);
+          applyBond(walker, iline.mate, d < 0 ? Math.min(d, rx.d || d) : Math.max(d, rx.d || d),
+            d < 0 ? "words in the " + roomNm : "sorted it out in the " + roomNm);
+          conn++;
+        }
+      } else {
+        const rline = drawPatrol(PATROL_ROUNDS, where, roomNm);
+        if (rline) chores.push(rline.text + ".");
+        // The quiet round still makes a keep feel inhabited: a guard who keeps turning up where you
+        // are working becomes somebody you know. Rate-limited like every other connector.
+        if (conn < cap && rng() < 0.14) {
+          const inRoom = (where.henchmen || []).filter((h) => h.id !== walker.id);
+          if (inRoom.length) {
+            const mate = rpick(rng, inRoom);
+            chores.push(walker.name + " stopped in the " + roomNm + " longer than the round wanted, and " + mate.name + " did not mind.");
+            applyBond(walker, mate, 1, "the long way round");
+            conn++;
+          }
+        }
+      }
+      }
+    }
+    // WHAT THEY ARE STILL CARRYING (Frank, 1 Aug). An event leaves a mark on the garrison that
+    // surfaces the FOLLOWING week, once, and is then gone — the helmet with a flower painted on it,
+    // a week after the fair. That residue is what makes a keep feel like it remembers things: not
+    // the event, which everybody notices, but its small leftover turning up in an ordinary week
+    // when nobody expected the subject back.
+    if (d === 1 && b.garrisonMark && b.garrisonMark.setOn < t.n) {
+      const pool = GARRISON_AFTER[b.garrisonMark.evId];
+      if (pool) chores.push(rpick(rng, pool).replace(/\{who\}/g, b.garrisonMark.who) + ".");   // GLOBAL: a row may name them twice
+      b.garrisonMark = null;                                          // shown once, and then it is over
+    }
     week.push({ day: d, morning, chores });
   }
+  // THEY LEAVE (Frank, 1 Aug). Morale at the floor and they go — and this is the point of the whole
+  // camping system: it is not flavour, it is a countdown the estate can stop at any time by building
+  // somewhere for its people to sleep. Ignore it long enough and you lose them, having paid to
+  // recruit them across a plane.
+  //
+  // Checked once at the END of the week, after the week's kindnesses have had their chance to count.
+  // Somebody who was at the floor on Monday and had a good week does not walk on Friday.
+  // HOW MUCH THIS PERSON IS HOLDING ON TO. Sum of their POSITIVE bonds, capped — the well that
+  // attachment digs. Negative bonds do not make somebody leave faster here; a person with an enemy
+  // and four friends is still held by the four. (Rivalry driving departure is Layer 2's business,
+  // not the housing system's.)
+  const attachmentOf = (h) => Math.min(MORALE_ATTACHMENT_MAX,
+    Math.floor(((h && h.bonds) || []).reduce((n, bd) => n + Math.max(0, bd.weight || 0), 0) / MORALE_BOND_PER_WEEK));
+  const floorFor = (h) => MORALE_FLOOR - attachmentOf(h);
+
+  const walkedOut: any[] = [];
+  (b.facilities || []).forEach((f) => {
+    const before = (f.henchmen || []).length;
+    f.henchmen = (f.henchmen || []).filter((h) => {
+      if ((h.morale || 0) > floorFor(h)) return true;
+      walkedOut.push(h); return false;
+    });
+    if (before > 0 && (f.henchmen || []).length === 0) f.staffLostOn = t.n;   // the room notices, as it always does
+  });
+  b.defenders = ((b.defenders) || []).filter((dfn: any) => {
+    if ((dfn.morale || 0) > floorFor(dfn)) return true;
+    walkedOut.push(dfn); return false;
+  });
+  walkedOut.forEach((h) => {
+    const line = rpick(rng, MORALE_WALKOUT).replace(/\{who\}/g, h.name);
+    week.push({ day: (week.length + 1), morning: [line], chores: [] });
+    t.benefits.push("\u{1F6AA} " + line);
+    s.logEntries.push({ id: "log" + s.nextId++, charId: ch.id, entryType: "EXPENDITURE", status: "APPROVED",
+      date: t.date, dtSpent: 0, gpSpent: 0,
+      spentOn: b.name + " \u2014 " + h.name + " left the estate" + (h.campedWeeks ? " after " + h.campedWeeks + " weeks camped outside the wall" : ""),
+      flavor: "Recruited from a long way off and never housed. The keep paid to bring them here and then let them sleep at the wall until they had had enough." });
+    s.notices.push({ id: "n" + s.nextId++, type: "bastionwalkout", ctx: "player", accountId: ch.ownerId,
+      char: ch.name, bastion: b.name, who: h.name, role: h.role || "", left: bastionStaff(b).length,
+      fate: "left", why: "was never given anywhere to sleep", from: null, fromRole: "", selfSigned: false });
+  });
+
+  // LAYER 3 · COURTSHIP, once a week over everybody who was HERE. Working in the same room is the
+  // proximity that feeds it; the rest of the household cools. Run before the concealment pass so a
+  // courtship that reaches marriage this week can be concealed this week.
+  {
+    const everyone = [...(b.facilities || []).flatMap((f: any) => f.henchmen || []), ...((b.defenders) || [])];
+    const roomOf: Record<string, string> = {};
+    (b.facilities || []).forEach((f: any) => (f.henchmen || []).forEach((h: any) => { roomOf[h.id] = f.id; }));
+    everyone.forEach((x: any) => {
+      if (x.mindless) return;
+      everyone.forEach((y: any) => {
+        if (y.mindless || x.id === y.id) return;
+        // Together if they share a room, or if one of them walks the whole estate — a defender's
+        // round takes them past everybody, which is how a guard ends up courting the cook.
+        const shared = roomOf[x.id] && roomOf[x.id] === roomOf[y.id];
+        const patrols = !roomOf[x.id] || !roomOf[y.id];
+        romanceTick(x, y, !!(shared || (patrols && rng() < 0.35)));
+      });
+    });
+    // THE DUNBAR CEILING IS ENFORCED HERE TOO. `pruneBonds` was called only from `bondEvent` and
+    // `applyBond` — and `romanceTick` writes through `bondOf`, which does not prune. Measured: a
+    // 278-person household held 277 bonds per person against a ceiling of 150. **A rule enforced at
+    // some of its entrances is a rule with a back way in**, which is the third time that exact shape
+    // has appeared today. Once a week over everybody closes it regardless of who wrote.
+    // A PRESENTATION THAT MOVES (Frank, 2 Aug). For a people whose gender is a role rather than an
+    // anatomy, the field has to be able to change — otherwise the axis is declared and then frozen,
+    // which is the same defect as declaring it and never asking. Everything that reads `.gender` is
+    // already correct to read whatever is presented now; what was missing was that it could differ
+    // from last week.
+    everyone.forEach((x: any) => {
+      if (x.mindless) return;
+      const xa = speciesAxes(x.species);
+      // The shift is recorded here and SAID in the day loop below, where the household is watching.
+      if (xa.fluid && x.gender && rng() < GENDER_FLUID_WEEKLY) {
+        const opts = ["man", "woman", "nonbinary"].filter((g) => g !== x.gender);
+        x.gender = rpick(rng, opts);
+        (x as any).shifted = true;
+      }
+      pruneBonds(x); jealousyTick(x, everyone);
+    });
+
+    // ---- THE ENEMY OF MY ENEMY, AND THE FRIEND OF MY FRIEND ------------------------------------
+    // How a GROUP forms out of pairs, without anybody modelling a group. Two people who both dislike
+    // a third find each other; two who both like a third do the same, more quietly. **Both are
+    // pairwise rules that produce a structure neither of them describes** — which is why the model
+    // did not need a new kind of object, only a rule it was missing.
+    //
+    // Rate-limited hard: once a week at most, and only where BOTH already feel it strongly. A
+    // household where every shared opinion produces an alliance is a committee, not a keep.
+    if (rng() < TRIANGLE_CHANCE) {
+      // ⚠ SAMPLE, DO NOT ENUMERATE. The first version walked every (x, y, c) triple — **O(n³), and
+      // 21 million iterations at 278 people**, 400 ms in a single block and the largest cost in the
+      // whole week by a factor of forty. Found by a stress run rather than by anything failing.
+      //
+      // And enumerating was never right anyway: the household notices A shared opinion, not every
+      // shared opinion in existence. Start from somebody who ALREADY feels strongly about somebody —
+      // which is a short list on their own bond record rather than a scan of the house — and then
+      // look for one other person who agrees. Same result, bounded work.
+      const folk = everyone.filter((x: any) => !x.mindless);
+      const feel = (x: any, y: any) => { const r = (x.bonds || []).find((z: any) => z.id === y.id); return r ? (r.affection || 0) : 0; };
+      const cands: any[] = [];
+      // ⚠ AN EMPTY HOUSEHOLD IS A REAL STATE. `rpick` on an empty list returns undefined, and this
+      // threw the moment a keep lost everybody — which only happens when the camping fuse works,
+      // so it was invisible until the severity multiplier started emptying keeps in Avernus.
+      for (let tries = 0; folk.length && tries < 24 && cands.length < 6; tries++) {
+        const x = rpick(rng, folk);
+        if (!x) break;
+        const strong = (x.bonds || []).filter((r: any) => Math.abs(r.affection || 0) >= TRIANGLE_MIN);
+        if (!strong.length) continue;
+        const link = rpick(rng, strong);
+        const c = folk.find((z: any) => z.id === link.id);
+        if (!c) continue;
+        const kind = (link.affection || 0) < 0 ? "enemy" : "friend";
+        // who else feels the same way about c?
+        const agrees = folk.filter((y: any) => y.id !== x.id && y.id !== c.id
+          && (kind === "enemy" ? feel(y, c) <= -TRIANGLE_MIN : feel(y, c) >= TRIANGLE_MIN));
+        if (agrees.length) cands.push([x, rpick(rng, agrees), c, kind]);
+      }
+      if (cands.length) {
+        const [x, y, c, kind] = rpick(rng, cands);
+        // A shared enmity binds harder and faster than a shared fondness, which is unkind and true.
+        bondEvent(x, y, kind === "enemy" ? "stood_together" : "shared_meal", kind === "enemy" ? 1 : 1.4);
+        week.push({ day: week.length + 1, morning: [],
+          chores: [rpick(rng, TRIANGLE_SAY[kind])
+            .replace(/\{a\}/g, x.name.split(" ")[0]).replace(/\{b\}/g, y.name.split(" ")[0])
+            .replace(/\{c\}/g, c.name.split(" ")[0])] });
+      }
+    }
+
+    // ---- AND WHAT SHAPE THE HOUSEHOLD'S ATTACHMENTS HAVE TAKEN ---------------------------------
+    // `polyStyleOf` computed whether a set of relationships was a V or a triad and **nothing ever
+    // asked** — written and never read, the seventh time in one session and the one flagged twice
+    // before it was committed. A shape nobody can see is a shape that does not exist.
+    //
+    // Read off the graph every week, never stored, and described the way the household would
+    // describe it — an observable fact, and never a word a designer would use.
+    if (rng() < 0.18) {
+      const folk = everyone.filter((x: any) => !x.mindless);
+      const shaped = folk.map((x: any) => ({ x, style: polyStyleOf(x, folk) })).filter((z: any) => z.style);
+      if (shaped.length) {
+        const { x, style } = rpick(rng, shaped);
+        const pool = POLYCULE_SAY[style];
+        if (pool) {
+          const partners = folk.filter((y: any) => y.id !== x.id
+            && (x.bonds || []).some((r: any) => r.id === y.id && (r.courtship || 0) > 25));
+          week.push({ day: week.length + 1, morning: [],
+            chores: [rpick(rng, pool)
+              .replace(/\{a\}/g, x.name.split(" ")[0])
+              .replace(/\{b\}/g, (partners[0] || x).name.split(" ")[0])
+              .replace(/\{c\}/g, (partners[1] || partners[0] || x).name.split(" ")[0])] });
+        }
+      }
+    }
+
+    // ---- AND WHEN THE HOUSE HAS SPLIT -----------------------------------------------------------
+    // A faction is only visible at the GROUP level — no pair in it need be especially hostile, which
+    // is exactly why the pairwise model could not see it. Read off the graph every week and never
+    // stored, because a stored clique disagrees with its members the first time somebody falls out.
+    if (rng() < 0.20) {
+      const split = factionsOf(everyone.filter((x: any) => !x.mindless));
+      if (split && split.a.length >= 2 && split.b.length >= 2) {
+        week.push({ day: week.length + 1, morning: [],
+          chores: [rpick(rng, FACTION_SAY)
+            .replace(/\{a\}/g, split.a[0].name.split(" ")[0])
+            .replace(/\{b\}/g, split.b[0].name.split(" ")[0])] });
+      }
+    }
+    // AN ENGAGEMENT BECOMES A MARRIAGE. Not instantly — it is a weekly chance, so the engagement is
+    // a period somebody lives through rather than a frame between two states.
+    const done = new Set<string>();
+    everyone.forEach((x: any) => {
+      if (x.spouseId || done.has(x.id)) return;
+      const partner = everyone.find((y: any) => y.id !== x.id && !y.spouseId
+        && romanceLabel(x, y) === "engaged" && romanceLabel(y, x) === "engaged");
+      if (!partner || rng() > ROMANCE_ENGAGED_MARRIES) return;
+      done.add(x.id); done.add(partner.id);
+      if (pairUp(x, partner)) {
+        week.push({ day: week.length + 1, morning: [x.name + " and " + partner.name + " were married this week. Nobody in the household is surprised and several of them are quietly pleased with themselves for having called it."], chores: [] });
+      }
+    });
+  }
+
+  // AND WHEN IT IS NOT A SECRET. An open relationship is not glimpsed — it is simply part of the
+  // household, and the beats are about the household accommodating it rather than about anybody
+  // noticing anything. Same principle (an observable fact, not a conclusion), but nothing to hide,
+  // so the fact can be larger.
+  {
+    const everyone2 = [...(b.facilities || []).flatMap((f: any) => f.henchmen || []), ...((b.defenders) || [])];
+    const shown = new Set<string>();
+    everyone2.forEach((h: any) => {
+      if (h.concealed || shown.has(h.id) || h.mindless) return;
+      const partner = everyone2.find((y: any) => y.id !== h.id && !y.concealed
+        && ["courting", "engaged", "married"].includes(romanceLabel(h, y)));
+      if (!partner) return;
+      shown.add(h.id); shown.add(partner.id);
+      if (rng() > OVERT_CHANCE) return;
+      const state = romanceLabel(h, partner);
+      const pool = OVERT_ROMANCE[state] || OVERT_ROMANCE.courting;
+      const say = (str) => str.replace(/\{a\}/g, h.name.split(" ")[0]).replace(/\{b\}/g, partner.name.split(" ")[0]);
+      // TWO SENTENCES: what one of them DID, and what the other one FELT (Frank, 1 Aug). The
+      // asymmetry made visible in the prose, for the same reason bonds are per-person — and it lets a
+      // gesture LAND BADLY, which one sentence cannot say. Which reception fires depends on how the
+      // OTHER side's record actually reads, so a devoted gesture toward somebody indifferent misses.
+      const theirs = ((partner.bonds || []).find((z: any) => z.id === h.id)) || {};
+      const back = (theirs.interest || 0) > 45 ? RECEIVING.warm
+                 : (theirs.interest || 0) > 20 ? RECEIVING.unsure
+                 : RECEIVING.missed;
+      week.push({ day: week.length + 1, morning: [], chores: [say(rpick(rng, pool)), say(rpick(rng, back))] });
+    });
+  }
+
+  // IT COMES OUT (Frank, 1 Aug). Concealment is a STATE, not a permanent fact — the household works
+  // it out, or the couple stops bothering. The chance rises with every week they have kept it, which
+  // is how this actually goes: people are bad at it for a long time and then, all at once, everybody
+  // knows.
+  {
+    const everyone = [...(b.facilities || []).flatMap((f: any) => f.henchmen || []), ...((b.defenders) || [])];
+    const done = new Set<string>();
+    everyone.forEach((h: any) => {
+      if (!h.concealed || done.has(h.id)) return;
+      const other = everyone.find((x: any) => x.id === h.concealed);
+      if (!other) { h.concealed = null; return; }        // the other half left; there is nothing to hide
+      done.add(h.id); done.add(other.id);
+      h.concealedSince = (h.concealedSince || 0) + 1;
+      other.concealedSince = h.concealedSince;
+      // A GLIMPSE, for a reader paying attention. States an observable fact and never the conclusion —
+      // the player does the arithmetic, and a player who skims reads past it, which is also correct.
+      if (rng() < GLIMPSE_CHANCE) {
+        // TWO POOLS, MIXED. The kind-specific table says what is remarkable about THIS pair; the
+        // shapes say what somebody actually saw — lingering, visiting, an unreciprocated favour.
+        // Drawing from both keeps a species-gap romance from producing the same five sentences
+        // forever, and the shapes carry the household's own innocent reading of what it witnessed,
+        // which is the thing that makes a glimpse dismissible rather than a clue.
+        const t = tabooOf(h, other);
+        const shapes = Object.values(GLIMPSE_SHAPES).flat();
+        const kindPool = (t && GLIMPSES[t.kind]) || GLIMPSES.default;
+        const pool = rng() < 0.55 ? shapes : kindPool;
+        const where = rpick(rng, allRooms.length ? allRooms : (b.facilities || []));
+        const roomNm = where ? (bDef(where).name || "room").toLowerCase() : "yard";
+        week.push({ day: week.length + 1, morning: [],
+                    chores: [rpick(rng, pool).replace(/\{a\}/g, h.name.split(" ")[0])
+                                             .replace(/\{b\}/g, other.name.split(" ")[0])
+                                             .replace(/\{room\}/g, roomNm)] });
+      }
+      const slip = CONCEAL_SLIP_BASE + CONCEAL_SLIP_PER_WEEK * h.concealedSince;
+      if (rng() < slip) {
+        h.concealed = null; other.concealed = null;
+        const line = rpick(rng, CONCEAL_REVEALED).replace(/\{a\}/g, h.name).replace(/\{b\}/g, other.name);
+        week.push({ day: week.length + 1, morning: [line], chores: [] });
+      }
+    });
+  }
+
   t.household = week;
 }
 
@@ -2444,6 +3745,11 @@ export function advanceFacilityCraft(s: AppState, ch: CharacterRecord, t: Bastio
 }
 
 export function resolveBastionTurn(s: AppState, ch: CharacterRecord, t: BastionTurn, leisure) {
+  // COUPLES ACROSS THE HOUSEHOLD, once a turn, before anything reads the roster. It cannot live in
+  // `staffFacility` — the candidate pool is the whole keep and is not knowable while one room is
+  // still filling, which is exactly why no couple could span two rooms and no defender could pair
+  // at all. Idempotent: it only ever considers people who have no spouse yet.
+  if (ch.bastion) pairHousehold(ch.bastion);
   advanceFacilityCraft(s, ch, t);                                // occupied rooms keep working, order or none
   t.orders.forEach((o) => resolveBastionOrder(s, ch, t, o, leisure));
   // Every room this turn took is free again. Keyed off the TURN NUMBER, not off t.orders — a

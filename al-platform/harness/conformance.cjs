@@ -79,6 +79,16 @@ sweep("BASTION_FACILITIES", BASTION_FACILITIES, [
   ["basics declare no space", (d) => d.kind !== "basic" || d.space === undefined ? null : "a basic facility must not declare space"],
 ]);
 
+// ⚠ CLEANUP MUST NOT DEPEND ON REACHING THE END (Frank's lint output, 3 Aug). These two lines sat
+// after the assertion block rather than in a `finally` — so any throw left `cf.cjs` and
+// `src/__cf.tsx` on disk, where the NEXT run's lint picked them up as source.
+//
+// That is exactly what happened on Frank's machine: his lint reported 356 warnings to my 288, and
+// the whole difference was a bundled artifact from a previously crashed run being linted as if
+// somebody had written it.
+//
+// Belt and braces: the cleanup is unconditional here, and `.oxlintrc.json` now ignores the artifact
+// names outright, because **a temp file that survives a crash is indistinguishable from source.**
 fs.rmSync("src/__cf.tsx", { force: true });
 fs.rmSync("cf.cjs", { force: true });
 
